@@ -21,7 +21,7 @@ function getValue(type) {
 		if (val !== myMedia[type]) {
 			console.log("Setting ", type, val, myMedia[type]);
 			let newVal = myMedia[type];
-			newVal = +newVal.toFixed(3);
+			newVal = +newVal.toFixed(2);
 			setStorage(type, newVal);
 			return newVal;
 		} else {
