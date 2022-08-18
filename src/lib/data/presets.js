@@ -1,6 +1,6 @@
 export let presets = [
     {
-        name: "Default",
+        name: "Default/Reset",
         values: {
             playbackRate: 1,
             pitch: 0,
