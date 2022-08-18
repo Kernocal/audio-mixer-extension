@@ -68,6 +68,7 @@ async function runCode() {
 		} else {
 			if (!optionTab?.audible) {
 				console.error("Option tab isn't playing audio but content tab is.");
+				return "Error, check devtools.";
 			}
 			//Already playing, get properties
 			let response = {message: "Already playing",
