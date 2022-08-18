@@ -33,6 +33,6 @@ Tone.js for pitch and reverb effects.
 Currently when ran on sites that dynamically create their audio the extension cannot change playback rate or volume, though pitch and reverb changes still work.
 
 # Credits
-The SvelteKit browser extension adapter made by antony
-Tone.js for PitchShift and reverb, maintained by tambien
-The initial tapCapture model using unique options method that works with manifest v3, zhw2590582
+The SvelteKit browser extension adapter made by antony.  
+Tone.js for PitchShift and reverb, maintained by tambien.  
+The initial tapCapture model using unique options method that works with manifest v3, zhw2590582.  
