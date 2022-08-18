@@ -20,8 +20,10 @@ function getValue(type) {
 		//Val stored can sometimes get out of sync with media playing
 		if (val !== myMedia[type]) {
 			console.log("Setting ", type, val, myMedia[type]);
-			setStorage(type, myMedia[type]);
-			return myMedia[type];
+			let newVal = myMedia[type];
+			newVal = +newVal.toFixed(3);
+			setStorage(type, newVal);
+			return newVal;
 		} else {
 			console.log("Not setting ", type, val, myMedia[type]);
 			return val;
