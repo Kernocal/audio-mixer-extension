@@ -21,7 +21,7 @@ git clone https://github.com/Kernocal/audio-mixer-extension <folder-name>
 cd <folder-name>
 npm run build
 ```
-Then you can load unpacked using the build folder.
+Then you can load unpacked using the created build folder.
 
 
 # About
@@ -33,6 +33,6 @@ Tone.js for pitch and reverb effects.
 Currently when ran on sites that dynamically create their audio the extension cannot change playback rate or volume, though pitch and reverb changes still work.
 
 # Credits
-The SvelteKit browser extension adapter made by antony.  
-Tone.js for PitchShift and reverb, maintained by tambien.  
-The initial tapCapture model using unique options method that works with manifest v3, zhw2590582.  
+The [SvelteKit browser extension adapter](https://github.com/antony/sveltekit-adapter-browser-extension) made by antony.  
+[Tone.js](https://tonejs.github.io/) for PitchShift and reverb, maintained by tambien.  
+The initial [tapCapture model](https://github.com/zhw2590582/chrome-audio-capture) using unique options method that works with manifest v3, by zhw2590582.  
