@@ -47,7 +47,7 @@ async function exitOptions() {
 
 async function runCode() {
 	const currentTab = await getCurrentTab();
-	if (currentTab.audible) {
+	if (currentTab?.audible) {
 		const id = await getStorage("optionTabId");
 		const optionTab = await getOptionsTab(id);
 		if (!optionTab) {
