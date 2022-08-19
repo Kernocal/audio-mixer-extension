@@ -23,11 +23,12 @@ function executeScript(tabId, file) {
 
 async function sendMessageToTab(type, data) {
 	const id = await getStorage(type);
-    return new Promise((resolve) => {
-      chrome.tabs.sendMessage(id, data, (res) => {
-        resolve(res);
-      });
-    });
+	try {
+		return await chrome.tabs.sendMessage(id, data)
+	} catch (e) {
+		console.error("Unable to send message, ", e);
+		return null;
+	}
 }
 
 async function sendToContent(data) {
@@ -40,7 +41,7 @@ async function exitOptions() {
 	const result = await removeTab(optionTabId);
 	clearStorage().then(() => {console.log("Cleared storage");});
 	if (result) {
-		return {message: "success"}
+		return {message: "Quit connection."}
 	}
 }
 
@@ -61,17 +62,17 @@ async function runCode() {
 			const record = await sendMessageToTab("optionTabId", {message: "start-recording"});
 			const baseVolume = await sendToContent({message: "get-volume"}).then((val) => {return val});
 			const basePlaybackRate = await sendToContent({message: "get-playbackRate"}).then((val) => {return val});
-			return {message: "Playing",
+			return {message: "Playing.",
 					volume: baseVolume.volume,
 					playbackRate: basePlaybackRate.playbackRate,
 				};
 		} else {
 			if (!optionTab?.audible) {
 				console.error("Option tab isn't playing audio but content tab is.");
-				return "Error, check devtools.";
+				return {message: "Error, check devtools."};
 			}
 			//Already playing, get properties
-			let response = {message: "Already playing",
+			let response = {message: "Already playing.",
 				volume: 0,
 				playbackRate: 0,
 				pitch: 0,
@@ -86,6 +87,9 @@ async function runCode() {
 			}
 			return response;
 		}
+	} else {
+		console.warn("Content tab isn't playing audio.");
+		return {message: "No audio on current tab."};
 	}
 }
 
@@ -108,12 +112,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	}
   });
 
-// chrome.tabs.onRemoved.addListener(async (tabId) => {
-// 	const currentTabId = await getStorage("currentTabId");
-//     const optionTabId = await getStorage("optionTabId");
-  
-//     if (currentTabId === tabId && optionTabId) {
-// 		clearStorage().then(() => {console.log("Cleared storage");});
-//       	await removeTab(optionTabId);
-// 	}
-// });
+chrome.tabs.onRemoved.addListener(async (tabId) => {
+	const currentTabId = await getStorage("currentTabId");
+    const optionTabId = await getStorage("optionTabId");
+	
+	if (tabId === optionTabId) {
+		await sendToContent({message: "update-playbackRate", playbackRate: 1}).then(() => {console.log("Reset playbackRate");});
+		clearStorage().then(() => {console.log("Cleared storage");});
+		console.log("Options tab was closed");
+	}
+	if (tabId === currentTabId) {
+		exitOptions().then((result) => {console.log("Options tab was closed with content tab,", result);});
+	}
+});
