@@ -1,7 +1,7 @@
 {
     "name": "Audio mixer",
     "description": "A browser extension to mix your audio live!",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "manifest_version": 3,
     "permissions": [
 		"activeTab",

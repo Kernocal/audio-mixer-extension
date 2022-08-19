@@ -1,11 +1,22 @@
 
+
+# 2022-08-19
+
+- [x] Catch remaining errors.
+
+- [x] Update messages, reset propeties on deleting options tab, catch errors.
+
+- [x] Make active effects show on ui, move to grid instead of 5x flexboxes.
+
+- [x] Update popup ui to show whats active, button actives, so on.
+
 # 2022-08-18
 
 - [x] Ensure local storage gets cleared, preset sometimes doesn't clear.
 
 - [x] Add safety in content script to stop redefining when script is injected more than once.
 
-- [x] Toggling play state doesnt work when quit then reopened -> Above mostly resovled this.
+- [x] Toggling play statemarkdown-language-features doesnt work when quit then reopened -> Above mostly resovled this.
 
 - [x] Move option js closer to actual route.
 
