@@ -40,13 +40,16 @@ export async function getOptionsTab(optionTabId) {
 	try {
 		return await chrome.tabs.get(optionTabId);
 	} catch (e) {
-		console.warn("Tab doesnt exist", e);
+		console.warn("Tab doesnt exist, ", e);
 		return null;
 	}
 }
 
-export function removeTab(tabId) {
-    return new Promise((resolve, reject) => {
-      chrome.tabs.remove(tabId).then(resolve).catch(reject);
-    });
+export async function removeTab(tabId) {
+	try {
+		return await chrome.tabs.remove(tabId);
+	} catch (e) {
+		console.warn("Tab not removed, ", e);
+		return null;
+	}
 }
