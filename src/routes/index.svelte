@@ -1,4 +1,5 @@
 <script>
+	import {draggable} from '@neodrag/svelte';
 	import {browser} from '$app/env'
 	import {presets} from '$lib/data/presets'
 	import {getStorage, setStorage, compareObjects} from '$lib/util/util';
@@ -76,7 +77,6 @@
 		chrome.runtime.sendMessage({
 			message: 'start-playing',
 			}, (response) => {
-			console.log(response.message);
 			if (["Playing.", "Already playing."].includes(response.message)) {
 				disabled = false;
 				updateValues(response, "local");
@@ -88,6 +88,7 @@
 
 </script>
 
+<!-- min-w-[400px] max-w-[400px] max-h-[532px] min-h-[532px] -->
 <div class="min-w-[400px] min-h-[500px] opacity-80 bg-gradient-to-tr from-orange-600 via-pink-600 to-purple-700 background-animate blur children:()">
 	<div class="grid-test children:(m-2)">
 		<div class="flex flex-col grid-child-1 bg-green-300/20 rounded-sm children:(rounded-md p-2)">
@@ -101,29 +102,29 @@
 				</div>
 			{/each}
 		</div>
-		<div class={"flex flex-col justify-center items-center grid-child-2 rounded-md bg-green-300/20 " + (properties.pitchWet > 0 ? "bg-green-300/20" : "passive-bg")}>
+		<div class={"flex flex-col justify-center items-center grid-child-2 rounded-md bg-green-300/20 " + (properties.pitchWet > 0 ? "bg-green-300/20" : "passive-bg") + " children:(p-1)"}>
 			<h1 class="text big-text">Pitch</h1>
 			<h2 class="text">Semitone Shift: {properties.pitch}</h2>
-			<input class="p-0" type="range" min="-12" max="12" step="1" {disabled} bind:value={properties.pitch} on:change={() => {updateValue("pitch", properties.pitch)}}>
+			<input class="" type="range" min="-12" max="12" step="1" {disabled} bind:value={properties.pitch} on:change={() => {updateValue("pitch", properties.pitch)}}>
 			<h2 class="text">Active amount: {properties.pitchWet}</h2>
-			<input class="p-0" type="range" min="0" max="1" step="0.01" {disabled} bind:value={properties.pitchWet} on:change={() => {updateValue("pitchWet", properties.pitchWet)}}>
+			<input class="" type="range" min="0" max="1" step="0.01" {disabled} bind:value={properties.pitchWet} on:change={() => {updateValue("pitchWet", properties.pitchWet)}}>
 		</div>
-		<div class={"flex flex-col justify-center items-center grid-child-3 rounded-md bg-green-300/20 " + (properties.reverbWet > 0 ? "bg-green-300/20" : "passive-bg")}>
+		<div class={"flex flex-col justify-center items-center grid-child-3 rounded-md bg-green-300/20 " + (properties.reverbWet > 0 ? "bg-green-300/20" : "passive-bg") + " children:(p-1)"}>
 			<h1 class="text big-text">Reverb</h1>
 			<h2 class="text">Decay: {properties.reverbDecay}</h2>
-			<input class="py-1" type="range" min="0.01" max="10" step="0.10" {disabled} bind:value={properties.reverbDecay} on:change={() => {updateValue("reverbDecay", properties.reverbDecay)}}>
+			<input class="" type="range" min="0.01" max="10" step="0.10" {disabled} bind:value={properties.reverbDecay} on:change={() => {updateValue("reverbDecay", properties.reverbDecay)}}>
 			<h2 class="text">Active amount: {properties.reverbWet}</h2>
-			<input class="py-1" type="range" min="0" max="1" step="0.01" {disabled} bind:value={properties.reverbWet} on:change={() => {updateValue("reverbWet", properties.reverbWet)}}>
+			<input class="" type="range" min="0" max="1" step="0.01" {disabled} bind:value={properties.reverbWet} on:change={() => {updateValue("reverbWet", properties.reverbWet)}}>
 		</div>
-		<div class="flex flex-col justify-center items-center grid-child-4 rounded-md bg-green-300/20">
+		<div class="flex flex-col justify-center items-center grid-child-4 rounded-md bg-green-300/20 children:(p-1)">
 			<h1 class="text big-text">Media Settings</h1>
 			<h2 class="text">Volume: {properties.volume}</h2>
-			<input class="py-1" type="range" min="0" max="1" step="0.01" {disabled} bind:value={properties.volume} on:change={() => {updateValue("volume", properties.volume)}}>
+			<input class="mb-2" type="range" min="0" max="1" step="0.01" {disabled} bind:value={properties.volume} on:change={() => {updateValue("volume", properties.volume)}}>
 			<h2 class="text">Playback rate: {properties.playbackRate}x</h2>
-			<input class="py-1" type="range" min="0" max="2" step="0.05" {disabled} bind:value={properties.playbackRate} on:change={() => {updateValue("playbackRate", properties.playbackRate)}}>
+			<input class="mb-2" type="range" min="0" max="2" step="0.05" {disabled} bind:value={properties.playbackRate} on:change={() => {updateValue("playbackRate", properties.playbackRate)}}>
 			<button class="button" {disabled} on:click={() => {sendMessage({message: "toggle-media"}, "Played/paused.")}}>Play/Pause</button>
 		</div>
-		<div class="flex flex-col justify-end grid-child-5">
+		<div class="flex flex-col justify-end grid-child-5 children:(p-1)">
 			<p class="text">{status}</p>
 			<button class="button" on:click={exitOptions}>Quit</button>
 		</div>
@@ -132,7 +133,7 @@
 
 <style>
 	.text {
-		@apply text-sm text-light-600 p-1;
+		@apply text-sm text-light-600;
 	}
 
 	.big-text {
