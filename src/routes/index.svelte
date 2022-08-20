@@ -178,9 +178,9 @@
 
 	.background-animate {
 		background-size: 400%;
-		-webkit-animation: bg-animation 2s ease infinite;
-		-moz-animation: bg-animation 2s ease infinite;
-		animation: bg-animation 2s ease infinite;
+		-webkit-animation: bg-animation 40s ease infinite;
+		-moz-animation: bg-animation 40s ease infinite;
+		animation: bg-animation 40s ease infinite;
 	}
 	@keyframes bg-animation {
 		0%,
