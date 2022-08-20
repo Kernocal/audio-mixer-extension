@@ -1,6 +1,6 @@
 {
     "name": "Audio mixer",
-    "description": "Apply audio presets such as Nightcore or (slowed + reverb) to any website playing audio.",
+    "description": "Audio Mixer lets you apply audio presets such as Nightcore or (slowed + reverb) to any website playing audio.",
     "version": "1.0.1",
     "manifest_version": 3,
     "permissions": [
