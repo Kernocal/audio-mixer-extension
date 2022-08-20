@@ -1,7 +1,6 @@
 {
     "name": "Audio mixer",
-    "short description": "Mix audio live by applying presets such as Nightcore or (slowed + reverb).",
-    "description": "Audio Mixer is a browser extension that allows you to apply audio presets to any website playing audio.",
+    "description": "Audio Mixer lets you apply audio presets such as Nightcore or (slowed + reverb) to any website playing audio.",
     "version": "1.0.1",
     "manifest_version": 3,
     "permissions": [
