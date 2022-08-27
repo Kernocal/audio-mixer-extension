@@ -94,7 +94,7 @@
 				<div class={(activePreset === i ? "bg-green-300/20" : "") + " mb-1 p-2 hover:(bg-green-300/20)"} on:click={() => {
 					setPreset(i);
 					updateValues(presets[activePreset].values, "global");}}>
-					<input class="ml-2 active:(bg-gray-400/20)" type="radio" name="activePreset" bind:group={activePreset} value={i}>
+					<input class="ml-2 active:(bg-gray-400/20)" type="radio" name="activePreset" {disabled} bind:group={activePreset} value={i}>
 					<span class="text-sm text-light-600">{preset.name}</span>
 				</div>
 			{/each}
