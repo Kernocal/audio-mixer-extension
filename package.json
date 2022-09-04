@@ -1,6 +1,6 @@
 {
 	"name": "audio-mixer",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
@@ -16,8 +16,5 @@
 		"sveltekit-adapter-browser-extension": "^0.3.0",
 		"vite-plugin-windicss": "^1.8.7"
 	},
-	"type": "module",
-	"dependencies": {
-		"@neodrag/svelte": "^1.2.3"
-	}
+	"type": "module"
 }

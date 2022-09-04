@@ -1,7 +1,7 @@
 {
     "name": "Audio mixer",
     "description": "Apply audio presets such as Nightcore or (slowed + reverb) to any website playing audio.",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "manifest_version": 3,
     "permissions": [
 		"activeTab",
@@ -15,9 +15,10 @@
       "48": "icon/favicon.png"
    },
     "action": {
-    "default_title": "Audio mixer",
-    "default_popup": "index.html",
-    "default_icon": "icon/favicon.png"},
+		"default_title": "Audio mixer",
+		"default_popup": "index.html",
+		"default_icon": "icon/favicon.png"
+	},
     "options_page": "options.html",
     "background": {
 		"service_worker": "scripts/background.js",

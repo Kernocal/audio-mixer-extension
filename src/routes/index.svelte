@@ -73,19 +73,18 @@
 		window.close();
 	}
 	
-	// if (browser) {
-	// 	getStorage("preset").then((storedPreset) => {activePreset = storedPreset ?? activePreset;});
-	// 	chrome.runtime.sendMessage({
-	// 		message: 'start-playing',
-	// 		}, (response) => {
-	// 		if (["Playing.", "Already playing."].includes(response.message)) {
-	// 			disabled = false;
-	// 			updateValues(response, "local");
-	// 		}
-	// 		status = response.message;
-	// 	})
-	// }
-	disabled = false;
+	if (browser) {
+		getStorage("preset").then((storedPreset) => {activePreset = storedPreset ?? activePreset;});
+		chrome.runtime.sendMessage({
+			message: 'start-playing',
+			}, (response) => {
+			if (["Playing.", "Already playing."].includes(response.message)) {
+				disabled = false;
+				updateValues(response, "local");
+			}
+			status = response.message;
+		})
+	}
 
 </script>
 
