@@ -1,7 +1,9 @@
 <script>
-	import {browser} from '$app/env'
-	import {presets} from '$lib/data/presets'
+	import {browser} from '$app/env';
+	import GitHub from '$lib/assets/github.png';
+	import {presets} from '$lib/data/presets';
 	import {getStorage, setStorage, compareObjects} from '$lib/util/util';
+
 
 	let properties = {pitch: 0, pitchWet: 0, reverbDecay: 0.01, reverbWet: 0, volume: 0, playbackRate: 0};
 	let status = "Waiting for media."
@@ -71,23 +73,24 @@
 		window.close();
 	}
 	
-	if (browser) {
-		getStorage("preset").then((storedPreset) => {activePreset = storedPreset ?? activePreset;});
-		chrome.runtime.sendMessage({
-			message: 'start-playing',
-			}, (response) => {
-			if (["Playing.", "Already playing."].includes(response.message)) {
-				disabled = false;
-				updateValues(response, "local");
-			}
-			status = response.message;
-		})
-	}
+	// if (browser) {
+	// 	getStorage("preset").then((storedPreset) => {activePreset = storedPreset ?? activePreset;});
+	// 	chrome.runtime.sendMessage({
+	// 		message: 'start-playing',
+	// 		}, (response) => {
+	// 		if (["Playing.", "Already playing."].includes(response.message)) {
+	// 			disabled = false;
+	// 			updateValues(response, "local");
+	// 		}
+	// 		status = response.message;
+	// 	})
+	// }
+	disabled = false;
 
 </script>
 
 <div class="min-w-[400px] min-h-[500px] opacity-80 bg-gradient-to-tr from-orange-600 via-pink-600 to-purple-700 background-animate blur children:()">
-	<div class="grid-test children:(m-2)">
+	<div class="grid-main children:(m-2)">
 		<div class="flex flex-col grid-child-1 bg-green-300/20 rounded-sm children:(rounded-md)">
 			<h1 class="text big-text">Audio Presets:</h1>
 			{#each presets as preset, i}
@@ -119,11 +122,16 @@
 			<input class="mb-2 py-1" type="range" min="0" max="1" step="0.01" {disabled} bind:value={properties.volume} on:change={() => {updateValue("volume", properties.volume)}}>
 			<h2 class="text">Playback rate: {properties.playbackRate}x</h2>
 			<input class="mb-2 py-1" type="range" min="0" max="2" step="0.05" {disabled} bind:value={properties.playbackRate} on:change={() => {updateValue("playbackRate", properties.playbackRate)}}>
-			<button class="button" {disabled} on:click={() => {sendMessage({message: "toggle-media"}, "Played/paused.")}}>Play/Pause</button>
+			<button class="button hover:opacity-80" {disabled} on:click={() => {sendMessage({message: "toggle-media"}, "Played/paused.")}}>Play/Pause</button>
 		</div>
-		<div class="flex flex-col justify-end grid-child-5 children:(p-1)">
-			<p class="text">{status}</p>
-			<button class="button" on:click={exitOptions}>Quit</button>
+		<div class="flex flex-row justify-between grid-child-5">
+			<div class="flex flex-col self-end children:(p-1)">
+				<p class="text">{status}</p>
+				<button class="button hover:opacity-80" on:click={exitOptions}>Quit</button>
+			</div>
+			<a title="Get help on GitHub!" class="self-end hover:opacity-75" href="https://github.com/Kernocal/audio-mixer-extension" target="_blank">
+				<img src={GitHub} alt="" class="float-right w-10 h-10 ml-2 filter-yellow-800"/>
+			</a>
 		</div>
 	</div>
 </div>
@@ -149,7 +157,7 @@
 		@apply w-24 p-2 m-2 bg-red-200 rounded-sm active:(ring-4 ring-light-200/25);
 	}
 
-	.grid-test {
+	.grid-main {
 		display: grid;
 		grid-template-columns: repeat(2, 1fr) repeat(2, 0.75fr);
 		grid-template-rows: repeat(3, 0.5fr);
