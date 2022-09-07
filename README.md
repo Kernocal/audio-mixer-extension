@@ -8,7 +8,7 @@ The presets were built around Nightcore but have expanded to includes others suc
 1. (slowed + reverb)
 2. osu based Nightcore
 3. osu based Daycore
-s
+
 Custom values are also supported.
 
 # Building
