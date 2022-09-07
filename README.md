@@ -1,6 +1,5 @@
 # Audio Mixer
-
-![extension image](extension.png "Audio Mixer Extension")
+![extension image](screenshots/1280.window.png "Audio Mixer Extension")
 
 Audio Mixer is a browser extension that currently works on Chrome and Edge. It allows you to apply audio presets to any website playing audio such as Youtube, Soundcloud, Spotify.
 
@@ -9,7 +8,7 @@ The presets were built around Nightcore but have expanded to includes others suc
 1. (slowed + reverb)
 2. osu based Nightcore
 3. osu based Daycore
-
+s
 Custom values are also supported.
 
 # Building
