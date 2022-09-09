@@ -1,10 +1,13 @@
+#
 
+- [] Changing url while preset is active, reactivate volume/playbackrate
+- [] Better error handling when multiple instances are tried?
 
 # 2022-08-19
 
 - [x] Catch remaining errors.
 
-- [x] Update messages, reset propeties on deleting options tab, catch errors.
+- [x] Update messages, reset properties on deleting options tab, catch errors.
 
 - [x] Make active effects show on ui, move to grid instead of 5x flexboxes.
 
@@ -16,7 +19,7 @@
 
 - [x] Add safety in content script to stop redefining when script is injected more than once.
 
-- [x] Toggling play statemarkdown-language-features doesnt work when quit then reopened -> Above mostly resovled this.
+- [x] Toggling play statemarkdown-language-features doesn't work when quit then reopened -> Above mostly resolved this.
 
 - [x] Move option js closer to actual route.
 
@@ -37,7 +40,7 @@
 
 - [y] Maybe change background main function for consistency.
 
-- [x] Local storage doesnt clear when changing between tabs which results in incorrect volume playbackrate displayed.
+- [x] Local storage doesn't clear when changing between tabs which results in incorrect volume playbackrate displayed.
 
 # 2022-08-11
 
@@ -53,7 +56,7 @@
 
 # 2022-08-10
 
-- [x] checkout onRemoved add listner, might be trying to remove tabs twice
+- [x] checkout onRemoved add listener, might be trying to remove tabs twice
 
 - [x] find out how pitch wet gets desynced
 
@@ -64,9 +67,9 @@
 # 2022-08-09
 
 - [x] Set volume on startup, requires injecting content script first.
-    sendToContent doesnt return result because sendMessageToTab doesnt return result
+    sendToContent doesn't return result because sendMessageToTab doesn't return result
 
-- [x] Store and retreive values for popup
+- [x] Store and retrieve values for popup
 
 - [x] Add UI amount of effect(wetness) to pitch
 
