@@ -1,7 +1,9 @@
 #
-
+- [] Rename/tooltip for osu presets
 - [] Changing url while preset is active, reactivate volume/playbackrate
 - [] Better error handling when multiple instances are tried?
+- [] Set up github actions file, zip process, chrome/edge api?
+- [] Maybe use double pause method for dynamic content.
 
 # 2022-08-19
 
