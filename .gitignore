@@ -1,11 +1,12 @@
+!.env.example
 .DS_Store
-node_modules
-/build
-/.svelte-kit
-/package
 .env
 .env.*
-!.env.example
 .npmrc
-manifest things
+.svelte-kit
 .vscode
+build
+build_history
+build.pem
+node_modules
+package
