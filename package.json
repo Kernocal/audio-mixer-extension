@@ -9,12 +9,13 @@
 		"prepare": "svelte-kit sync"
 	},
 	"devDependencies": {
-		"@sveltejs/adapter-auto": "next",
-		"@sveltejs/kit": "next",
-		"svelte": "^3.44.0",
+		"@sveltejs/adapter-auto": "^2.1.0",
+		"@sveltejs/kit": "^1.26.0",
+		"svelte": "^4.0.0",
+		"vite": "^4.0.0",
 		"svelte-windicss-preprocess": "^4.2.8",
-		"sveltekit-adapter-browser-extension": "^0.3.0",
-		"vite-plugin-windicss": "^1.8.7"
+		"vite-plugin-windicss": "^1.8.7",
+		"sveltekit-adapter-chrome-extension": "^2.0.0"
 	},
 	"type": "module"
 }

@@ -1,5 +1,6 @@
 // import adapter from '@sveltejs/adapter-auto';
-import adapter from 'sveltekit-adapter-browser-extension';
+import adapter from "sveltekit-adapter-chrome-extension";
+
 import { windi } from "svelte-windicss-preprocess";
 
 /** @type {import('@sveltejs/kit').Config} */
@@ -9,15 +10,13 @@ const config = {
 	],
 	kit: {
 		adapter: adapter({
-			pages: 'build',
-			assets: undefined,
-			fallback: undefined,
-			manifestVersion: 3
+			pages: "build",
+			assets: "build",
+			fallback: null,
+			precompress: false,
+			manifest: "manifest.json"
 		}),
-		appDir: 'app',
-		prerender: {
-			default: true
-		}
+		appDir: "app"
 	}
 };
 
