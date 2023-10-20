@@ -88,7 +88,7 @@
 
 </script>
 
-<div class="min-w-[400px] min-h-[500px] opacity-80 bg-gradient-to-tr from-orange-600 via-pink-600 to-purple-700 background-animate blur children:()">
+<div class="min-w-[400px] min-h-[500px] opacity-80 bg-gradient-to-tr from-orange-600 via-pink-600 to-purple-700 background-animate">
 	<div class="grid-main children:(m-2)">
 		<div class="flex flex-col grid-child-1 bg-green-300/20 rounded-sm children:(rounded-md)">
 			<h1 class="text big-text">Audio Presets:</h1>
@@ -121,12 +121,12 @@
 			<input class="mb-2 py-1" type="range" min="0" max="1" step="0.01" {disabled} bind:value={properties.volume} on:change={() => {updateValue("volume", properties.volume)}}>
 			<h2 class="text">Playback rate: {properties.playbackRate}x</h2>
 			<input class="mb-2 py-1" type="range" min="0" max="2" step="0.05" {disabled} bind:value={properties.playbackRate} on:change={() => {updateValue("playbackRate", properties.playbackRate)}}>
-			<button class="button hover:opacity-80" {disabled} on:click={() => {sendMessage({message: "toggle-media"}, "Played/paused.")}}>Play/Pause</button>
+			<button class="button active:(ring-4 ring-light-200/25) hover:opacity-80" {disabled} on:click={() => {sendMessage({message: "toggle-media"}, "Played/paused.")}}>Play/Pause</button>
 		</div>
 		<div class="flex flex-row justify-between grid-child-5">
 			<div class="flex flex-col self-end children:(p-1)">
 				<p class="text">{status}</p>
-				<button class="button hover:opacity-80" on:click={exitOptions}>Quit</button>
+				<button class="button active:(ring-4 ring-light-200/25) hover:opacity-80" on:click={exitOptions}>Quit</button>
 			</div>
 			<a title="Get help on GitHub!" class="self-end hover:opacity-75" href="https://github.com/Kernocal/audio-mixer-extension" target="_blank">
 				<img src={GitHub} alt="" class="float-right w-10 h-10 ml-2 filter-yellow-800"/>
@@ -153,7 +153,7 @@
 	}
 
 	.button {
-		@apply w-24 p-2 m-2 bg-red-200 rounded-sm active:(ring-4 ring-light-200/25);
+		@apply w-24 p-2 m-2 bg-red-200 rounded-sm;
 	}
 
 	.grid-main {
@@ -182,13 +182,13 @@
 		grid-area: 3 / 1 / 4 / 3; 
 	}
 
-
 	.background-animate {
 		background-size: 400%;
 		-webkit-animation: bg-animation 40s ease infinite;
 		-moz-animation: bg-animation 40s ease infinite;
 		animation: bg-animation 40s ease infinite;
 	}
+
 	@keyframes bg-animation {
 		0%,
 		100% {
@@ -198,4 +198,5 @@
 		background-position: 0% 50%;
 		}
 	}
+
 </style>

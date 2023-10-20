@@ -1,3 +1,5 @@
-<slot></slot>
-<style windi:preflights:global windi:safelist:global>
-</style>
+<script>
+    import 'virtual:uno.css'
+</script>
+
+<slot/>
