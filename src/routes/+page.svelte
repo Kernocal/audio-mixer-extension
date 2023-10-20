@@ -1,5 +1,5 @@
 <script>
-	import {browser} from '$app/env';
+	import {browser} from '$app/environment';
 	import GitHub from '$lib/assets/github.png';
 	import {presets} from '$lib/data/presets';
 	import {getStorage, setStorage, compareObjects} from '$lib/util/util';
