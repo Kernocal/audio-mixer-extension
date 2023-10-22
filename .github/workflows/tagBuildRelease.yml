@@ -1,0 +1,17 @@
+name: Build and Release on tag
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-extension:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/build-extension
+  # release-extension:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: ././github/actions/release-extension
