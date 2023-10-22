@@ -35,12 +35,11 @@ runs:
         privateKey: ${{ env.CHROME_CRX_PRIVATE_KEY }}
 
     - name: Create release
-      working-directory: build
       uses: softprops/action-gh-release@v1
       with: 
         files: |
-          audio-mixer-${{ github.ref_name }}.zip
-          audio-mixer-${{ github.ref_name }}.crx
+          build/audio-mixer-${{ github.ref_name }}.zip
+          build/audio-mixer-${{ github.ref_name }}.crx
 
 
     # - name: Upload extension archive
