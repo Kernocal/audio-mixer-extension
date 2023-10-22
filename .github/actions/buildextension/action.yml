@@ -1,0 +1,28 @@
+name: 'Build Chrome extension'
+description: 'test'
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+
+    - name: Install packages
+      run: pnpm ci
+      shell: bash
+
+    - name: Build extension
+      run: pnpm run build --if-present
+      shell: bash
+
+    - name: Pack extension
+      working-directory: out
+      run: zip -r extension-${{ github.event.pull_request.head.sha }}.zip *
+      shell: bash
+
+    - name: Upload extension archive
+      uses: actions/upload-artifact@v3
+      with:
+        name: extension-${{ github.sha }}
+        path: out/extension-${{ github.event.pull_request.head.sha }}.zip
