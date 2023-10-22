@@ -32,7 +32,7 @@ runs:
       with:
         zipFilePath: 'build/audio-mixer-${{ github.ref_name }}.zip'
         crxFilePath: 'build/audio-mixer-${{ github.ref_name }}.crx'
-        privateKey: ${{ secrets.CHROME_CRX_PRIVATE_KEY }}
+        privateKey: ${{ CHROME_CRX_PRIVATE_KEY }}
 
     - name: Create release
       uses: softprops/action-gh-release@v1
