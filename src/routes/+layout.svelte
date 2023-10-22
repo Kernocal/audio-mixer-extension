@@ -1,3 +1,7 @@
-<slot></slot>
-<style windi:preflights:global windi:safelist:global>
-</style>
+<script>
+	import '@unocss/reset/tailwind-compat.css';
+	import "virtual:uno.css";
+	// import "../reset.css";
+</script>
+
+<slot />

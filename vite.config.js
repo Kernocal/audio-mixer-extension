@@ -1,11 +1,16 @@
 import { sveltekit } from '@sveltejs/kit/vite';
-import WindiCSS from 'vite-plugin-windicss';
+import { defineConfig } from "vite";
+import Unocss from 'unocss/vite';
+import extractorSvelte from '@unocss/extractor-svelte';
 
 /** @type {import('vite').UserConfig} */
-const config = {
-        plugins: [
-            WindiCSS(),
-            sveltekit()],
-};
-
-export default config;
+export default defineConfig({
+	plugins: [
+		Unocss({
+			extractors: [
+				extractorSvelte(),
+			],
+		}),
+		sveltekit(),
+	]
+});
