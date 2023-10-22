@@ -19,7 +19,7 @@ runs:
       shell: bash
 
     - name: Build extension
-      run: pnpm run build --if-present
+      run: pnpm run build
       shell: bash
 
     - name: Pack extension
