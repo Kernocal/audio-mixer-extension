@@ -35,6 +35,7 @@ runs:
         privateKey: ${{ env.CHROME_CRX_PRIVATE_KEY }}
 
     - name: Create release
+      working-directory: build
       uses: softprops/action-gh-release@v1
       with: 
         files: |
