@@ -3,13 +3,19 @@ description: 'test'
 runs:
   using: "composite"
   steps:
+    - name: Install pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
         node-version: 18
+        cache: 'pnpm'
 
     - name: Install packages
-      run: pnpm ci
+      run: pnpm install
       shell: bash
 
     - name: Build extension
