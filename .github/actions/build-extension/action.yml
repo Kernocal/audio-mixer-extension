@@ -36,7 +36,10 @@ runs:
 
     - name: Create release
       uses: softprops/action-gh-release@v1
-      with: 
+      with:
+        generate_release_notes: true
+        # body: 'Full Changelog: ${{ github.ref_name }}'
+        fail_on_unmatched_files: true
         files: |
           build/audio-mixer-${{ github.ref_name }}.zip
           build/audio-mixer-${{ github.ref_name }}.crx
