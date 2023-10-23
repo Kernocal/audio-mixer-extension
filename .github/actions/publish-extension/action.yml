@@ -1,26 +1,22 @@
-name: 'Build Chrome extension'
-description: 'test'
+name: 'Publish extension'
+description: 'Builds, signs, then releases Chromium based extension'
 runs:
   using: "composite"
   steps:
     - name: Install pnpm
       uses: pnpm/action-setup@v2
-      with:
-        version: 8
 
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
         node-version: 18
-        cache: 'pnpm'
+        cache: pnpm
 
     - name: Install packages
       run: pnpm install
-      shell: bash
 
     - name: Build extension
       run: pnpm run build
-      shell: bash
 
     - name: Pack extension
       working-directory: build
@@ -30,23 +26,15 @@ runs:
     - name: Sign extension
       uses: cardinalby/webext-buildtools-chrome-crx-action@v2
       with:
-        zipFilePath: 'build/audio-mixer-${{ github.ref_name }}.zip'
-        crxFilePath: 'build/audio-mixer-${{ github.ref_name }}.crx'
+        zipFilePath: build/audio-mixer-${{ github.ref_name }}.zip
+        crxFilePath: build/audio-mixer-${{ github.ref_name }}.crx
         privateKey: ${{ env.CHROME_CRX_PRIVATE_KEY }}
 
     - name: Create release
       uses: softprops/action-gh-release@v1
       with:
         generate_release_notes: true
-        # body: 'Full Changelog: ${{ github.ref_name }}'
         fail_on_unmatched_files: true
         files: |
           build/audio-mixer-${{ github.ref_name }}.zip
           build/audio-mixer-${{ github.ref_name }}.crx
-
-
-    # - name: Upload extension archive
-    #   uses: actions/upload-artifact@v3
-    #   with:
-    #     name: extension-${{ github.sha }}
-    #     path: build/extension-${{ github.ref_name }}.zip
