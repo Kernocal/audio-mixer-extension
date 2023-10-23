@@ -1,0 +1,40 @@
+name: 'Publish extension'
+description: 'Builds, signs, then releases Chromium based extension'
+runs:
+  using: "composite"
+  steps:
+    - name: Install pnpm
+      uses: pnpm/action-setup@v2
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+        cache: pnpm
+
+    - name: Install packages
+      run: pnpm install
+
+    - name: Build extension
+      run: pnpm run build
+
+    - name: Pack extension
+      working-directory: build
+      run: zip -r audio-mixer-${{ github.ref_name }}.zip *
+      shell: bash
+
+    - name: Sign extension
+      uses: cardinalby/webext-buildtools-chrome-crx-action@v2
+      with:
+        zipFilePath: build/audio-mixer-${{ github.ref_name }}.zip
+        crxFilePath: build/audio-mixer-${{ github.ref_name }}.crx
+        privateKey: ${{ env.CHROME_CRX_PRIVATE_KEY }}
+
+    - name: Create release
+      uses: softprops/action-gh-release@v1
+      with:
+        generate_release_notes: true
+        fail_on_unmatched_files: true
+        files: |
+          build/audio-mixer-${{ github.ref_name }}.zip
+          build/audio-mixer-${{ github.ref_name }}.crx
