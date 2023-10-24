@@ -1,8 +1,9 @@
 <script>
-	import {browser} from '$app/environment';
+	import { browser } from '$app/environment';
 	import GitHub from '$lib/assets/github.png';
-	import {presets} from '$lib/data/presets';
-	import {getStorage, setStorage, compareObjects} from '$lib/util/util';
+	import { presets } from '$lib/data/presets';
+	import { getStorage, setStorage, compareObjects } from '$lib/util/util';
+	// import Knob from 'svelte-knob';
 
 
 	let properties = {pitch: 0, pitchWet: 0, reverbDecay: 0.01, reverbWet: 0, volume: 0, playbackRate: 0};
@@ -73,7 +74,8 @@
 		window.close();
 	}
 	
-	if (browser) {
+	if (!browser) {
+		console.log("ran", browser)
 		getStorage("preset").then((storedPreset) => {activePreset = storedPreset ?? activePreset;});
 		chrome.runtime.sendMessage({
 			message: 'start-playing',
@@ -93,9 +95,10 @@
 		<div class="flex flex-col grid-child-1 bg-green-300/20 rounded-sm children:(rounded-md)">
 			<h1 class="text big-text">Audio Presets:</h1>
 			{#each presets as preset, i}
+				<!-- svelte-ignore a11y-no-static-element-interactions -->
 				<div class={(activePreset === i ? "bg-green-300/20" : "") + " mb-1 p-2 hover:(bg-green-300/20)"} on:click={() => {
-					setPreset(i);
-					updateValues(presets[activePreset].values, "global");}}>
+						setPreset(i);
+						updateValues(presets[activePreset].values, "global");}} on:keypress={() => {}} role="">
 					<input class="ml-2 active:(bg-gray-400/20)" type="radio" name="activePreset" {disabled} bind:group={activePreset} value={i}>
 					<span class="text-sm text-light-600">{preset.name}</span>
 				</div>
