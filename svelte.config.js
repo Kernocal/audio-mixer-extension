@@ -1,10 +1,13 @@
-// import adapter from '@sveltejs/adapter-auto';
 import adapter from "sveltekit-adapter-chrome-extension";
+import { vitePreprocess } from '@sveltejs/kit/vite';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
-	preprocess: [],
+	preprocess: [vitePreprocess()],
 	kit: {
+		// alias: {
+		// 	'$stat': 'static',
+		// },
 		adapter: adapter({
 			pages: "build",
 			assets: "build",

@@ -1,9 +1,10 @@
-<script>
+<script lang="ts">
 	import { browser } from '$app/environment';
 	import GitHub from '$lib/assets/github.png';
 	import { presets } from '$lib/data/presets';
 	import { getStorage, setStorage, compareObjects } from '$lib/util/util';
-	// import Knob from 'svelte-knob';
+	// import { test } from '../scripts/test';
+	// import Knob from 'svelte-knob'; asd
 
 
 	let properties = {pitch: 0, pitchWet: 0, reverbDecay: 0.01, reverbWet: 0, volume: 0, playbackRate: 0};

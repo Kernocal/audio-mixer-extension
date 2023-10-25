@@ -1,4 +1,4 @@
-import {sleep, getStorage, setStorage, clearStorage, getCurrentTab, getOptionsTab, removeTab} from '/scripts/common.js';
+import {sleep, getStorage, setStorage, clearStorage, getCurrentTab, getOptionsTab, removeTab} from './common';
 
 function openOptions() {
     return new Promise(async (resolve) => {
@@ -14,8 +14,8 @@ function openOptions() {
 
 function executeScript(tabId, file) {
     return new Promise((resolve) => {
-      chrome.scripting.executeScript({target: {tabId}, files: [file]}, () => {
-          resolve();
+      chrome.scripting.executeScript({target: {tabId}, files: [file]}, (res) => {
+          resolve(res);
         }
       );
     });
