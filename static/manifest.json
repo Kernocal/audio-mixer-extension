@@ -13,6 +13,13 @@
     "host_permissions": [
       "*://soundcloud.com/*"
     ],
+    "content_scripts": [
+      {
+        "matches": ["*://soundcloud.com/*"],
+        "run_at": "document_start",
+        "js": ["scripts/test.js"]
+      }
+    ],
     "icons": {
       "128": "icon/favicon.png",
       "48": "icon/favicon.png"
