@@ -75,7 +75,7 @@
 		window.close();
 	}
 	
-	if (!browser) {
+	if (browser) {
 		console.log("ran", browser)
 		getStorage("preset").then((storedPreset) => {activePreset = storedPreset ?? activePreset;});
 		chrome.runtime.sendMessage({
