@@ -1,4 +1,58 @@
-import {sleep, getStorage, setStorage, clearStorage, getCurrentTab, getOptionsTab, removeTab} from './common';
+function sleep(ms = 0) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function getStorage(key) {
+    return new Promise((resolve) => {
+      chrome.storage.local.get([key], (result) => {
+        resolve(result[key]);
+      });
+    });
+}
+  
+function setStorage(key, value) {
+  return new Promise((resolve) => {
+    chrome.storage.local.set({[key]: value}, () => {
+        resolve(value);
+      }
+    );
+  });
+}
+
+function clearStorage() {
+	return new Promise((resolve) => {
+		chrome.storage.local.clear((res) => {
+			resolve(res);
+		  }
+		);
+	  });
+}
+
+function getCurrentTab() {
+	return new Promise((resolve) => {
+		chrome.tabs.query({active: true, lastFocusedWindow: true}, (tabs) => {
+			resolve(tabs[0]);
+		})
+	})
+}
+
+async function getOptionsTab(optionTabId) {
+	try {
+		return await chrome.tabs.get(optionTabId);
+	} catch (e) {
+		console.warn("Tab doesnt exist, ", e);
+		return null;
+	}
+}
+
+async function removeTab(tabId) {
+	try {
+		return await chrome.tabs.remove(tabId);
+	} catch (e) {
+		console.warn("Tab not removed, ", e);
+		return null;
+	}
+}
 
 function openOptions() {
     return new Promise(async (resolve) => {
@@ -14,8 +68,8 @@ function openOptions() {
 
 function executeScript(tabId, file) {
     return new Promise((resolve) => {
-      chrome.scripting.executeScript({target: {tabId}, files: [file]}, (res) => {
-          resolve(res);
+      chrome.scripting.executeScript({target: {tabId}, files: [file]}, () => {
+          resolve();
         }
       );
     });
