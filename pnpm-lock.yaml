@@ -11,6 +11,9 @@ devDependencies:
   '@sveltejs/kit':
     specifier: ^1.26.0
     version: 1.26.0(svelte@4.2.2)(vite@4.5.0)
+  '@types/chrome':
+    specifier: ^0.0.248
+    version: 0.0.248
   '@unocss/extractor-svelte':
     specifier: ^0.56.5
     version: 0.56.5
@@ -424,12 +427,33 @@ packages:
       - supports-color
     dev: true
 
+  /@types/chrome@0.0.248:
+    resolution: {integrity: sha512-qtBzxZD1v3eWZn8XxH1i07pAhzJDHnxJBBVy7bmntXxXKxjzNXYxD41teqa5yOcX/Yy8brRFGZESEzGoINvBDg==}
+    dependencies:
+      '@types/filesystem': 0.0.34
+      '@types/har-format': 1.2.14
+    dev: true
+
   /@types/cookie@0.5.3:
     resolution: {integrity: sha512-SLg07AS9z1Ab2LU+QxzU8RCmzsja80ywjf/t5oqw+4NSH20gIGlhLOrBDm1L3PBWzPa4+wkgFQVZAjE6Ioj2ug==}
     dev: true
 
   /@types/estree@1.0.3:
     resolution: {integrity: sha512-CS2rOaoQ/eAgAfcTfq6amKG7bsN+EMcgGY4FAFQdvSj2y1ixvOZTUA9mOtCai7E1SYu283XNw7urKK30nP3wkQ==}
+    dev: true
+
+  /@types/filesystem@0.0.34:
+    resolution: {integrity: sha512-La4bGrgck8/rosDUA1DJJP8hrFcKq0BV6JaaVlNnOo1rJdJDcft3//slEbAmsWNUJwXRCc0DXpeO40yuATlexw==}
+    dependencies:
+      '@types/filewriter': 0.0.31
+    dev: true
+
+  /@types/filewriter@0.0.31:
+    resolution: {integrity: sha512-12df1utOvPC80+UaVoOO1d81X8pa5MefHNS+gWX9R2ucSESpMz9K5QwlTWDGKASrzCpSFwj7NPYh+nTsolgEGA==}
+    dev: true
+
+  /@types/har-format@1.2.14:
+    resolution: {integrity: sha512-pEmBAoccWvO6XbSI8A7KvIDGEoKtlLWtdqVCKoVBcCDSFvR4Ijd7zGLu7MWGEqk2r8D54uWlMRt+VZuSrfFMzQ==}
     dev: true
 
   /@unocss/astro@0.56.5(vite@4.5.0):
