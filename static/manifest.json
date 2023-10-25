@@ -4,12 +4,22 @@
     "version": "1.0.3",
     "manifest_version": 3,
     "permissions": [
-		"activeTab",
-		"tabs",
-		"storage",
-		"scripting",
-		"tabCapture"
-	],
+      "activeTab",
+      "tabs",
+      "storage",
+      "scripting",
+      "tabCapture"
+    ],
+    "host_permissions": [
+      "*://soundcloud.com/*"
+    ],
+    "content_scripts": [
+      {
+        "matches": ["*://soundcloud.com/*"],
+        "run_at": "document_start",
+        "js": ["scripts/test.js"]
+      }
+    ],
     "icons": {
       "128": "icon/favicon.png",
       "48": "icon/favicon.png"
@@ -21,7 +31,7 @@
 	},
     "options_page": "options.html",
     "background": {
-		"service_worker": "scripts/background.js",
-		"type": "module"
+      "service_worker": "scripts/background.js",
+      "type": "module"
     }
 }
