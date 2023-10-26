@@ -1,55 +1,65 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import GitHub from '$lib/assets/github.png';
-	import { presets } from '$lib/data/presets';
+	import { presets } from '$lib/data';
 	import { getStorage, setStorage, compareObjects } from '$lib/util/util';
-	// import { test } from '../scripts/test';
-	// import Knob from 'svelte-knob'; asd
 
+	import type { properties } from '$lib/types';
 
-	let properties = {pitch: 0, pitchWet: 0, reverbDecay: 0.01, reverbWet: 0, volume: 0, playbackRate: 0};
+	let properties: properties = {
+		pitch: 0, 
+		pitchWet: 0, 
+		reverbDecay: 0.01, 
+		reverbWet: 0, 
+		volume: 0, 
+		playbackRate: 0
+	}
+
 	let status = "Waiting for media."
 	let activePreset = 0;
 	let disabled = true;
 
-	function setPreset(newPreset) {
-		activePreset = newPreset;
+	function setPreset(presetIndex) {
+		activePreset = presetIndex;
 		setStorage("preset", activePreset);
 	}
 
-	function getValidPreset(clone) {
+	function getPresetIndex(clone) {
+		//If no valid preset found, set to last preset, custom.
 		for (var i = 0; i < presets.length; i++) {
-			if (i === presets.length - 1) {
-				return i
-			} else if (compareObjects(presets[i].values, clone)) {
+			let preset = presets[i]
+			if (preset.name == "Custom" || compareObjects(preset?.values, clone)) {
 				return i
 			}
 		}
 	}
 
-	function sendMessage(data, text = status) {
+	function sendCommand(data, text = status) {
 		chrome.runtime.sendMessage(data, response => {
 			if (response?.message === 'success') {
 				status = text;
 			} else {
-				status = "Failed."
+				status = "Failed to send data."
 			}
 		});
 	}
 
 	function updateValue(type, value) {
+		console.log("type", type, "value", value);
 		if (!disabled) {
 			const property = type.split(/(?=[A-Z])/);
 			let text = property[1] ? `Updated ${property[0]} ${property[1].toLowerCase()}.` : `Updated ${property[0]}.`;
-			sendMessage({
-				message: "update-" + type,
-				[type]: value
+			sendCommand({
+				command: "SET_VALUE",
+				type,
+				value
 			}, text)
 			if (String(type) != "volume") {
-				const propertiesClone = (({ volume, ...key}) => key)(properties)
-				if (presets[activePreset] != propertiesClone) {
-					const newPreset = getValidPreset(propertiesClone);
-					setPreset(newPreset);
+				const propertiesClone = (({ volume, ...key}) => key)(properties);
+				//Determine correct preset if updated properties don't match active preset.
+				if (!compareObjects(presets[activePreset]?.values || {}, propertiesClone)) {
+					const presetIndex = getPresetIndex(propertiesClone);
+					setPreset(presetIndex);
 				}
 			}
 		}
@@ -71,22 +81,21 @@
 	function exitOptions() {
 		properties.playbackRate = 1;
 		updateValue("playbackRate", properties.playbackRate);
-		sendMessage({message: "exit-options"}, "Exiting now.");
+		sendCommand({command: "EXIT_MIXER"}, "Exiting now.");
 		window.close();
 	}
 	
 	if (browser) {
-		console.log("ran", browser)
-		getStorage("preset").then((storedPreset) => {activePreset = storedPreset ?? activePreset;});
-		chrome.runtime.sendMessage({
-			message: 'start-playing',
-			}, (response) => {
+		getStorage("preset").then((storedPreset) => {
+			activePreset = storedPreset ?? activePreset;
+		});
+		chrome.runtime.sendMessage({command: "START_MIXER"}, (response) => {
 			if (["Playing.", "Already playing."].includes(response.message)) {
-				disabled = false;
-				updateValues(response, "local");
+					disabled = false;
+					updateValues(response, "local");
 			}
 			status = response.message;
-		})
+		});
 	}
 
 </script>
@@ -96,13 +105,12 @@
 		<div class="flex flex-col grid-child-1 bg-green-300/20 rounded-sm children:(rounded-md)">
 			<h1 class="text big-text">Audio Presets:</h1>
 			{#each presets as preset, i}
-				<!-- svelte-ignore a11y-no-static-element-interactions -->
-				<div class={(activePreset === i ? "bg-green-300/20" : "") + " mb-1 p-2 hover:(bg-green-300/20)"} on:click={() => {
+				<label class={(activePreset === i ? "bg-green-300/20" : "") + " mb-1 p-2 hover:(bg-green-300/20)"}>
+					<input class="ml-2 active:(bg-gray-400/20)" type="radio" name="activePreset" {disabled} bind:group={activePreset} value={i} on:click={() => {
 						setPreset(i);
-						updateValues(presets[activePreset].values, "global");}} on:keypress={() => {}} role="">
-					<input class="ml-2 active:(bg-gray-400/20)" type="radio" name="activePreset" {disabled} bind:group={activePreset} value={i}>
+						updateValues(presets[activePreset].values, "global");}}>
 					<span class="text-sm text-light-600">{preset.name}</span>
-				</div>
+				</label>
 			{/each}
 		</div>
 		<div class={"flex flex-col justify-center items-center grid-child-2 rounded-md bg-green-300/20 " + (properties.pitchWet > 0 ? "bg-green-300/20" : "passive-bg")}>
@@ -121,11 +129,11 @@
 		</div>
 		<div class="flex flex-col justify-center items-center grid-child-4 rounded-md bg-green-300/20">
 			<h1 class="text big-text">Media Settings</h1>
-			<h2 class="text">Volume: {properties.volume}</h2>
+			<h2 class="text">Volume: {+properties.volume.toFixed(2)}</h2>
 			<input class="mb-2 py-1" type="range" min="0" max="1" step="0.01" {disabled} bind:value={properties.volume} on:change={() => {updateValue("volume", properties.volume)}}>
 			<h2 class="text">Playback rate: {properties.playbackRate}x</h2>
 			<input class="mb-2 py-1" type="range" min="0" max="2" step="0.05" {disabled} bind:value={properties.playbackRate} on:change={() => {updateValue("playbackRate", properties.playbackRate)}}>
-			<button class="button active:(ring-4 ring-light-200/25) hover:opacity-80" {disabled} on:click={() => {sendMessage({message: "toggle-media"}, "Played/paused.")}}>Play/Pause</button>
+			<button class="button active:(ring-4 ring-light-200/25) hover:opacity-80" {disabled} on:click={() => {sendCommand({command: "TOGGLE_PLAYBACK"}, "Played/paused.")}}>Play/Pause</button>
 		</div>
 		<div class="flex flex-row justify-between grid-child-5">
 			<div class="flex flex-col self-end children:(p-1)">
