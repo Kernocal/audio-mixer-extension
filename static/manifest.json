@@ -15,6 +15,7 @@
     ],
     "content_scripts": [
       {
+        "world": "MAIN",
         "matches": ["*://soundcloud.com/*"],
         "run_at": "document_start",
         "js": ["scripts/test.js"]
@@ -31,7 +32,7 @@
 	},
     "options_page": "options.html",
     "background": {
-      "service_worker": "scripts/background.js",
+      "service_worker": "app/immutable/background.js",
       "type": "module"
     }
 }
