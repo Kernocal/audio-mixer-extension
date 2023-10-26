@@ -1,20 +1,10 @@
 <script lang="ts">
 	import { browser } from "$app/environment";
 	import { loadScript, getStorage, setStorage } from "$lib/util/util";
+	import { tabCapture } from '$lib/util/handleTab';
 
 	let pitchShift;
 	let reverb;
-
-	function tabCapture() {
-		return new Promise((resolve) => {
-			chrome.tabCapture.capture(
-				{ audio: true, video: false },
-				(stream) => {
-					resolve(stream);
-				}
-			);
-		});
-	}
 
 	async function updateValue(type, value) {
 		try {
@@ -32,13 +22,14 @@
 					reverb.wet.value = value;
 					break;
 			}
-			const val = await setStorage(type, value);
+			await setStorage(type, value);
 		} catch (e) {
-			console.error(e);
+			console.warn("Updating value error,", type, value, e);
 		}
 	}
 
 	async function startRecord() {
+		await loadScript("scripts/Tone.js");
 		const stream = await tabCapture();
 
 		if (stream) {
@@ -79,22 +70,25 @@
 	}
 
 	if (browser) {
-		loadScript("scripts/Tone.js");
-		chrome.runtime.onMessage.addListener(
-			(request, sender, sendResponse) => {
-				const [message, type] = request.message.split("-");
-
-				if (message === "start" && type === "recording") {
-					startRecord();
-					sendResponse({ message: "success" });
+		chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+				console.log("Options req", request);
+				if (request.command === "START_RECORDING") {
+					startRecord().then(() => {
+						sendResponse({message: "success"});
+					});
+					return true;
 				}
-				if (message === "update") {
-					const value = request[type];
-					// console.log("Changing", type, value);
-					updateValue(type, value);
-					sendResponse({ message: "success", [type]: value });
+				//Can add getValue if needed, right now isn't needed like volume and playbackRate.
+				if (["pitch", "pitchWet", "reverbDecay", "reverbWet"].includes(request.type)) {
+					updateValue(request.type, request.value).then(() => {
+						sendResponse({message: "success", [request.type]: request.value});
+					});
+					return true;
 				}
 			}
 		);
 	}
 </script>
+
+Pitch {pitchShift?.pitch} {pitchShift?.wet?.value}
+Reverb {reverb?.decay} {reverb?.wet?.value}
