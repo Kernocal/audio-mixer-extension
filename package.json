@@ -4,9 +4,13 @@
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
-		"build:full": "vite build && pnpm build-content && pnpm build-background",
-		"build-content": "esbuild src/content.ts --bundle --minify --outdir=build/scripts",
-		"build-background": "esbuild src/background.ts --bundle --minify --outdir=build/scripts",
+		"build:esbuild": "vite build && pnpm esbuild-background && pnpm esbuild-content",
+		"build:rollup": "vite build && pnpm rename-background && pnpm rename-content",
+		"build:main": "vite build && pnpm esbuild-content && pnpm rename-background",
+		"esbuild-background": "esbuild src/background.ts --bundle --minify --outdir=build/scripts",
+		"esbuild-content": "esbuild src/content.ts --bundle --minify --outdir=build/scripts",
+		"rename-background": "renamer --replace background.js build/app/immutable/background.*.js",
+		"rename-content": "renamer --replace content.js build/app/immutable/content.*.js",
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
@@ -19,12 +23,14 @@
 		"@unocss/reset": "^0.56.5",
 		"@unocss/transformer-directives": "^0.56.5",
 		"esbuild": "^0.19.5",
+		"renamer": "^4.0.0",
 		"svelte": "^4.0.0",
 		"svelte-check": "^3.5.2",
 		"sveltekit-adapter-chrome-extension": "^2.0.0",
 		"tslib": "^2.6.2",
 		"typescript": "^5.2.2",
 		"unocss": "^0.56.5",
+		"url": "^0.11.3",
 		"vite": "^4.0.0"
 	},
 	"type": "module"
