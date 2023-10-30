@@ -1,6 +1,7 @@
 import { getStorage } from "./util";
+import { messages } from "$lib/data";
 
-export function tabCapture() {
+export function tabCapture(): Promise<MediaStream | null> {
 	return new Promise((resolve) => {
 		chrome.tabCapture.capture({ audio: true, video: false }, (stream) => {
 				resolve(stream);
@@ -9,7 +10,7 @@ export function tabCapture() {
 	});
 }
 
-export function getActiveTab() {
+export function getActiveTab(): Promise<chrome.tabs.Tab> {
 	return new Promise((resolve) => {
 		chrome.tabs.query({active: true, lastFocusedWindow: true}, (tabs) => {
 			resolve(tabs[0]);
@@ -17,42 +18,45 @@ export function getActiveTab() {
 	})
 }
 
-export async function getOptionsTab(optionTabId) {
+export async function getTab(tabId: number) {
 	try {
-		return await chrome.tabs.get(optionTabId);
+		return await chrome.tabs.get(tabId);
 	} catch (e) {
-		console.warn("Tab doesn't exist, ", e);
+		console.warn(messages.GET_TAB, e);
 		return null;
 	}
 }
 
-export function openOptionTab() {
-    return new Promise(async (resolve) => {
-      chrome.tabs.create({
-		pinned: true,
-		active: false,
-		url: `chrome-extension://${chrome.runtime.id}/options.html`}, (tab) => {
-          resolve(tab);
-        }
-      );
-    });
-}
-
-export async function removeTab(tabId) {
+export async function removeTab(tabId: number) {
 	try {
 		return await chrome.tabs.remove(tabId);
 	} catch (e) {
-		console.warn("Tab not removed, ", e);
+		console.warn(messages.REMOVE_TAB, e);
 		return null;
 	}
 }
 
-export async function sendMessageToTab(tabId: string, data) {
-	const id = await getStorage(tabId);
+export function openRecordTab(): Promise<chrome.tabs.Tab> {
+    return new Promise(async (resolve) => {
+		try {
+			chrome.tabs.create({
+				pinned: true,
+				active: false,
+				url: `chrome-extension://${chrome.runtime.id}/record.html`}, (tab) => {
+				resolve(tab);
+				}
+			);
+		} catch (e) {
+			console.warn(messages.CREATE_TAB, e);
+		}
+    });
+}
+
+export async function sendTabCommand(tabId: number, data: Object) {
 	try {
-		return await chrome.tabs.sendMessage(id, data)
+		return await chrome.tabs.sendMessage(tabId, data)
 	} catch (e) {
-		console.error("Unable to send message, ", e);
+		console.warn(messages.COMMAND_FAILED, e);
 		return null;
 	}
 }
