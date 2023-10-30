@@ -10,15 +10,13 @@
       "scripting",
       "tabCapture"
     ],
-    "host_permissions": [
-      "*://soundcloud.com/*"
-    ],
+    "host_permissions": ["*://soundcloud.com/*", "*://open.spotify.com/*"],
     "content_scripts": [
       {
         "world": "MAIN",
-        "matches": ["*://soundcloud.com/*"],
+        "matches": ["*://soundcloud.com/*", "*://open.spotify.com/*"],
         "run_at": "document_start",
-        "js": ["scripts/test.js"]
+        "js": ["scripts/inject.js"]
       }
     ],
     "icons": {
@@ -30,7 +28,6 @@
 		"default_popup": "index.html",
 		"default_icon": "icon/favicon.png"
 	},
-    "options_page": "options.html",
     "background": {
       "service_worker": "app/immutable/background.js",
       "type": "module"

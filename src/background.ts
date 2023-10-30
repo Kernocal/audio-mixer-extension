@@ -1,105 +1,133 @@
-import { getStorage, setStorage, clearStorage, executeScript, sleep } from "$lib/util/util";
-import { getActiveTab, getOptionsTab, openOptionTab, removeTab, sendMessageToTab } from "$lib/util/handleTab";
+import { getStorage, setStorage, clearStorage, getValuesFromStorage, executeScript, sleep } from "$lib/util/util";
+import { getActiveTab, getTab, openRecordTab, removeTab, sendTabCommand } from "$lib/util/handleTab";
+import { messages } from "$lib/data";
+import type { ContentProperty, ContentCommand, OptionalProperties } from "$lib/types";
 
-async function sendToActive(data) {
-	return sendMessageToTab("activeTab", data)
+var URL_CHANGED: boolean = false;
+var PAGE_LOADED: boolean = false;
+var PAGE_FULLY_LOADED: boolean = false;
+
+async function sendContentTabCommand(data: ContentCommand) {
+	const tabId = await getStorage("contentTab");
+	return await sendTabCommand(tabId, data);
 }
 
-async function exitOptions() {
-	const optionTabId = await getStorage("optionTab");
-	const result = await removeTab(optionTabId);
-	clearStorage().then(() => {console.log("Cleared local storage.");});
-	if (result) {
-		return {message: "Quit connection."}
+async function getValue(type: ContentProperty) {
+	return await sendContentTabCommand({command: "GET_VALUE", type}).then((res) => {return res?.value});
+}
+
+function setValue(type: ContentProperty, value: number) {
+	return sendContentTabCommand({command: "SET_VALUE", type, value});
+}
+
+async function getPlayerValues() {
+	return {
+		volume: getValue("volume"),
+		playbackRate: getValue("playbackRate"),
+	};
+}
+
+async function executeContent() {
+	const contentTabId = await getStorage("contentTab");
+	await executeScript(contentTabId, "scripts/content.js");
+	await sleep(500);
+}
+
+async function startRecording() {
+	const recordTab = await openRecordTab();
+	if (recordTab) {
+		await setStorage("recordTab", recordTab.id);
+		await sleep(500);
+		await sendTabCommand(recordTab.id as number, {command: "START_RECORDING"});
+		let res = {
+			message : messages.STATUS_PLAYING,
+			volume: await getValue("volume"),
+			playbackRate: await getValue("playbackRate")
+		};
+		console.log("BG recording: ", res);
+		return res;
 	}
 }
 
-async function runCode() {
-	const activeTab: chrome.tabs.Tab = await getActiveTab();
-	if (activeTab?.audible) {
-		const tabId = await getStorage("optionTab");
-		const optionTab = await getOptionsTab(tabId);
-		if (!optionTab) {
-			//Play and connect
-			await setStorage("activeTab", activeTab.id);
-			await executeScript(activeTab.id, "scripts/content.js");
-			await sleep(500);
-
-			const newOptionTab = await openOptionTab();
-			await setStorage("optionTab", newOptionTab.id);
-			await sleep(500);
-
-			await sendMessageToTab("optionTab", {command: "START_RECORDING"});
-			const baseVolume = await sendToActive({command: "GET_VALUE", type: "volume"}).then((val) => {return val});
-			const basePlaybackRate = await sendToActive({command: "GET_VALUE", type: "playbackRate"}).then((val) => {return val});
-			return {message: "Playing.",
-					volume: baseVolume.volume,
-					playbackRate: basePlaybackRate.playbackRate,
-				};
+async function runMixer() {
+	const contentTab: chrome.tabs.Tab = await getActiveTab();
+	await setStorage("contentTab", contentTab.id);
+	if (contentTab?.audible) {
+		const recordTabId = await getStorage("recordTab");
+		const recordTab = (recordTabId) ? await getTab(recordTabId) : undefined;
+		if (!recordTab) {
+			await executeContent();
+			return await startRecording();
 		} else {
-			if (!optionTab?.audible) {
-				console.error("Option tab isn't playing audio but content tab is.");
-				return {message: "Error, check devtools."};
+			if (!recordTab?.audible) {
+				console.warn(messages.CAPTURE_ERROR, messages.GITHUB_ISSUE);
+				return {message: messages.NO_RECORD_AUDIO};
 			}
-			//Already playing, get properties
-			let response = {message: "Already playing.",
-				volume: 0,
+			//Already playing, get properties from storage other than volume as user may have changed it.
+			let response: OptionalProperties = {
 				playbackRate: 0,
 				pitch: 0,
 				pitchWet: 0,
 				reverbDecay: 0,
 				reverbWet: 0
 			}
-			for (let key of Object.keys(response)) {
-				if (key !== "message") {
-					response[key] = await getStorage(key);
-				}
-			}
-			return response;
+			response = await getValuesFromStorage(response);
+			let res = {
+				message: messages.STATUS_ALREADY_PLAYING,
+				volume: await getValue("volume"),
+				...response
+			};
+			console.log("BG already: ", res);
+			return res;
 		}
 	} else {
-		console.warn("Content tab isn't playing audio.");
-		return {message: "No audio on current tab."};
+		return {message: messages.STATUS_NO_AUDIO_CONTENT};
 	}
 }
 
-chrome.runtime.onInstalled.addListener(() => {
-	clearStorage().then(() => {console.log("Cleared local storage.");});
-});
+async function exitRecordTab() {
+	const recordTabId = await getStorage("recordTab");
+	const result = (recordTabId) ? await removeTab(recordTabId) : undefined;
+	if (result) {
+		return {message: messages.STATUS_QUIT};
+	}
+}
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	console.log("Background req", request);
-	if (request.command === "START_MIXER") {
-		runCode().then((response) => {
-			console.log("content response:", response);
-			sendResponse(response);
-		})
-		return true
-	}
-	if (request.command === "EXIT_MIXER") {
-		exitOptions().then((result) => {sendResponse(result)})
-		return true
-	}
-	if (request.command === "TOGGLE_PLAYBACK" || ["playbackRate", "volume"].includes(request.type)) {
-		sendToActive(request).then((result) => {sendResponse(result);})
-		return true
-	}
-  });
-
-chrome.tabs.onRemoved.addListener(async (tabId) => {
-	const activeTabId = await getStorage("activeTab");
-    const optionTabId = await getStorage("optionTab");
+function init() {
+	chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+		if (request.command === "START_MIXER") {
+			runMixer().then((response) => {
+				sendResponse(response);
+			})
+			return true
+		}
+		if (request.command === "EXIT_MIXER") {
+			exitRecordTab().then((result) => {sendResponse(result)})
+			return true
+		}
+		if (request.command === "TOGGLE_PLAYBACK" || ["playbackRate", "volume"].includes(request.type)) {
+			sendContentTabCommand(request).then((result) => {sendResponse(result);})
+			return true
+		}
+	});
 	
-	if (tabId === optionTabId) {
-		await sendToActive({command: "SET_VALUE", type: "playbackRate", value: 1}).then(() => {
-			console.log("Reset playback rate.");
-		});
-		clearStorage().then(() => {console.log("Cleared storage");});
-		console.log("Options tab was closed");
-	}
-	if (tabId === activeTabId) {
-		exitOptions().then((result) => {
-			console.log("Options tab was closed with content tab,", result);
-		});
-	}
-});
+	chrome.runtime.onInstalled.addListener(() => {
+		chrome.storage.local.get(null).then((data) => {
+			console.log("BG: current storage", data);
+		})
+	});
+	
+	chrome.tabs.onRemoved.addListener(async (tabId) => {
+		const contentTabId = await getStorage("contentTab");
+		const recordTabId = await getStorage("recordTab");
+
+		if (tabId === contentTabId || tabId === recordTabId) {
+			await exitRecordTab();
+			await sendContentTabCommand({command: "SET_VALUE", type: "playbackRate", value: 1});
+			await clearStorage();
+			console.log(messages.EXITING);
+		}
+	});
+}
+
+init();
