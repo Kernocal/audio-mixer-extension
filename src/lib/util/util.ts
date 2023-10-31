@@ -1,6 +1,11 @@
 import { messages } from '../data';
 import type { OptionalProperties, Properties } from '../types';
 
+export async function exitCleanUp() {
+    await clearStorage();
+    console.log(messages.EXITING);
+}
+
 export function sleep(ms = 0): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
