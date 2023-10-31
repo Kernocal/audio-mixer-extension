@@ -1,11 +1,6 @@
 import { messages } from '../data';
 import type { OptionalProperties, Properties } from '../types';
 
-export async function exitCleanUp() {
-    await clearStorage();
-    console.log(messages.EXITING);
-}
-
 export function sleep(ms = 0): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -16,6 +11,11 @@ export function roundNumber(number: number, amount: 0|1|2|3|4 = 0) {
 
 export function URLIncludes(name: string) {
     return window.location.host.includes(name);
+}
+
+export async function exitCleanUp() {
+    await clearStorage();
+    console.log(messages.EXITING);
 }
 
 export function compareObjects(obj1: Object, obj2: Object) {
@@ -58,20 +58,19 @@ export function setStorage(key: string, value: any): Promise<void> {
     });
 }
 
+export function clearStorage(): Promise<void> {
+	return new Promise((resolve) => {
+		chrome.storage.local.clear(() => {
+			resolve();
+		});
+	  });
+}
+
 export async function getValuesFromStorage(properties: OptionalProperties) {
     for (let key of Object.keys(properties)) {
         properties[key as keyof Properties] = await getStorage(key);
     }
     return properties;
-}
-
-export function clearStorage(): Promise<void> {
-	return new Promise((resolve) => {
-		chrome.storage.local.clear(() => {
-			resolve();
-		  }
-		);
-	  });
 }
 
 export function setElementAttributes(query: string, data: Object) {
@@ -86,7 +85,6 @@ export function setElementAttributes(query: string, data: Object) {
         }
     } else if (elements.length > 1) {
         console.warn(messages.QUERY_MULTIPLE, query, elements);
-        return elements[1];
     } else {
         console.warn(messages.QUERY_NONE, query);
     }
