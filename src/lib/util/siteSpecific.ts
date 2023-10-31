@@ -9,11 +9,12 @@ export const INJECT_WEBSITE = SOUNDCLOUD || SPOTIFY;
 const SLIDER_WEBSITE = INJECT_WEBSITE || YOUTUBE;
 
 export function getInjectedValue(type: Property) {
+	console.log("CONTENT: getting injected value", type);
 	return new Promise((resolve) => {
 		document.addEventListener('GIVE_VALUE', (e) => {
-			// console.log("CONTENT: GOT val", e);
-			resolve((<GiveValueEvent>e).detail.value);
-		});
+			console.log("CONTENT: inject GOT val", e);
+			resolve((e as GiveValueEvent).detail.value);
+		}, {once: true});
 		// console.log("CONTENT: Getting val", type);
 		document.dispatchEvent(new CustomEvent('GET_VALUE', {
 			detail: {type}
@@ -31,6 +32,10 @@ export function setInjectedValue(type: Property, value: PropertyValue) {
 export function toggleInjectedPlayback() {
 	// console.log("CONTENT: Toggling playback");
 	document.dispatchEvent(new CustomEvent('TOGGLE_PLAYBACK', {}));
+}
+
+export function injectedPageChange() {
+	document.dispatchEvent(new CustomEvent('PAGE_CHANGE', {}));
 }
 
 export function updateSlider(volume: PropertyValue) {
