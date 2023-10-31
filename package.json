@@ -4,6 +4,7 @@
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
+		"preview": "vite preview",
 		"build:esbuild": "vite build && pnpm esbuild-background && pnpm esbuild-content",
 		"build:rollup": "vite build && pnpm rename-background && pnpm rename-content",
 		"build:main": "vite build && pnpm esbuild-content && pnpm rename-background",
@@ -11,7 +12,6 @@
 		"esbuild-content": "esbuild src/content.ts --bundle --minify --outdir=build/scripts",
 		"rename-background": "renamer --replace background.js build/app/immutable/background.*.js",
 		"rename-content": "renamer --replace content.js build/app/immutable/content.*.js",
-		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
 	},
