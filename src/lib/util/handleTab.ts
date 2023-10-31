@@ -1,5 +1,6 @@
 import { getStorage } from "./util";
-import { messages } from "$lib/data";
+import { messages } from "../data";
+import type { ContentCommand } from "../types";
 
 export function tabCapture(): Promise<MediaStream | null> {
 	return new Promise((resolve) => {
@@ -8,14 +9,6 @@ export function tabCapture(): Promise<MediaStream | null> {
 			}
 		);
 	});
-}
-
-export function getActiveTab(): Promise<chrome.tabs.Tab> {
-	return new Promise((resolve) => {
-		chrome.tabs.query({active: true, lastFocusedWindow: true}, (tabs) => {
-			resolve(tabs[0]);
-		})
-	})
 }
 
 export async function getTab(tabId: number) {
@@ -36,6 +29,14 @@ export async function removeTab(tabId: number) {
 	}
 }
 
+export function getActiveTab(): Promise<chrome.tabs.Tab> {
+	return new Promise((resolve) => {
+		chrome.tabs.query({active: true, lastFocusedWindow: true}, (tabs) => {
+			resolve(tabs[0]);
+		})
+	})
+}
+
 export function openRecordTab(): Promise<chrome.tabs.Tab> {
     return new Promise(async (resolve) => {
 		try {
@@ -52,11 +53,26 @@ export function openRecordTab(): Promise<chrome.tabs.Tab> {
     });
 }
 
-export async function sendTabCommand(tabId: number, data: Object) {
+export async function exitRecordTab() {
+	const recordTabId = await getStorage("recordTab");
+	const result = (recordTabId) ? await removeTab(recordTabId) : undefined;
+	if (result) {
+		return {message: messages.STATUS_QUIT};
+	}
+}
+
+export async function sendTabCommand(tabId: number, data: Object, warn = true) {
 	try {
 		return await chrome.tabs.sendMessage(tabId, data)
 	} catch (e) {
-		console.warn(messages.COMMAND_FAILED, e);
+		if (warn) {
+			console.warn(messages.COMMAND_FAILED, e);
+		}
 		return null;
 	}
+}
+
+export async function sendContentTabCommand(data: ContentCommand, warn = true) {
+	const tabId = await getStorage("contentTab");
+	return await sendTabCommand(tabId, data, warn);
 }
