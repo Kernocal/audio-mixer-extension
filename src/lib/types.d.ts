@@ -3,7 +3,7 @@ export type ToneProperty = "pitch"|"pitchWet"|"reverbDecay"|"reverbWet";
 export type Property = ContentProperty|ToneProperty;
 export type PropertyValue = number;
 
-export type Response = {
+export type AnyResponse = {
     [key: string]: string|number
 };
 
@@ -56,7 +56,7 @@ export type PageChange = {
     playbackRate: number
 }
 export type ContentCommand = PageChange|{
-    command: "GET_VALUE"|"SET_VALUE"|"TOGGLE_PLAYBACK",
+    command: "GET_VALUE"|"SET_VALUE"|"TOGGLE_PLAYBACK"|"PING",
     type?: ContentProperty,
     value?: number
 };
