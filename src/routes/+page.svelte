@@ -23,7 +23,7 @@
 			if (response?.message === 'success') {
 				STATUS = text;
 			} else {
-				STATUS = "Failed, check console."
+				STATUS = messages.STATUS_FAILED_COMMAND;
 			}
 		});
 	}

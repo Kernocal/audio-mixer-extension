@@ -9,6 +9,7 @@ export enum messages {
     STATUS_PLAYING = "Playing.",
     STATUS_TOGGLE_PLAYBACK = "Played/paused.",
     STATUS_ALREADY_PLAYING = "Already playing.",
+    STATUS_FAILED_COMMAND = "Failed, check devtools.",
     STATUS_EXIT = "Exiting now.",
     STATUS_QUIT = "Quit connection.",
     STATUS_NO_AUDIO_CONTENT = "No audio detected on current tab. You must play audio before opening the extension.",
