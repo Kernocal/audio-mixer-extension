@@ -34,7 +34,12 @@ export type Preset = {
     name: string,
     values: PresetProperties|{}
 };
-
+export type CustomEventData = {
+    detail?: {
+        type: Property,
+        value?: PropertyValue
+    }
+};
 export type GiveValueEvent = Event & {
     detail: {
         type: Property,

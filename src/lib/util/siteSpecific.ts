@@ -1,5 +1,5 @@
 import { setElementAttributes, URLIncludes, roundNumber } from './util';
-import type {Property, PropertyValue, GiveValueEvent} from '../types';
+import type { Property, PropertyValue, GiveValueEvent, CustomEventData } from '../types';
 
 const SOUNDCLOUD = URLIncludes("soundcloud.com");
 const SPOTIFY = URLIncludes("open.spotify.com");
@@ -8,34 +8,32 @@ const YOUTUBE = URLIncludes("youtube.com");
 export const INJECT_WEBSITE = SOUNDCLOUD || SPOTIFY;
 const SLIDER_WEBSITE = INJECT_WEBSITE || YOUTUBE;
 
+// Must equal same variable in static/scripts/inject.js
+const EVENT_PREFIX = "AUDIO_MIXER_";
+
+export function sendEvent(name: string, data: CustomEventData = {}) {
+	const eventName = EVENT_PREFIX + name;
+	document.dispatchEvent(new CustomEvent(eventName, data))
+}
+
 export function getInjectedValue(type: Property) {
-	console.log("CONTENT: getting injected value", type);
 	return new Promise((resolve) => {
-		document.addEventListener('GIVE_VALUE', (e) => {
-			console.log("CONTENT: inject GOT val", e);
+		document.addEventListener(`${EVENT_PREFIX}GIVE_VALUE`, (e) => {
 			resolve((e as GiveValueEvent).detail.value);
 		}, {once: true});
-		// console.log("CONTENT: Getting val", type);
-		document.dispatchEvent(new CustomEvent('GET_VALUE', {
+		sendEvent('GET_VALUE', {
 			detail: {type}
-		}));
+		});
 	})
 }
 
 export function setInjectedValue(type: Property, value: PropertyValue) {
-	// console.log("CONTENT: Setting val", type, value);
-	document.dispatchEvent(new CustomEvent('SET_VALUE', {
-			detail: {type, value},
-	}));
-}
-
-export function toggleInjectedPlayback() {
-	// console.log("CONTENT: Toggling playback");
-	document.dispatchEvent(new CustomEvent('TOGGLE_PLAYBACK', {}));
-}
-
-export function injectedPageChange() {
-	document.dispatchEvent(new CustomEvent('PAGE_CHANGE', {}));
+	sendEvent('SET_VALUE', {
+		detail: {
+			type, 
+			value
+		}
+	});
 }
 
 export function updateSlider(volume: PropertyValue) {
@@ -93,7 +91,7 @@ function updateSpotifySlider(volume: PropertyValue) {
 		volume < 0.01 ? "off" :
 		volume < 0.33 ? "low" :
 		volume < 0.66 ? "medium" :
-		volume <= 1 ? "high" :
+		volume <= 1 ? "high" : 
 		""
 	);
 	setElementAttributes("svg[id='volume-icon']", {

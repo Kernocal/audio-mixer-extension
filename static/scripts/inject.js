@@ -1,39 +1,36 @@
 (() => {
+    const EVENT_PREFIX = "AUDIO_MIXER_";
     var myMedia = null;
     var volume;
     var myPlaybackRate;
-    
+
     function log(...args) {
         console.log("Audio Mixer INJECT:", ...args);
     }
-    
-    function getMedia(media, mediaValues = true) {
-        // log("media", media);
-        if (myMedia === null) {
-            myMedia = media;
-            if (mediaValues) {
-                volume = myMedia.volume;
-                myPlaybackRate = myMedia.myPlaybackRate;
-            } else {
-                myMedia.volume = volume;
-                myMedia.myPlaybackRate = myPlaybackRate;
-            }
-            // ({volume, myPlaybackRate} = myMedia);
-        } else {
-            if (!myMedia.isSameNode(media)) {
-                log("Different media playing.");
-            }
-            myMedia = media;
-            myMedia.volume = volume;
-            myMedia.myPlaybackRate = myPlaybackRate;
-        }
+
+    function createEvent(name, callback) {
+        const eventName = EVENT_PREFIX + name;
+        document.addEventListener(eventName, callback)
     }
 
     function setValue(type, value) {
-        try {
+        if (myMedia) {
             myMedia[type] = value
-        } catch (e) {
+        }
+    }
 
+    function getMedia(media, pageChange = false) {
+        if (myMedia && !myMedia.isSameNode(media)) {
+            log("Different media playing.");
+        }
+        if (myMedia || pageChange) {
+            myMedia = media;
+            myMedia.volume = volume;
+            myMedia.myPlaybackRate = myPlaybackRate;
+        } else {
+            myMedia = media;
+            volume = myMedia.volume;
+            myPlaybackRate = myMedia.myPlaybackRate;
         }
     }
     
@@ -65,19 +62,18 @@
         };
         
         
-        document.addEventListener('GET_VALUE', (e) => {
-            log("GIVE_VALUE event", e, e.detail.type, myMedia[e.detail.type]);
-            // Get inject's custom playbackRate property value, otherwise access property as usual.
+        createEvent('GET_VALUE', (e) => {
+            // log("GIVE_VALUE event", e, e.detail.type, myMedia[e.detail.type]);
             let resObj = {detail: {type: e.detail.type}};
             if (e.detail.type === "playbackRate") {
                 resObj.detail.value = myMedia.myPlaybackRate;
             } else {
                 resObj.detail.value = myMedia[e.detail.type];
             }
-            document.dispatchEvent(new CustomEvent('GIVE_VALUE', resObj));
+            document.dispatchEvent(new CustomEvent(`${EVENT_PREFIX}GIVE_VALUE`, resObj));
         });
         
-        document.addEventListener('SET_VALUE', (e) => {
+        createEvent('SET_VALUE', (e) => {
             // log("SET_VALUE event", e, e.detail.type, e.detail.value);
             switch (e.detail.type) {
                 case "volume":
@@ -88,24 +84,22 @@
                     myPlaybackRate = e.detail.value;
                     setValue("myPlaybackRate", myPlaybackRate)
                     break;
-
                 default:
-                    console.warn("INJECT: SET_VALUE property is unknown/unexpected", e.detail.type);
+                    console.warn("Audio Mixer INJECT: SET_VALUE property is unknown/unexpected.", e.detail.type);
             }
         });
 
-        document.addEventListener('PAGE_CHANGE', (e) => {
+        createEvent('PAGE_CHANGE', (e) => {
             HTMLMediaElement.prototype.play = function() {
-                getMedia(this, false);
+                getMedia(this, true);
                 return this.originalPlay(arguments);
             };
         });
         
-        document.addEventListener('TOGGLE_PLAYBACK', (e) => {
-            // log("TOGGLE_PLAYBACK event", e);
+        createEvent('TOGGLE_PLAYBACK', (e) => {
             myMedia.paused ? myMedia.play() : myMedia.pause();
-        });
+        })
     }
-    
+
     init();
 })();
