@@ -13,7 +13,7 @@ export enum messages {
     STATUS_QUIT = "Quit connection.",
     STATUS_NO_AUDIO_CONTENT = "No audio detected on current tab. You must play audio before opening the extension.",
     STATUS_RECORD_FAILED = "Error: unable to create and record from tab, check devtools.",
-    CONTENT_INJECTED = "CONTENT: Injected.",
+    CONTENT_EXECUTED = "Audio Mixer CONTENT: executed.",
     NO_MEDIA = "Error: no media found, despite the content tab playing audio.",
     NO_MEDIA_PLAYING = "Error: no playing media found.",
     CAPTURE_ERROR = "Error: record tab isn't playing audio but content tab is.",
