@@ -3,6 +3,10 @@ export type ToneProperty = "pitch"|"pitchWet"|"reverbDecay"|"reverbWet";
 export type Property = ContentProperty|ToneProperty;
 export type PropertyValue = number;
 
+export type AnyResponse = {
+    [key: string]: string|number
+};
+
 export type OptionalProperties = {
     volume?: number,
     playbackRate?: number,
@@ -19,31 +23,29 @@ export type PresetProperties = {
     reverbDecay: number, 
     reverbWet: number
 };
-export type Preset = {
-    name: string,
-    values: PresetProperties|{}
-};
 export type PropertiesNoVolume = PresetProperties;
 export type Properties = PresetProperties & {
     volume: number
 };
-
 export type StartMixerResponse = Properties & {
     message?: string
 }
-
-type GetValueEvent = Event & {
-    detail: {
-        type: Property
+export type Preset = {
+    name: string,
+    values: PresetProperties|{}
+};
+export type CustomEventData = {
+    detail?: {
+        type: Property,
+        value?: PropertyValue
     }
 };
-type SetValueEvent = Event & {
+export type GiveValueEvent = Event & {
     detail: {
         type: Property,
         value: PropertyValue
     }
 };
-export type GiveValueEvent = SetValueEvent;
 
 interface PopUpCommand {
     command: "SET_VALUE"|"TOGGLE_PLAYBACK"|"EXIT_MIXER"
@@ -53,8 +55,13 @@ export type PopUpCommands = PopUpCommand|{
     type: Property,
     value: number
 }
-export type ContentCommand = {
-    command: "GET_VALUE"|"SET_VALUE"|"TOGGLE_PLAYBACK"|"PAGE_CHANGE",
+export type PageChange = {
+    command:"PAGE_CHANGE",
+    volume: number,
+    playbackRate: number
+}
+export type ContentCommand = PageChange|{
+    command: "GET_VALUE"|"SET_VALUE"|"TOGGLE_PLAYBACK"|"PING",
     type?: ContentProperty,
     value?: number
 };
@@ -62,32 +69,8 @@ export type ContentCommand = {
 interface Custom {
     playing: boolean
 };
-export type Media = HTMLAudioElement|HTMLVideoElement|null;
+
+type MediaElement = HTMLAudioElement|HTMLVideoElement;
+export type MediaElements = MediaElement[];
+export type NullMedia = MediaElement|null;
 export type CustomMedia = (HTMLAudioElement & Custom)|(HTMLVideoElement & Custom);
-
-export type Response = {
-    [key: string]: string|number
-};
-
-
-// export type Pitch = {
-//     pitch: number,
-//     wet: {value: number}
-// };
-// export type __Reverb = {
-//     decay: Time,
-//     preDelay: Time,
-//     wet: {value: number}
-// }
-// type chromeKey = string | string[] | { [key: string]: any } | null;
-
-// interface command {
-//     result?: true|false;
-//     message?: string;
-//     type?: type;
-//     value?: number;
-// }
-
-// interface Commands {
-//     [key: string]: command
-// }

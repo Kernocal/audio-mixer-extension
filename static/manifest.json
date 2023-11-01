@@ -5,12 +5,13 @@
     "manifest_version": 3,
     "permissions": [
       "activeTab",
-      "tabs",
-      "storage",
       "scripting",
-      "tabCapture"
+      "storage",
+      "tabCapture",
+      "tabs",
+      "webNavigation"
     ],
-    "host_permissions": ["*://soundcloud.com/*", "*://open.spotify.com/*"],
+    "host_permissions": ["*://soundcloud.com/*", "*://open.spotify.com/*", "*://*.youtube.com/*", "*://*/*"],
     "content_scripts": [
       {
         "world": "MAIN",

@@ -1,29 +1,16 @@
-import { getStorage, setStorage, clearStorage, getValuesFromStorage, executeScript, sleep } from "$lib/util/util";
-import { getActiveTab, getTab, openRecordTab, removeTab, sendTabCommand } from "$lib/util/handleTab";
+import { getStorage, setStorage, clearStorage, getValuesFromStorage, executeScript, sleep, exitCleanUp } from "$lib/util/util";
+import { getTab, removeTab, getActiveTab, openRecordTab, exitRecordTab, sendTabCommand, sendContentTabCommand } from "$lib/util/handleTab";
 import { messages } from "$lib/data";
-import type { ContentProperty, ContentCommand, OptionalProperties } from "$lib/types";
-
-var URL_CHANGED: boolean = false;
-var PAGE_LOADED: boolean = false;
-var PAGE_FULLY_LOADED: boolean = false;
-
-async function sendContentTabCommand(data: ContentCommand) {
-	const tabId = await getStorage("contentTab");
-	return await sendTabCommand(tabId, data);
-}
+import type { ContentProperty, ContentCommand, OptionalProperties, AnyResponse } from "$lib/types";
 
 async function getValue(type: ContentProperty) {
 	return await sendContentTabCommand({command: "GET_VALUE", type}).then((res) => {return res?.value});
 }
 
-function setValue(type: ContentProperty, value: number) {
-	return sendContentTabCommand({command: "SET_VALUE", type, value});
-}
-
 async function getPlayerValues() {
 	return {
-		volume: getValue("volume"),
-		playbackRate: getValue("playbackRate"),
+		volume: await getValue("volume"),
+		playbackRate: await getValue("playbackRate"),
 	};
 }
 
@@ -49,83 +36,118 @@ async function startRecording() {
 	}
 }
 
-async function runMixer() {
-	const contentTab: chrome.tabs.Tab = await getActiveTab();
-	await setStorage("contentTab", contentTab.id);
-	if (contentTab?.audible) {
-		const recordTabId = await getStorage("recordTab");
-		const recordTab = (recordTabId) ? await getTab(recordTabId) : undefined;
-		if (!recordTab) {
-			await executeContent();
-			return await startRecording();
-		} else {
-			if (!recordTab?.audible) {
-				console.warn(messages.CAPTURE_ERROR, messages.GITHUB_ISSUE);
-				return {message: messages.NO_RECORD_AUDIO};
-			}
-			//Already playing, get properties from storage other than volume as user may have changed it.
-			let response: OptionalProperties = {
-				playbackRate: 0,
-				pitch: 0,
-				pitchWet: 0,
-				reverbDecay: 0,
-				reverbWet: 0
-			}
-			response = await getValuesFromStorage(response);
-			let res = {
-				message: messages.STATUS_ALREADY_PLAYING,
-				volume: await getValue("volume"),
-				...response
-			};
-			console.log("BG already: ", res);
-			return res;
-		}
-	} else {
-		return {message: messages.STATUS_NO_AUDIO_CONTENT};
+async function alreadyRecording() {
+	let response: AnyResponse = {
+		pitch: 0,
+		pitchWet: 0,
+		reverbDecay: 0,
+		reverbWet: 0
 	}
+	response = await getValuesFromStorage(response);
+	// const {volume, playbackRate} = await getPlayerValues();
+	response.message = messages.STATUS_ALREADY_PLAYING;
+	response.volume = await getStorage("volume");
+	response.playbackRate = await getStorage("playbackRate");
+	return response;
 }
 
-async function exitRecordTab() {
+async function runMixer() {
+	const contentTab: chrome.tabs.Tab = await getActiveTab();
 	const recordTabId = await getStorage("recordTab");
-	const result = (recordTabId) ? await removeTab(recordTabId) : undefined;
-	if (result) {
-		return {message: messages.STATUS_QUIT};
+	const recordTab = (recordTabId) ? await getTab(recordTabId) : null;
+	await setStorage("contentTab", contentTab.id);
+	await setStorage("contentTabURL", contentTab.url);
+	if (!contentTab?.audible) {
+		return {message: messages.STATUS_NO_AUDIO_CONTENT};
 	}
+	if (!recordTab) {
+		await executeContent();
+		return await startRecording();
+	}
+	if (!recordTab?.audible) {
+		console.warn(messages.CAPTURE_ERROR, messages.GITHUB_ISSUE);
+		return {message: messages.STATUS_RECORD_FAILED};
+	}
+	return await alreadyRecording();
+}
+
+async function getAllStorage() {
+	const data = await chrome.storage.local.get(null);
+	console.log("BG: current storage", data);
+}
+
+async function pageChange(url: string) {
+	const res = await sendContentTabCommand({command: "PING"}, false)
+	const volume = await getStorage("volume");
+	const playbackRate = await getStorage("playbackRate");
+	await setStorage("contentTabURL", url);
+	if (res?.message !== "PONG") {
+		await setStorage("contentExecuted", false);
+		await setStorage("pageChange", true);
+		await executeContent();
+	}
+	await sendContentTabCommand({command: "PAGE_CHANGE", volume, playbackRate});
 }
 
 function init() {
+	chrome.runtime.onInstalled.addListener(async () => {
+		await clearStorage();
+		await getAllStorage();
+	});
+
 	chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		if (request.command === "START_MIXER") {
-			runMixer().then((response) => {
-				sendResponse(response);
-			})
-			return true
+			runMixer().then((res) => {
+				sendResponse(res);
+			});
+			return true;
 		}
 		if (request.command === "EXIT_MIXER") {
-			exitRecordTab().then((result) => {sendResponse(result)})
-			return true
+			exitRecordTab().then((res) => {
+				sendResponse(res);
+			});
+			return true;
 		}
-		if (request.command === "TOGGLE_PLAYBACK" || ["playbackRate", "volume"].includes(request.type)) {
-			sendContentTabCommand(request).then((result) => {sendResponse(result);})
-			return true
+		if (["GET_VALUE", "SET_VALUE", "TOGGLE_PLAYBACK"].includes(request.command)) {
+			sendContentTabCommand(request).then((res) => {
+				sendResponse(res);
+			});
+			return true;
 		}
 	});
-	
-	chrome.runtime.onInstalled.addListener(() => {
-		chrome.storage.local.get(null).then((data) => {
-			console.log("BG: current storage", data);
-		})
+
+	chrome.webNavigation.onDOMContentLoaded.addListener(async (details) => {
+		const contentTabId = await getStorage("contentTab");
+		if (details.tabId === contentTabId && details.frameType === "outermost_frame") {
+			console.log("BG new dom loaded: ", details);
+			await pageChange(details.url);
+		}
+	});
+
+	chrome.webNavigation.onHistoryStateUpdated.addListener(async ({ tabId, url }) => {
+		const contentTabId = await getStorage("contentTab");
+		const contentTabURL = await getStorage("contentTabURL");
+		if (tabId === contentTabId && url !== contentTabURL) {
+			chrome.tabs.onUpdated.addListener(async function update(tabId, changeInfo) {
+				if (tabId === contentTabId && changeInfo.title) {
+					await pageChange(url);
+					chrome.tabs.onUpdated.removeListener(update);
+				}
+			});
+		}
 	});
 	
 	chrome.tabs.onRemoved.addListener(async (tabId) => {
 		const contentTabId = await getStorage("contentTab");
 		const recordTabId = await getStorage("recordTab");
-
-		if (tabId === contentTabId || tabId === recordTabId) {
+		if (tabId === contentTabId) {
 			await exitRecordTab();
+			await exitCleanUp();
+		}
+
+		if (tabId === recordTabId) {
 			await sendContentTabCommand({command: "SET_VALUE", type: "playbackRate", value: 1});
-			await clearStorage();
-			console.log(messages.EXITING);
+			await exitCleanUp();
 		}
 	});
 }
