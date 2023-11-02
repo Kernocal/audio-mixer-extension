@@ -1,6 +1,6 @@
 import type { Preset } from './types';
 
-function genProperties(playbackRate: number, pitch: number, pitchWet: number, reverbDecay: number, reverbWet: number) {
+export function genProperties(playbackRate: number, pitch: number, pitchWet: number, reverbDecay: number, reverbWet: number) {
     return {playbackRate, pitch, pitchWet, reverbDecay, reverbWet}
 };
 
@@ -12,7 +12,7 @@ export enum messages {
     STATUS_FAILED_COMMAND = "Failed, check devtools.",
     STATUS_EXIT = "Exiting now.",
     STATUS_QUIT = "Quit connection.",
-    STATUS_NO_AUDIO_CONTENT = "No audio detected on current tab. You must play audio before opening the extension.",
+    STATUS_NO_AUDIO_CONTENT = "No audio detected on current tab.\nYou must play audio before opening the extension.",
     STATUS_RECORD_FAILED = "Error: unable to create and record from tab, check devtools.",
     CONTENT_EXECUTED = "Audio Mixer CONTENT: executed.",
     NO_MEDIA = "Error: no media found, despite the content tab playing audio.",

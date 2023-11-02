@@ -42,7 +42,7 @@ export function loadScript(src: string): Promise<void> {
     });
 }
 
-export function getStorage(key: string): Promise<any> {
+export function getPersistentStorage(key: string): Promise<any> {
     return new Promise((resolve) => {
         chrome.storage.local.get([key], (result) => {
             resolve(result[key]);
@@ -50,9 +50,26 @@ export function getStorage(key: string): Promise<any> {
     });
 }
 
-export function setStorage(key: string, value: any): Promise<void> {
+export function setPersistentStorage(key: string, value: any): Promise<void> {
     return new Promise((resolve) => {
         chrome.storage.local.set({[key]: value}, () => {
+            resolve();
+        });
+    });
+}
+
+
+export function getStorage(key: string): Promise<any> {
+    return new Promise((resolve) => {
+        chrome.storage.session.get([key], (result) => {
+            resolve(result[key]);
+            });
+    });
+}
+
+export function setStorage(key: string, value: any): Promise<void> {
+    return new Promise((resolve) => {
+        chrome.storage.session.set({[key]: value}, () => {
             resolve();
         });
     });
