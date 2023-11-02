@@ -1,6 +1,6 @@
-import { getStorage, setStorage, clearStorage, getValuesFromStorage, executeScript, sleep, exitCleanUp } from "$lib/util/util";
+import { getStorage, setStorage, clearStorage, getValuesFromStorage, executeScript, sleep, exitCleanUp, setPersistentStorage } from "$lib/util/util";
 import { getTab, removeTab, getActiveTab, openRecordTab, exitRecordTab, sendTabCommand, sendContentTabCommand } from "$lib/util/handleTab";
-import { messages } from "$lib/data";
+import { presets, messages } from "$lib/data";
 import type { ContentProperty, ContentCommand, OptionalProperties, AnyResponse } from "$lib/types";
 
 async function getValue(type: ContentProperty) {
@@ -71,9 +71,13 @@ async function runMixer() {
 	return await alreadyRecording();
 }
 
-async function getAllStorage() {
-	const data = await chrome.storage.local.get(null);
-	console.log("BG: current storage", data);
+async function getAllStorage(type: string) {
+	let data;
+	if (type === "session") {
+		console.log("BG: session storage", await chrome.storage.session.get(null));
+	} else {
+		console.log("BG: local storage", await chrome.storage.local.get(null));
+	}
 }
 
 async function pageChange(url: string) {
@@ -92,7 +96,10 @@ async function pageChange(url: string) {
 function init() {
 	chrome.runtime.onInstalled.addListener(async () => {
 		await clearStorage();
-		await getAllStorage();
+		chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
+		await setPersistentStorage("presets", presets);
+		await getAllStorage("session");
+		await getAllStorage("local");
 	});
 
 	chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
