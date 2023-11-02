@@ -1,12 +1,16 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
-	import { getStorage, setStorage, compareObjects } from '$lib/util/util';
+	import { onMount } from 'svelte';
+	import { getStorage, setStorage, getPersistentStorage, setPersistentStorage, compareObjects } from '$lib/util/util';
 	import { presets, messages } from '$lib/data';
+	import Knob from '$lib/webaudio-knob/Knob.svelte'
+	import SmallKnobSrc from '$lib/webaudio-knob/images/SmallLedKnob2.png'
+	import CarbonKnobSrc from '$lib/webaudio-knob/images/CarbonPurple.png'
 	import GitHub from '$lib/assets/github.png';
 
-	import type { Properties, PopUpCommands, Property, PresetProperties, StartMixerResponse } from '$lib/types';
+	import type { Properties, PopUpCommands, Property, PresetProperties, StartMixerResponse, Preset } from '$lib/types';
 
 	let STATUS: string = messages.STATUS_WAITING;
+	let PRESETS: Preset[] = [];
 	let UI_DISABLED: boolean = true;
 	let ACTIVE_PRESET_INDEX: number = 0;
 	let PROPERTIES: Properties = {
@@ -15,17 +19,21 @@
 		reverbDecay: 0.01, 
 		reverbWet: 0, 
 		volume: 0, 
-		playbackRate: 0
+		playbackRate: 1
 	}
 
 	function sendCommand(data: PopUpCommands, text: string) {
-		chrome.runtime.sendMessage(data, response => {
-			if (response?.message === 'success') {
-				STATUS = text;
-			} else {
-				STATUS = messages.STATUS_FAILED_COMMAND;
-			}
-		});
+		try {
+			chrome.runtime.sendMessage(data, response => {
+				if (response?.message === 'success') {
+					STATUS = text;
+				} else {
+					STATUS = messages.STATUS_FAILED_COMMAND;
+				}
+			});
+		} catch (e) {
+			console.warn(e);
+		}
 	}
 
 	function setPreset(presetIndex: number) {
@@ -33,12 +41,29 @@
 		setStorage("preset", ACTIVE_PRESET_INDEX);
 	}
 
+	async function savePreset(name: string) {
+		PRESETS = await getPersistentStorage("presets");
+		const {volume, ...newProperties} = PROPERTIES;
+		const newPreset = {name, values: (newProperties as PresetProperties)};
+		PRESETS.splice((PRESETS.length - 1), 0, newPreset);
+		await setPersistentStorage("presets", PRESETS);
+	}
+
+	async function deletePreset(presetIndex: number) {
+		PRESETS = await getPersistentStorage("presets");
+		if (presetIndex !== 0 || presetIndex !== PRESETS.length - 1) {
+			PRESETS.splice(presetIndex, 1);
+			await setPersistentStorage("presets", PRESETS);
+			setValues(PRESETS[0].values, "GLOBAL");
+		}
+	}
+
 	function getPresetIndexFromProperties() {
 		//If no valid preset found set to the last preset, custom.
-		const customIndex = presets.length - 1;
+		const customIndex = PRESETS.length - 1;
 		const presetProperties = (({ volume, ...key}) => key)(PROPERTIES);
 		for (var i = 0; i < customIndex; i++) {
-			if (compareObjects(presets[i].values, presetProperties)) {
+			if (compareObjects(PRESETS[i].values, presetProperties)) {
 				return i
 			}
 		}
@@ -63,7 +88,7 @@
 				value
 			}, getUpdatedStatus(property));
 			if (property !== "volume") {
-				const presetValues = presets[ACTIVE_PRESET_INDEX].values;
+				const presetValues = PRESETS[ACTIVE_PRESET_INDEX].values;
 				if ((presetValues as PresetProperties)[property] !== value) {
 					const presetIndex = getPresetIndexFromProperties();
 					setPreset(presetIndex);
@@ -92,7 +117,9 @@
 		window.close();
 	}
 	
-	if (browser) {
+	onMount(async () => {
+		PRESETS = await getPersistentStorage("presets") ?? presets;
+		console.log("presets", PRESETS);
 		getStorage("preset").then((storedPreset) => {
 			ACTIVE_PRESET_INDEX = storedPreset ?? ACTIVE_PRESET_INDEX;
 		});
@@ -103,119 +130,143 @@
 			}
 			STATUS = response.message;
 		});
-	}
+	});
 
 </script>
 
-<div class="min-w-[400px] min-h-[500px] opacity-80 bg-gradient-to-tr from-orange-600 via-pink-600 to-purple-700 background-animate">
-	<div class="grid-main children:(m-2)">
-		<div class="flex flex-col grid-child-1 bg-green-300/20 rounded-sm children:(rounded-md)">
-			<h1 class="text big-text">Audio Presets:</h1>
-			{#each presets as preset, i}
-				<label class={(ACTIVE_PRESET_INDEX === i ? "bg-green-300/20" : "") + " mb-1 p-2 hover:(bg-green-300/20)"}>
-					<input class="ml-2 active:(bg-gray-400/20)" type="radio" name="activePreset" disabled={UI_DISABLED} bind:group={ACTIVE_PRESET_INDEX} value={i} on:click={() => {
-						setPreset(i);
-						setValues(presets[ACTIVE_PRESET_INDEX].values, "GLOBAL");}}>
-					<span class="text-sm text-light-600">{preset.name}</span>
-				</label>
-			{/each}
-		</div>
-		<div class={"flex flex-col justify-center items-center grid-child-2 rounded-md bg-green-300/20 " + (PROPERTIES.pitchWet > 0 ? "bg-green-300/20" : "passive-bg")}>
-			<h1 class="text big-text">Pitch</h1>
-			<h2 class="text">Semitone Shift: {PROPERTIES.pitch}</h2>
-			<input class="" type="range" min="-12" max="12" step="1" disabled={UI_DISABLED} bind:value={PROPERTIES.pitch} on:change={() => {setValue("pitch", PROPERTIES.pitch)}}>
-			<h2 class="text">Active amount: {PROPERTIES.pitchWet}</h2>
-			<input class="" type="range" min="0" max="1" step="0.01" disabled={UI_DISABLED} bind:value={PROPERTIES.pitchWet} on:change={() => {setValue("pitchWet", PROPERTIES.pitchWet)}}>
-		</div>
-		<div class={"flex flex-col justify-center items-center grid-child-3 rounded-md bg-green-300/20 " + (PROPERTIES.reverbWet > 0 ? "bg-green-300/20" : "passive-bg")}>
-			<h1 class="text big-text">Reverb</h1>
-			<h2 class="text">Decay: {PROPERTIES.reverbDecay}</h2>
-			<input class="py-1" type="range" min="0.01" max="10" step="0.10" disabled={UI_DISABLED} bind:value={PROPERTIES.reverbDecay} on:change={() => {setValue("reverbDecay", PROPERTIES.reverbDecay)}}>
-			<h2 class="text">Active amount: {PROPERTIES.reverbWet}</h2>
-			<input class="py-1" type="range" min="0" max="1" step="0.01" disabled={UI_DISABLED} bind:value={PROPERTIES.reverbWet} on:change={() => {setValue("reverbWet", PROPERTIES.reverbWet)}}>
-		</div>
-		<div class="flex flex-col justify-center items-center grid-child-4 rounded-md bg-green-300/20">
-			<h1 class="text big-text">Media Settings</h1>
-			<h2 class="text">Volume: {+PROPERTIES.volume.toFixed(2)}</h2>
-			<input class="mb-2 py-1" type="range" min="0" max="1" step="0.01" disabled={UI_DISABLED} bind:value={PROPERTIES.volume} on:change={() => {setValue("volume", PROPERTIES.volume)}}>
-			<h2 class="text">Playback rate: {PROPERTIES.playbackRate}x</h2>
-			<input class="mb-2 py-1" type="range" min="0.1" max="2" step="0.05" disabled={UI_DISABLED} bind:value={PROPERTIES.playbackRate} on:change={() => {setValue("playbackRate", PROPERTIES.playbackRate)}}>
-			<button class="button active:(ring-4 ring-light-200/25) hover:opacity-80" disabled={UI_DISABLED} on:click={() => {sendCommand({command: "TOGGLE_PLAYBACK"}, messages.STATUS_TOGGLE_PLAYBACK)}}>Play/Pause</button>
-		</div>
-		<div class="flex flex-row justify-between grid-child-5">
-			<div class="flex flex-col self-end children:(p-1) text">
-				<p class={`text-light-600 p-1 ${(STATUS.length > 80 ? "text-xs" : "text-sm")}`}>{STATUS}</p>
-				<button class="button active:(ring-4 ring-light-200/25) hover:opacity-80" on:click={exitMixer}>Quit</button>
+<div class="w-fit h-fit min-w-[500px] min-h-[550px] whitespace-nowrap animate flex flex-col">
+	<a title="Get help on GitHub!" class="ml-auto w-fit hover:opacity-75" href="https://github.com/Kernocal/audio-mixer-extension" target="_blank">
+		<img src={GitHub} alt="" class="filter-svg max-w-6 max-h-6 min-w-6 min-h-6 mt-2 mr-2 float-right"/>
+	</a>
+<div class="grid-parent justify-evenly items-center children:m-2">
+	<div class="grid-child1 flex flex-col pl-2 pb-2 pt-1 children:(rounded-md)">
+		<h1 class="big-text">Presets</h1>
+		{#each PRESETS as preset, i}
+			<label class={"font-medium cursor-pointer mb-1 p-2 pr-4 hover:(bg-mixer-secondary/30) " + (ACTIVE_PRESET_INDEX === i && !UI_DISABLED ? "bg-mixer-secondary/30" : "bg-mixer-secondary/10")}>
+				<input class="radio mx-2 mt-auto" type="radio" name="activePreset" disabled={UI_DISABLED} bind:group={ACTIVE_PRESET_INDEX} value={i} on:click={() => {
+					setPreset(i);
+					setValues(PRESETS[ACTIVE_PRESET_INDEX]?.values, "GLOBAL");}}>
+				<span class="text-sm text-light-600 m-auto">{preset.name}</span>
+			</label>
+		{/each}
+		{#if PRESETS[ACTIVE_PRESET_INDEX]?.name === "Custom"}
+		<button class="button pt-1" disabled={UI_DISABLED} on:click={async () => {await savePreset("TEST");}}>Save preset</button>
+		{:else}
+		<button class="button pt-1" disabled={UI_DISABLED || ACTIVE_PRESET_INDEX === 0} on:click={async () => {await deletePreset(ACTIVE_PRESET_INDEX);}}>Delete preset</button>
+		{/if}
+		<div class="flex flex-row justify-between">
+			<div class="flex flex-col children:(p-1) text">
+				<p class={`text-light-600 p-1 w-fit whitespace-pre-line ${(STATUS.length > 80 ? "text-xs" : "text-sm")}`}>{STATUS}</p>
+				<button class="button" on:click={exitMixer}>Quit</button>
 			</div>
-			<a title="Get help on GitHub!" class="self-end hover:opacity-75" href="https://github.com/Kernocal/audio-mixer-extension" target="_blank">
-				<img src={GitHub} alt="" class="float-right w-10 h-10 ml-2 filter-yellow-800"/>
-			</a>
 		</div>
 	</div>
+	<div class="grid-child2">
+	<div class={"rounded-md " + (PROPERTIES.pitchWet > 0 ? "bg-mixer-secondary/30" : "bg-mixer-secondary/10")}>
+		<h1 class="propertyText">Pitch</h1>
+		<div class="flex justify-around">
+		<Knob id="pitch" label="Semitone Shift:" src={SmallKnobSrc} bind:value={PROPERTIES.pitch} min="-12" max="12" step="1" disabled={UI_DISABLED} on:change={() => {setValue("pitch", PROPERTIES.pitch)}}/>
+		<Knob id="pitchWet" label="Active amount:" src={CarbonKnobSrc} bind:value={PROPERTIES.pitchWet} min="0" max="1" step="0.01" disabled={UI_DISABLED} on:change={() => {setValue("pitchWet", PROPERTIES.pitchWet)}}/>
+		</div>
+	</div>
+	<div class={"rounded-md mt-2 " + (PROPERTIES.reverbWet > 0 ? "bg-mixer-secondary/30" : "bg-mixer-secondary/10")}>
+		<h1 class="propertyText">Reverb</h1>
+		<div class="flex justify-around">
+		<Knob id="reverb" label="Decay:" src={SmallKnobSrc} bind:value={PROPERTIES.reverbDecay} min="0.01" max="10" step="0.10" disabled={UI_DISABLED} on:change={() => {setValue("reverbDecay", PROPERTIES.reverbDecay)}}/>
+		<Knob id="reverbWet" label="Active amount:" src={CarbonKnobSrc} bind:value={PROPERTIES.reverbWet} min="0" max="1" step="0.01" disabled={UI_DISABLED} on:change={() => {setValue("reverbWet", PROPERTIES.reverbWet)}}/>
+		</div>
+	</div>
+	<div class="rounded-md bg-mixer-secondary/30 whitespace-nowrap mt-2">
+		<h1 class="propertyText">Media Settings</h1>
+		<div class="flex">
+			<button class="button self-end" disabled={UI_DISABLED} on:click={() => {sendCommand({command: "TOGGLE_PLAYBACK"}, messages.STATUS_TOGGLE_PLAYBACK)}}>Play/Pause</button>
+			<Knob id="volume" label="Volume:" src={SmallKnobSrc} bind:value={PROPERTIES.volume} min="0" max="1" step="0.01" disabled={UI_DISABLED} on:change={() => {setValue("volume", PROPERTIES.volume)}}/>
+			<Knob id="playbackRate" label="Playback Rate:" src={SmallKnobSrc} bind:value={PROPERTIES.playbackRate} min="0.1" max="2" step="0.05" disabled={UI_DISABLED} on:change={() => {setValue("playbackRate", PROPERTIES.playbackRate)}}/>
+		</div>
+	</div>
+	</div>
+</div>
 </div>
 
+
+
 <style>
+	:global(body) {
+		@apply scrollbar scrollbar-rounded scrollbar-w-8px scrollbar-radius-8 scrollbar-thumb-color-mixer-primary scrollbar-track-color-mixer-secondary;
+	}
+
+	.radio {
+		-webkit-appearance: none;
+		-moz-appearance: none;
+		appearance: none;
+		margin: 0;
+		@apply rounded-[9999px] border-purple-900;
+		height: 1rem;
+		width: 1rem;
+		border-radius: 9999px;
+		border-width: 1px;
+	}
+	.radio:checked {
+		@apply bg-purple-600 shadow-purple;
+	}
+
+	.radio:disabled, .radio:active:disabled {
+		@apply bg-transparent border-dark-950;
+	}
+
 	.text {
-		@apply text-sm text-light-600 p-1;
+		@apply text-light-600 text-sm p-1;
 	}
-
 	.big-text {
-		@apply text-lg text-center;
+		@apply text-light-600 text-lg text-center font-medium;
 	}
-
-	.presetItem {
-		@apply p-2;
-	}
-
-	.passive-bg {
-		@apply bg-green-300/5;
+	.propertyText {
+		@apply text-light-600 text-lg p-1 pl-2 font-medium;
 	}
 
 	.button {
-		@apply w-24 p-2 m-2 bg-red-200 rounded-sm text-dark;
+		@apply w-fit h-fit p-2 m-2 bg-purple-700 rounded-md text-white;
+	}
+	.button:active:enabled {
+		@apply ring-4 ring-light-200/25;
+	}
+	.button:hover:enabled {
+		@apply opacity-80;
+	}
+	.button:disabled {
+		@apply bg-purple-950/20 cursor-not-allowed;
 	}
 
-	.grid-main {
+	.grid-parent {
 		display: grid;
-		grid-template-columns: repeat(2, 1fr) repeat(2, 0.75fr);
-		grid-template-rows: repeat(3, 0.5fr);
+		grid-template-columns: 1fr 1fr;
+		grid-template-rows: 1fr;
+		grid-column-gap: 0px;
+		grid-row-gap: 0px;
+	}
+	.grid-child1 { 
+		grid-area: 1 / 1 / 2 / 2; 
+	}
+	.grid-child2 { 
+		grid-area: 1 / 2 / 2 / 3; 
 	}
 
-	.grid-child-1 {
-		grid-area: 1 / 1 / 3 / 3;
+	.filter-svg {
+		filter: invert(14%) sepia(65%) saturate(6557%) hue-rotate(272deg) brightness(89%) contrast(91%);
 	}
 
-	.grid-child-2 {
-		grid-area: 1 / 3 / 2 / 5;
-	}
-
-	.grid-child-3 {
-		grid-area: 2 / 3 / 3 / 5;
-	}
-
-	.grid-child-4 {
-		grid-area: 3 / 3 / 4 / 5;
-	}
-
-	.grid-child-5 { 
-		grid-area: 3 / 1 / 4 / 3; 
-	}
-
-	.background-animate {
-		background-size: 400%;
-		-webkit-animation: bg-animation 40s ease infinite;
-		-moz-animation: bg-animation 40s ease infinite;
-		animation: bg-animation 40s ease infinite;
+	.animate {
+		background-color: rgb(0, 2, 19, 0.92);
+		animation: bg-animation 60s infinite linear;
 	}
 
 	@keyframes bg-animation {
-		0%,
-		100% {
-		background-position: 100% 50%;
-		}
-		50% {
-		background-position: 0% 50%;
-		}
+		0%   { background-color: rgba(0, 1, 20, 0.92); }
+		60%   { background-color: rgba(17, 0, 31, 0.92); }
+		40%   { background-color: rgba(0, 43, 10, 0.92); }
+		20%   { background-color: rgba(31, 0, 0, 0.92); }
+		80%   { background-color: rgba(1, 0, 63, 0.92); }
+		100%   { background-color: rgba(43, 23, 0, 0.92); }
 	}
 
 </style>
