@@ -7,12 +7,12 @@ async function getValue(type: ContentProperty) {
 	return await sendContentTabCommand({command: "GET_VALUE", type}).then((res) => {return res?.value});
 }
 
-async function getPlayerValues() {
-	return {
-		volume: await getValue("volume"),
-		playbackRate: await getValue("playbackRate"),
-	};
-}
+// async function getPlayerValues() {
+// 	return {
+// 		volume: await getValue("volume"),
+// 		playbackRate: await getValue("playbackRate"),
+// 	};
+// }
 
 async function executeContent() {
 	const contentTabId = await getStorage("contentTab");
