@@ -77,7 +77,7 @@ export function setStorage(key: string, value: any): Promise<void> {
 
 export function clearStorage(): Promise<void> {
 	return new Promise((resolve) => {
-		chrome.storage.local.clear(() => {
+		chrome.storage.session.clear(() => {
 			resolve();
 		});
 	  });
