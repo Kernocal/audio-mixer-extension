@@ -16,7 +16,7 @@ runs:
       run: pnpm install
 
     - name: Build extension
-      run: pnpm run build
+      run: pnpm run build:main
 
     - name: Pack extension
       working-directory: build
