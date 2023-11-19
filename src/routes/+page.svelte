@@ -171,7 +171,7 @@
 				<button class="button" on:click={exitMixer}>Quit</button>
 			</div>
 		</div>
-		<div class="grid-child2 self-start flex flex-col items-center h-100%">
+		<div class="grid-child2 self-start flex flex-col items-center h-99%">
 			<h1 class="propertyText">Presets</h1>
 			<div class="flex flex-col pl-2 pb-2 pt-1 w-100% children:(rounded-md)">
 				{#each PRESETS as preset, i}
