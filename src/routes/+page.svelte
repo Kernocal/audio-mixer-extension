@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { getStorage, setStorage, getPersistentStorage, setPersistentStorage, compareObjects } from '$lib/util/util';
 	import { presets, messages } from '$lib/data';
-	import Knob from '$lib/webaudio-knob/Knob.svelte'
+	import Knob from '$lib/knob/Knob.svelte'
 	import SmallKnobSrc from '$lib/assets/SmallLedKnob2.png'
 	import CarbonKnobSrc from '$lib/assets/CarbonPurple.png'
 	import GitHub from '$lib/assets/github.png';
@@ -143,70 +143,74 @@
 </script>
 
 <div class="w-fit h-fit min-w-[500px] min-h-[550px] whitespace-nowrap animate flex flex-col">
-	<a title="Get help on GitHub!" class="ml-auto w-fit hover:opacity-75" href="https://github.com/Kernocal/audio-mixer-extension" target="_blank">
-		<img src={GitHub} alt="" class="filter-svg max-w-6 max-h-6 min-w-6 min-h-6 mt-2 mr-2 float-right"/>
-	</a>
 	<div class="grid-parent justify-evenly items-center children:m-2">
-		<div class="grid-child1 flex flex-col pl-2 pb-2 pt-1 children:(rounded-md)">
-			<h1 class="big-text">Presets</h1>
-			{#each PRESETS as preset, i}
-				<label class={"font-medium cursor-pointer mb-1 p-2 pr-4 hover:(bg-mixer-secondary/30) " + (ACTIVE_PRESET_INDEX === i && !UI_DISABLED ? "bg-mixer-secondary/30" : "bg-mixer-secondary/10")}>
-					<input class="radio mx-2 mt-auto" type="radio" name="activePreset" disabled={UI_DISABLED} bind:group={ACTIVE_PRESET_INDEX} value={i} on:click={() => {
-						setPreset(i);
-						setValues(PRESETS[ACTIVE_PRESET_INDEX]?.values, "GLOBAL");}}>
-					<span class="text-sm text-light-600 m-auto">{preset.name}</span>
-				</label>
-			{/each}
+		<div class="grid-child1">
+			<div class={"rounded-md " + (PROPERTIES.pitchWet > 0 ? "bg-mixer-secondary/30" : "bg-mixer-secondary/10")}>
+				<h1 class="propertyText">Pitch</h1>
+				<div class="flex justify-around">
+					<Knob id="pitch" label="Semitone Shift:" src={SmallKnobSrc} bind:value={PROPERTIES.pitch} min="-12" max="12" step="1" disabled={UI_DISABLED} on:change={() => {setValue("pitch", PROPERTIES.pitch)}}/>
+					<Knob id="pitchWet" label="Active amount:" src={CarbonKnobSrc} bind:value={PROPERTIES.pitchWet} min="0" max="1" step="0.01" disabled={UI_DISABLED} on:change={() => {setValue("pitchWet", PROPERTIES.pitchWet)}}/>
+				</div>
+			</div>
+			<div class={"rounded-md mt-2 " + (PROPERTIES.reverbWet > 0 ? "bg-mixer-secondary/30" : "bg-mixer-secondary/10")}>
+				<h1 class="propertyText">Reverb</h1>
+				<div class="flex justify-around">
+					<Knob id="reverb" label="Decay:" src={SmallKnobSrc} bind:value={PROPERTIES.reverbDecay} min="0.01" max="10" step="0.10" disabled={UI_DISABLED} on:change={() => {setValue("reverbDecay", PROPERTIES.reverbDecay)}}/>
+					<Knob id="reverbWet" label="Active amount:" src={CarbonKnobSrc} bind:value={PROPERTIES.reverbWet} min="0" max="1" step="0.01" disabled={UI_DISABLED} on:change={() => {setValue("reverbWet", PROPERTIES.reverbWet)}}/>
+				</div>
+			</div>
+			<div class="rounded-md bg-mixer-secondary/30 whitespace-nowrap mt-2">
+				<h1 class="propertyText">Media Settings</h1>
+				<div class="flex justify-around">
+					<Knob id="volume" label="Volume:" src={SmallKnobSrc} bind:value={PROPERTIES.volume} min="0" max="1" step="0.01" disabled={UI_DISABLED} on:change={() => {setValue("volume", PROPERTIES.volume)}}/>
+					<Knob id="playbackRate" label="Playback Rate:" src={SmallKnobSrc} bind:value={PROPERTIES.playbackRate} min="0.1" max="2" step="0.05" disabled={UI_DISABLED} on:change={() => {setValue("playbackRate", PROPERTIES.playbackRate)}}/>
+				</div>
+			</div>
+			<div class="flex justify-between items-center">
+				<button class="button" disabled={UI_DISABLED} on:click={() => {sendCommand({command: "TOGGLE_PLAYBACK"}, messages.STATUS_TOGGLE_PLAYBACK)}}>Play/Pause</button>
+				<button class="button" on:click={exitMixer}>Quit</button>
+			</div>
+		</div>
+		<div class="grid-child2 self-start flex flex-col items-center h-100%">
+			<h1 class="propertyText">Presets</h1>
+			<div class="flex flex-col pl-2 pb-2 pt-1 w-100% children:(rounded-md)">
+				{#each PRESETS as preset, i}
+					<label class={"font-medium cursor-pointer mb-1 p-2 pr-4 hover:(bg-mixer-secondary/30) " + (ACTIVE_PRESET_INDEX === i && !UI_DISABLED ? "bg-mixer-secondary/30" : "bg-mixer-secondary/10")}>
+						<input class="radio mx-2 mt-auto" type="radio" name="activePreset" disabled={UI_DISABLED || (ACTIVE_PRESET_INDEX === 0 && PRESETS.length - 1 === i)} bind:group={ACTIVE_PRESET_INDEX} value={i} on:click={() => {
+							setPreset(i);
+							setValues(PRESETS[ACTIVE_PRESET_INDEX]?.values, "GLOBAL");}}>
+						<span class="text-sm text-light-600 m-auto">{preset.name}</span>
+					</label>
+				{/each}
+			</div>
 			{#if !SAVE_PRESET_HIDDEN}
-				<div class="animate fixed w-fit flex flex-col justify-center items-center p-3">
-					<input type="text" name="" id="" class="p-2 m-2 w-32" bind:value={NEW_PRESET_NAME}>
+				<div class="fixed w-fit flex flex-col bg-mixer-secondary/30 rounded-md p-3">
+					<input type="text" name="presetName" class="p-2 m-2 w-32" bind:value={NEW_PRESET_NAME}>
 					<div>
 					<button class="button" on:click={() => {
 						savePreset();
-						SAVE_PRESET_HIDDEN = !SAVE_PRESET_HIDDEN
-						}}>save</button>
+						SAVE_PRESET_HIDDEN = !SAVE_PRESET_HIDDEN;
+						}}>
+						Save
+					</button>
 					<button class="button" on:click={() => {
 						SAVE_PRESET_HIDDEN = !SAVE_PRESET_HIDDEN;
 						NEW_PRESET_NAME = "";
-						}}>cancel</button>
+						}}>
+						Cancel
+					</button>
 					</div>
 				</div>
 			{/if}
 			{#if PRESETS[ACTIVE_PRESET_INDEX]?.name === "Custom"}
-			<button class="button pt-1" disabled={UI_DISABLED} on:click={() => {SAVE_PRESET_HIDDEN = !SAVE_PRESET_HIDDEN;}}>Save preset</button>
+				<button class="button pt-1" disabled={UI_DISABLED} on:click={() => {SAVE_PRESET_HIDDEN = !SAVE_PRESET_HIDDEN;}}>Save preset</button>
 			{:else}
-			<button class="button pt-1" disabled={UI_DISABLED || ACTIVE_PRESET_INDEX === 0} on:click={async () => {await deletePreset(ACTIVE_PRESET_INDEX);}}>Delete preset</button>
+				<button class="button pt-1" disabled={UI_DISABLED || ACTIVE_PRESET_INDEX === 0} on:click={async () => {await deletePreset(ACTIVE_PRESET_INDEX);}}>Delete preset</button>
 			{/if}
-			<div class="flex flex-row justify-between">
-				<div class="flex flex-col children:(p-1) text">
-					<p class={`text-light-600 p-1 w-fit whitespace-pre-line ${(STATUS.length > 80 ? "text-xs" : "text-sm")}`}>{STATUS}</p>
-					<button class="button" on:click={exitMixer}>Quit</button>
-				</div>
-			</div>
-		</div>
-		<div class="grid-child2">
-		<div class={"rounded-md " + (PROPERTIES.pitchWet > 0 ? "bg-mixer-secondary/30" : "bg-mixer-secondary/10")}>
-			<h1 class="propertyText">Pitch</h1>
-			<div class="flex justify-around">
-			<Knob id="pitch" label="Semitone Shift:" src={SmallKnobSrc} bind:value={PROPERTIES.pitch} min="-12" max="12" step="1" disabled={UI_DISABLED} on:change={() => {setValue("pitch", PROPERTIES.pitch)}}/>
-			<Knob id="pitchWet" label="Active amount:" src={CarbonKnobSrc} bind:value={PROPERTIES.pitchWet} min="0" max="1" step="0.01" disabled={UI_DISABLED} on:change={() => {setValue("pitchWet", PROPERTIES.pitchWet)}}/>
-			</div>
-		</div>
-		<div class={"rounded-md mt-2 " + (PROPERTIES.reverbWet > 0 ? "bg-mixer-secondary/30" : "bg-mixer-secondary/10")}>
-			<h1 class="propertyText">Reverb</h1>
-			<div class="flex justify-around">
-			<Knob id="reverb" label="Decay:" src={SmallKnobSrc} bind:value={PROPERTIES.reverbDecay} min="0.01" max="10" step="0.10" disabled={UI_DISABLED} on:change={() => {setValue("reverbDecay", PROPERTIES.reverbDecay)}}/>
-			<Knob id="reverbWet" label="Active amount:" src={CarbonKnobSrc} bind:value={PROPERTIES.reverbWet} min="0" max="1" step="0.01" disabled={UI_DISABLED} on:change={() => {setValue("reverbWet", PROPERTIES.reverbWet)}}/>
-			</div>
-		</div>
-		<div class="rounded-md bg-mixer-secondary/30 whitespace-nowrap mt-2">
-			<h1 class="propertyText">Media Settings</h1>
-			<div class="flex">
-				<button class="button self-end" disabled={UI_DISABLED} on:click={() => {sendCommand({command: "TOGGLE_PLAYBACK"}, messages.STATUS_TOGGLE_PLAYBACK)}}>Play/Pause</button>
-				<Knob id="volume" label="Volume:" src={SmallKnobSrc} bind:value={PROPERTIES.volume} min="0" max="1" step="0.01" disabled={UI_DISABLED} on:change={() => {setValue("volume", PROPERTIES.volume)}}/>
-				<Knob id="playbackRate" label="Playback Rate:" src={SmallKnobSrc} bind:value={PROPERTIES.playbackRate} min="0.1" max="2" step="0.05" disabled={UI_DISABLED} on:change={() => {setValue("playbackRate", PROPERTIES.playbackRate)}}/>
-			</div>
-		</div>
+			<p class={`text-light-600 p-1 w-fit whitespace-pre-line ${(STATUS.length > 80 ? "text-xs" : "text-sm")}`}>{STATUS}</p>
+			<a title="Get help on GitHub!" class="self-end mt-auto mr-2 mb-4 hover:opacity-75" href="https://github.com/Kernocal/audio-mixer-extension" target="_blank">
+				<img src={GitHub} alt="" class="filter-svg max-w-6 max-h-6 min-w-6 min-h-6"/>
+			</a>
 		</div>
 	</div>
 </div>
@@ -238,9 +242,6 @@
 
 	.text {
 		@apply text-light-600 text-sm p-1;
-	}
-	.big-text {
-		@apply text-light-600 text-lg text-center font-medium;
 	}
 	.propertyText {
 		@apply text-light-600 text-lg p-1 pl-2 font-medium;
