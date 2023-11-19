@@ -1,3 +1,4 @@
+// cSpell:disable
 /* *
  *
  *  WebAudio-Controls is based on

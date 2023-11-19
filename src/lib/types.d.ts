@@ -3,10 +3,6 @@ export type ToneProperty = "pitch"|"pitchWet"|"reverbDecay"|"reverbWet";
 export type Property = ContentProperty|ToneProperty;
 export type PropertyValue = number;
 
-export type AnyResponse = {
-    [key: string]: string|number
-};
-
 export type OptionalProperties = {
     volume?: number,
     playbackRate?: number,
@@ -15,7 +11,6 @@ export type OptionalProperties = {
     reverbDecay?: number, 
     reverbWet?: number
 };
-
 export type PresetProperties = {
     playbackRate: number,
     pitch: number, 
@@ -27,13 +22,17 @@ export type PropertiesNoVolume = PresetProperties;
 export type Properties = PresetProperties & {
     volume: number
 };
-export type StartMixerResponse = Properties & {
-    message?: string
-}
 export type Preset = {
     name: string,
     values: PresetProperties|{}
 };
+export type StartMixerResponse = Properties & {
+    message?: string
+}
+export type AnyResponse = {
+    [key: string]: string|number
+};
+
 export type CustomEventData = {
     detail?: {
         type: Property,
@@ -69,7 +68,6 @@ export type ContentCommand = PageChange|{
 interface Custom {
     playing: boolean
 };
-
 type MediaElement = HTMLAudioElement|HTMLVideoElement;
 export type MediaElements = MediaElement[];
 export type NullMedia = MediaElement|null;

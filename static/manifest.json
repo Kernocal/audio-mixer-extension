@@ -11,9 +11,8 @@
       "tabs",
       "webNavigation"
     ],
-    "host_permissions": ["*://soundcloud.com/*", "*://open.spotify.com/*", "*://*.youtube.com/*", "*://*/*"],
-    "content_scripts": [
-      {
+    "host_permissions": ["*://soundcloud.com/*", "*://open.spotify.com/*", "*://*.youtube.com/*"],
+    "content_scripts": [{
         "world": "MAIN",
         "matches": ["*://soundcloud.com/*", "*://open.spotify.com/*"],
         "run_at": "document_start",
@@ -21,13 +20,16 @@
       }
     ],
     "icons": {
-      "128": "icon/favicon.png",
-      "48": "icon/favicon.png"
+      "16": "icon/icon16.png",
+      "32": "icon/icon32.png",
+      "48": "icon/icon48.png",
+      "128": "icon/icon128.png",
+      "512": "icon/icon512.png"
    },
     "action": {
-		"default_title": "Audio mixer",
-		"default_popup": "index.html",
-		"default_icon": "icon/favicon.png"
+      "default_title": "Audio mixer",
+      "default_popup": "index.html",
+      "default_icon": "icon/icon512.png"
 	},
     "background": {
       "service_worker": "app/immutable/background.js",
