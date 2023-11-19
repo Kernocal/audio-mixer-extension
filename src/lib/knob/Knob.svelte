@@ -39,8 +39,12 @@
 </script>
 
 <div class="flex flex-col items-center w-fit">
-    <!-- svelte-ignore a11y-no-static-element-interactions -->
     <webaudio-knob
+    role="slider"
+    aria-valuenow={value}
+    aria-valuemin={min}
+    aria-valuemax={max}
+    tabindex="0"
     class="pt-2"
     {id} 
     {src}
