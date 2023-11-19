@@ -14,9 +14,11 @@ runs:
 
     - name: Install packages
       run: pnpm install
+      shell: bash
 
     - name: Build extension
       run: pnpm run build:main
+      shell: bash
 
     - name: Pack extension
       working-directory: build
