@@ -48,15 +48,7 @@ export const presets: Preset[] = [
         values: genProperties(0.75, 0, 0, 1, 0.7)
         },
     {
-        name: "osu Nightcore",
-        values: genProperties(1.5, 4, 1, 0.01, 0)
-        },
-    {
-        name: "osu Daycore",
-        values: genProperties(0.75, -3, 1, 0.01, 0)
-        },
-    {
-        name: "Favourite Reverb",
+        name: "Roomy Reverb",
         values: genProperties(1, 0, 0, 1.5, 0.8)
         },
     {
