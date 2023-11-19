@@ -3,8 +3,8 @@
 	import { getStorage, setStorage, getPersistentStorage, setPersistentStorage, compareObjects } from '$lib/util/util';
 	import { presets, messages } from '$lib/data';
 	import Knob from '$lib/webaudio-knob/Knob.svelte'
-	import SmallKnobSrc from '$lib/webaudio-knob/images/SmallLedKnob2.png'
-	import CarbonKnobSrc from '$lib/webaudio-knob/images/CarbonPurple.png'
+	import SmallKnobSrc from '$lib/assets/SmallLedKnob2.png'
+	import CarbonKnobSrc from '$lib/assets/CarbonPurple.png'
 	import GitHub from '$lib/assets/github.png';
 
 	import type { Properties, PopUpCommands, Property, PresetProperties, StartMixerResponse, Preset } from '$lib/types';
