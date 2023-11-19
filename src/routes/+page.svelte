@@ -122,7 +122,7 @@
 	
 	onMount(async () => {
 		PRESETS = await getPersistentStorage("presets");
-		if (PRESETS.length < 1) {
+		if (PRESETS?.length < 1 || PRESETS === undefined) {
 			STATUS = messages.STATUS_PRESETS_EMPTY;
 			console.warn(messages.GITHUB_ISSUE);
 			PRESETS = presets;
