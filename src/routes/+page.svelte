@@ -142,7 +142,27 @@
 
 </script>
 
-<div class="w-fit h-fit min-w-[500px] min-h-[550px] whitespace-nowrap animate flex flex-col">
+<div class="bg w-fit h-fit min-w-[500px] min-h-[550px] whitespace-nowrap flex flex-col">
+	{#if !SAVE_PRESET_HIDDEN}
+		<div class="fixed flex justify-center items-center bg-black/80 w-100% h-100% z-1">
+			<div class="flex flex-col w-fit bg-mixer-secondary/30 rounded-md p-3">
+				<h1 class="propertyText">New Preset Name</h1>
+				<input type="text" name="presetName" class="p-2 m-2 w-32" bind:value={NEW_PRESET_NAME}>
+				<div>
+					<button class="button" on:click={() => {
+						savePreset();
+						SAVE_PRESET_HIDDEN = !SAVE_PRESET_HIDDEN;
+						}}>Save
+					</button>
+					<button class="button" on:click={() => {
+						SAVE_PRESET_HIDDEN = !SAVE_PRESET_HIDDEN;
+						NEW_PRESET_NAME = "";
+						}}>Cancel
+					</button>
+				</div>
+			</div>
+		</div>
+	{/if}
 	<div class="grid-parent justify-evenly items-center children:m-2">
 		<div class="grid-child1">
 			<div class={"rounded-md " + (PROPERTIES.pitchWet > 0 ? "bg-mixer-secondary/30" : "bg-mixer-secondary/10")}>
@@ -183,25 +203,6 @@
 					</label>
 				{/each}
 			</div>
-			{#if !SAVE_PRESET_HIDDEN}
-				<div class="fixed w-fit flex flex-col bg-mixer-secondary/30 rounded-md p-3">
-					<input type="text" name="presetName" class="p-2 m-2 w-32" bind:value={NEW_PRESET_NAME}>
-					<div>
-					<button class="button" on:click={() => {
-						savePreset();
-						SAVE_PRESET_HIDDEN = !SAVE_PRESET_HIDDEN;
-						}}>
-						Save
-					</button>
-					<button class="button" on:click={() => {
-						SAVE_PRESET_HIDDEN = !SAVE_PRESET_HIDDEN;
-						NEW_PRESET_NAME = "";
-						}}>
-						Cancel
-					</button>
-					</div>
-				</div>
-			{/if}
 			{#if PRESETS[ACTIVE_PRESET_INDEX]?.name === "Custom"}
 				<button class="button pt-1" disabled={UI_DISABLED} on:click={() => {SAVE_PRESET_HIDDEN = !SAVE_PRESET_HIDDEN;}}>Save preset</button>
 			{:else}
@@ -278,16 +279,19 @@
 		filter: invert(14%) sepia(65%) saturate(6557%) hue-rotate(272deg) brightness(89%) contrast(91%);
 	}
 
+	.bg, .animate {
+		background-color: rgba(0, 1, 20, 0.92);
+	}
+
 	.animate {
-		background-color: rgb(0, 2, 19, 0.92);
 		animation: bg-animation 60s infinite linear;
 	}
 
 	@keyframes bg-animation {
 		0%   { background-color: rgba(0, 1, 20, 0.92); }
-		60%   { background-color: rgba(17, 0, 31, 0.92); }
-		40%   { background-color: rgba(0, 43, 10, 0.92); }
 		20%   { background-color: rgba(31, 0, 0, 0.92); }
+		40%   { background-color: rgba(0, 43, 10, 0.92); }
+		60%   { background-color: rgba(17, 0, 31, 0.92); }
 		80%   { background-color: rgba(1, 0, 63, 0.92); }
 		100%   { background-color: rgba(43, 23, 0, 0.92); }
 	}
