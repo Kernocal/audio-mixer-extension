@@ -1,15 +1,10 @@
 # Audio Mixer
-![extension image](screenshots/1280.window.png "Audio Mixer Extension")
+![extension spotify image](screenshots/1280window.png "Audio Mixer Extension on Spotify")
+![extension image](screenshots/640extension.png "Audio Mixer Extension")
 
-Audio Mixer is a browser extension that currently works on Chrome and Edge. It allows you to apply audio presets to any website playing audio such as Youtube, Soundcloud, Spotify.
+Audio Mixer is a browser extension that currently works on Chromium-based browsers, e.g Chrome and Microsoft Edge. It allows you to apply audio presets to most websites playing audio such as Youtube, Soundcloud, Spotify.
 
-The presets were built around Nightcore but have expanded to includes others such as:
-
-1. (slowed + reverb)
-2. osu based Nightcore
-3. osu based Daycore
-
-Custom values are also supported.
+The presets were built around Nightcore but have expanded to include: pitch, reverb and playback rate. The extension lets you create and save custom presets.
 
 # Building
 
@@ -23,24 +18,26 @@ or if you do:
 git clone https://github.com/Kernocal/audio-mixer-extension <folder-name>
 
 cd <folder-name>
-npm run build
+pnpm install
+
+pnpm run build:main
 ```
 
 Then you can load unpacked using the created /build folder.
 
 # About
 
-The extension is built with Svelte, using SvelteKit with the browser extension adapter.
-Windi CSS for styling.
-Tone.js for pitch and reverb effects.
+The extension is built with SvelteKit, using the browser extension adapter.
+UnoCSS for styling.
 
 # Known Issues
 
-1. When many tabs are open the options tab doesn't get shrunk even though it's pinned.
-2. The extension cannot change playback rate or volume on sites that dynamically create their audio element(s), pitch and reverb changes still work.
+1. When many tabs are open the pinned tab doesn't get shrunk.
+2. Websites that create audio dynamically using js must be added specifically to extension permissions in order to work.  
 
 # Credits
 
-The SvelteKit [browser extension adapter](https://github.com/antony/sveltekit-adapter-browser-extension), by antony.  
-[Tone.js](https://tonejs.github.io/) for PitchShift and reverb, by tambien.  
-The initial [tapCapture model](https://github.com/zhw2590582/chrome-audio-capture) which uses unique options method for manifest v3, by zhw2590582.
+[SvelteKit Browser Extension Adapter](https://github.com/michmich112/sveltekit-adapter-chrome-extension), by michmich112.
+[Initial Adapter](https://github.com/antony/sveltekit-adapter-browser-extension), by antony.
+[Tone.js](https://tonejs.github.io/), by tambien.
+[tapCapture for manifest v3](https://github.com/zhw2590582/chrome-audio-capture), by zhw2590582.
