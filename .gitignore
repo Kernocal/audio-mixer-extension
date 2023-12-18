@@ -5,6 +5,7 @@
 .npmrc
 .svelte-kit
 .vscode
+.thoughts
 build
 build_history
 build.pem

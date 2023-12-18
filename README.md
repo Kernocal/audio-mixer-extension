@@ -15,7 +15,7 @@ if you don't want git history:
 degit Kernocal/audio-mixer-extension <folder-name>
 
 or if you do:
-git clone https://github.com/Kernocal/audio-mixer-extension <folder-name>
+git clone https://github.com/Kernocal/audio-mixer-extension.git <folder-name>
 
 cd <folder-name>
 pnpm install
