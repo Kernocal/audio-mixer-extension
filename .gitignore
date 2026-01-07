@@ -6,6 +6,7 @@
 .svelte-kit
 .vscode
 .thoughts
+QWEN.md
 build
 build_history
 build.pem
