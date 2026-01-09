@@ -6,9 +6,11 @@
 .svelte-kit
 .vscode
 .thoughts
-QWEN.md
+.output
+.wxt
 build
 build_history
 build.pem
 node_modules
 package
+old

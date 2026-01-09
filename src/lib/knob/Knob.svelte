@@ -1,65 +1,78 @@
-<script lang="ts">
-    import { onMount } from 'svelte';
-    import { createEventDispatcher } from 'svelte';
-    import { roundNumber } from '$lib/util/util'
+<script lang='ts'>
+    import { roundNumber } from 'lib/util/util'
+    import { onMount } from 'svelte'
 
-    export let id: string;
-    export let src: string;
-    export let value: number = 0;
-    export let step: number|string = 25;
-    export let min: number|string = 0;
-    export let max: number|string = 100;
-    export let label: string;
-    export let disabled: boolean;
-    
-    let defaultValue = value;
-    let width = 70;
-    let height = 70;
+    interface Props {
+        id: string
+        src: string
+        value?: number
+        step?: number | string
+        min?: number | string
+        max?: number | string
+        label: string
+        disabled: boolean
+        onchange?: () => void
+    }
+
+    let {
+        id,
+        src,
+        value = $bindable(0),
+        step = 25,
+        min = 0,
+        max = 100,
+        label,
+        disabled,
+        onchange,
+    }: Props = $props()
+
+    const defaultValue = value
+    const width = 70
+    const height = 70
 
     onMount(async () => {
-        const asd = await import("./webaudio-controls-module")
-    });
+        await import('./webaudio-controls-module')
+    })
 
-    const dispatch = createEventDispatcher();
-
-    function setValue(e: Event|MouseEvent) {
-        // console.log("event", e);
-        var ele = e.target as HTMLInputElement;
-        if (e.type === "dblclick") {
-            value = defaultValue;
-            dispatch('change')
-        } else if (e.type === "change") {
-            value = Number(ele.value);
-            dispatch('change')
-        } else {
-            value = Number(ele.value);
+    function setValue(e: Event | MouseEvent) {
+        const ele = e.target as HTMLInputElement
+        if (e.type === 'dblclick') {
+            value = defaultValue
+            onchange?.()
+        }
+        else if (e.type === 'change') {
+            value = Number(ele.value)
+            onchange?.()
+        }
+        else {
+            value = Number(ele.value)
         }
     }
 
 </script>
 
-<div class="flex flex-col items-center w-fit">
+<div class='flex flex-col w-fit items-center'>
     <webaudio-knob
-    role="slider"
-    aria-valuenow={value}
-    aria-valuemin={min}
-    aria-valuemax={max}
-    tabindex="0"
-    class="pt-2"
-    {id} 
-    {src}
-    {value}
-    {width}
-    {height}
-    {min}
-    {max}
-    {step}
-    enable={+!disabled}
-    on:input={setValue}
-    on:change={setValue}
-    on:dblclick={setValue}
-    />
-    <label for={id} class="text-sm text-light-600 p-1 font-medium">{label} 
-        <p class="text-center">{roundNumber(value, 2)}</p>
+        role='slider'
+        aria-valuenow={value}
+        aria-valuemin={min}
+        aria-valuemax={max}
+        tabindex='0'
+        class='pt-2'
+        {id}
+        {src}
+        {value}
+        {width}
+        {height}
+        {min}
+        {max}
+        {step}
+        enable={disabled ? '0' : '1'}
+        oninput={setValue}
+        onchange={setValue}
+        ondblclick={setValue}
+    ></webaudio-knob>
+    <label for={id} class='text-sm text-light-600 font-medium p-1'>{label}
+        <p class='text-center'>{roundNumber(value, 2)}</p>
     </label>
 </div>

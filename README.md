@@ -33,7 +33,7 @@ UnoCSS for styling.
 # Known Issues
 
 1. When many tabs are open the pinned tab doesn't get shrunk.
-2. Websites that create audio dynamically using js must be added specifically to extension permissions in order to work.  
+2. Websites that create audio dynamically using js must be added specifically to extension permissions in order to work.
 
 # Credits
 
@@ -44,4 +44,3 @@ UnoCSS for styling.
 [Tone.js](https://tonejs.github.io/), by tambien.
 
 [tapCapture for manifest v3](https://github.com/zhw2590582/chrome-audio-capture), by zhw2590582.
-

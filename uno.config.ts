@@ -1,17 +1,17 @@
-import { defineConfig, presetUno, transformerVariantGroup } from 'unocss';
-import transformerDirectives from '@unocss/transformer-directives';
+import presetWind4 from '@unocss/preset-wind4'
+import { defineConfig, transformerDirectives, transformerVariantGroup } from 'unocss'
 import { presetScrollbar } from 'unocss-preset-scrollbar'
 
 export default defineConfig({
-    presets: [presetUno(), presetScrollbar()],
+    presets: [presetWind4(), presetScrollbar()],
     theme: {
         colors: {
-            'mixer': {
-                'primary': '#331E36',
-                'secondary': '#8CFF98',
-                'tertiary': '#E4BE9E'
-            }
-        }
+            mixer: {
+                primary: '#331E36',
+                secondary: '#8CFF98',
+                tertiary: '#E4BE9E',
+            },
+        },
     },
-    transformers: [transformerDirectives(), transformerVariantGroup()],
+    transformers: [transformerVariantGroup(), transformerDirectives()],
 })

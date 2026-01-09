@@ -1,0 +1,30 @@
+{
+    "extensionName": {
+        "message": "Audio Mixer",
+        "description": "The name of the extension."
+    },
+    "extensionDescription": {
+        "message": "Control volume levels for individual tabs and audio sources.",
+        "description": "The description of the extension."
+    },
+    "volumeLabel": {
+        "message": "Volume",
+        "description": "Label for volume control."
+    },
+    "mute": {
+        "message": "Mute",
+        "description": "Text for mute button."
+    },
+    "unmute": {
+        "message": "Unmute",
+        "description": "Text for unmute button."
+    },
+    "reset": {
+        "message": "Reset",
+        "description": "Text for reset button."
+    },
+    "settings": {
+        "message": "Settings",
+        "description": "Text for settings menu."
+    }
+}
