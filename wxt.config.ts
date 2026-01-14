@@ -4,8 +4,8 @@ import { defineConfig } from 'wxt'
 // See https://wxt.dev/api/config.html
 export default defineConfig({
     manifest: {
-        name: '__MSG_extensionName__',
-        description: '__MSG_extensionDescription__',
+        name: '__MSG_extension_name__',
+        description: '__MSG_extension_description__',
         default_locale: 'en',
         permissions: [
             'activeTab',
@@ -24,7 +24,7 @@ export default defineConfig({
         action: {},
     },
     srcDir: 'src',
-    modules: ['@wxt-dev/unocss', '@wxt-dev/module-svelte'],
+    modules: ['@wxt-dev/unocss', '@wxt-dev/module-svelte', '@wxt-dev/i18n/module'],
     alias: {
         lib: resolve('src/lib/'),
     },

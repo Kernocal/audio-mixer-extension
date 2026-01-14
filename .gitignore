@@ -4,7 +4,6 @@
 .env.*
 .npmrc
 .svelte-kit
-.vscode
 .thoughts
 .output
 .wxt
