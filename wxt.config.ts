@@ -14,6 +14,7 @@ export default defineConfig({
             'tabCapture',
             'tabs',
             'webNavigation',
+            'offscreen',
         ],
         host_permissions: [
             '*://soundcloud.com/*',
@@ -26,6 +27,15 @@ export default defineConfig({
     modules: ['@wxt-dev/unocss', '@wxt-dev/module-svelte'],
     alias: {
         lib: resolve('src/lib/'),
+    },
+    svelte: {
+        vite: {
+            compilerOptions: {
+                experimental: {
+                    async: true,
+                },
+            },
+        },
     },
     webExt: {
         disabled: false,

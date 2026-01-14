@@ -1,5 +1,4 @@
-import presetWind4 from '@unocss/preset-wind4'
-import { defineConfig, transformerDirectives, transformerVariantGroup } from 'unocss'
+import { defineConfig, presetWind4, transformerDirectives, transformerVariantGroup } from 'unocss'
 import { presetScrollbar } from 'unocss-preset-scrollbar'
 
 export default defineConfig({

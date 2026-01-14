@@ -1,103 +1,121 @@
-import type { AnyResponse, ContentProperty } from 'lib/types'
+import type { AnyResponse, ContentProperty, ToneProperty } from 'lib/types'
 import { storage } from '#imports'
-import { messages, presets } from 'lib/data'
-import { exitRecordTab, getActiveTab, getTab, openRecordTab, sendContentTabCommand, sendTabCommand } from 'lib/util/handleTab'
+import { DEFAULT_PRESETS, MESSAGES } from 'lib/data'
+import { Commands, sendRuntime, sendTab } from 'lib/messaging/communication'
+import { getActiveTab, openRecordTab } from 'lib/util/handleTab'
+import { executeScript, sleep } from 'lib/util/util'
+import { getProperty, setProperty } from 'lib/valueManager'
 
-import { clearStorage, executeScript, exitCleanUp, getStorage, getValuesFromStorage, setPersistentStorage, setStorage, sleep } from 'lib/util/util'
-
-async function getValue(type: ContentProperty) {
-    return await sendContentTabCommand({ command: 'GET_VALUE', type }).then((res) => { return res?.value })
+async function getContentTab() {
+    const tabId = await storage.getItem<number>('session:contentTab')
+    if (!tabId) {
+        throw new Error('expected content tab id, none found')
+    }
+    return tabId
 }
 
-// async function getPlayerValues() {
-// return {
-// volume: await getValue("volume"),
-// playbackRate: await getValue("playbackRate"),
-// };
-// }
+async function getContentValue(property: 'volume' | 'playbackRate') {
+    const res = await sendTab(await getContentTab(), { target: 'content', command: Commands.GET_VALUE, data: property })
+    console.log('BG getContentValue: ', property, res)
+    return res?.value
+}
 
 async function executeContent() {
-    const contentTabId = await getStorage('contentTab')
-    await executeScript(contentTabId, 'content-scripts/content.js')
-    await sleep(500)
+    const contentTabId = await storage.getItem<number>('session:contentTab')
+    if (contentTabId) {
+        console.log('executing content script')
+        await executeScript(contentTabId, 'content-scripts/content.js')
+        await sleep(500)
+    }
+}
+
+async function getStreamID(tabid: number) {
+    return new Promise((resolve) => {
+        chrome.tabCapture.getMediaStreamId({
+            targetTabId: tabid,
+        }, (streamId) => {
+            resolve(streamId)
+        })
+    })
 }
 
 async function startRecording() {
     const recordTab = await openRecordTab()
     if (recordTab) {
-        await setStorage('recordTab', recordTab.id)
+        await storage.setItem('session:recordTab', true)
         await sleep(500)
-        await sendTabCommand(recordTab.id as number, { command: 'START_RECORDING' })
-        const res = {
-            message: messages.STATUS_PLAYING,
-            volume: await getValue('volume'),
-            playbackRate: await getValue('playbackRate'),
+        const tabId = await storage.getItem<number>('session:contentTab')
+        if (!tabId) {
+            throw new Error('expected content tab id, none found')
         }
-        console.log('BG recording: ', res)
-        return res
+        const streamId = await getStreamID(tabId)
+        if (!streamId) {
+            throw new Error('expected stream id, none found')
+        }
+        await sendRuntime({ target: 'offscreen', command: Commands.RECORD, data: { streamId } })
     }
 }
 
 async function alreadyRecording() {
-    let response: AnyResponse = {
-        pitch: 0,
-        pitchWet: 0,
-        reverbDecay: 0,
-        reverbWet: 0,
+    // maybe get volume from media? prob not
+    return {
+        pitch: await getProperty('pitch'),
+        pitchWet: await getProperty('pitchWet'),
+        reverbDecay: await getProperty('reverbDecay'),
+        reverbWet: await getProperty('reverbWet'),
+        volume: await getProperty('volume'),
+        playbackRate: await getProperty('playbackRate'),
+        message: MESSAGES.STATUS_ALREADY_PLAYING,
     }
-    response = await getValuesFromStorage(response)
-    // const {volume, playbackRate} = await getPlayerValues();
-    response.message = messages.STATUS_ALREADY_PLAYING
-    response.volume = await getStorage('volume')
-    response.playbackRate = await getStorage('playbackRate')
-    return response
 }
 
 async function runMixer() {
     const contentTab: chrome.tabs.Tab = await getActiveTab()
-    const recordTabId = await getStorage('recordTab')
-    const recordTab = (recordTabId) ? await getTab(recordTabId) : null
-    await setStorage('contentTab', contentTab.id)
-    await setStorage('contentTabURL', contentTab.url)
+    console.log(`content tab: ${contentTab}`)
+
+    const recordTab = await storage.getItem<number>('session:recordTab')
+    console.log(`record tab: ${recordTab}`)
+    await storage.setItem('session:contentTab', contentTab.id)
+    await storage.setItem('session:contentTabURL', contentTab.url)
     if (!contentTab?.audible) {
-        return { message: messages.STATUS_NO_AUDIO_CONTENT }
+        return { message: MESSAGES.STATUS_NO_AUDIO_CONTENT }
     }
     if (!recordTab) {
         await executeContent()
-        return await startRecording()
-    }
-    if (!recordTab?.audible) {
-        console.warn(messages.CAPTURE_ERROR, messages.GITHUB_ISSUE)
-        return { message: messages.STATUS_RECORD_FAILED }
+        await startRecording()
+        const res = {
+            message: MESSAGES.STATUS_PLAYING,
+            volume: await getContentValue('volume'),
+            playbackRate: await getContentValue('playbackRate'),
+        }
+        console.log('BG recording: ', res)
+        return res
     }
     return await alreadyRecording()
 }
 
-async function getAllStorage(type: string) {
-    if (type === 'session') {
-        console.log('BG: session storage', await chrome.storage.session.get(null))
-    }
-    else {
-        console.log('BG: local storage', await chrome.storage.local.get(null))
-    }
+async function getAllStorage(type: StorageArea) {
+    console.log(`BG: ${type} storage`, await storage.snapshot(type))
 }
 
 async function pageChange(url: string) {
-    const res = await sendContentTabCommand({ command: 'PING' }, false)
-    const volume = await getStorage('volume')
-    const playbackRate = await getStorage('playbackRate')
-    await setStorage('contentTabURL', url)
+    const res = await sendTab(await getContentTab(), { target: 'content', command: Commands.PING })
+    const volume = await getProperty('volume')
+    const playbackRate = await getProperty('playbackRate')
+    await storage.setItem('session:contentTabURL', url)
+    // what is this LMAO?
     if (res?.message !== 'PONG') {
-        await setStorage('contentExecuted', false)
-        await setStorage('pageChange', true)
+        console.log('BG: page change failed pong')
+        await storage.setItem('session:contentExecuted', false)
+        await storage.setItem('session:pageChange', true)
         await executeContent()
     }
-    await sendContentTabCommand({ command: 'PAGE_CHANGE', volume, playbackRate })
+    await sendTab(await getContentTab(), { target: 'content', command: Commands.PAGE_CHANGE, data: { volume, playbackRate } })
 }
 
 export default defineBackground(() => {
     chrome.runtime.onInstalled.addListener(async () => {
-        await clearStorage()
+        await storage.clear('local')
         chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' })
         await storage.watch<number>(
             'local:installDate',
@@ -108,46 +126,59 @@ export default defineBackground(() => {
         )
 
         await storage.setItem('local:installDate', new Date().toISOString())
-        await setPersistentStorage('presets', presets)
+        await storage.setItem('local:presets', DEFAULT_PRESETS)
         await getAllStorage('session')
         await getAllStorage('local')
     })
 
-    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-        if (request.command === 'START_MIXER') {
+    chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
+        const { target = '', command, data = {} } = request
+        if (command === Commands.START_MIXER) {
             runMixer().then((res) => {
                 sendResponse(res)
             })
             return true
         }
-        if (request.command === 'EXIT_MIXER') {
-            exitRecordTab().then((res) => {
-                sendResponse(res)
-            })
+        if (command === Commands.EXIT_MIXER) {
+            // exitRecordTab().then((res) => {
+            //     sendResponse(res)
+            // })
             return true
         }
-        if (['GET_VALUE', 'SET_VALUE', 'TOGGLE_PLAYBACK'].includes(request.command)) {
-            sendContentTabCommand(request).then((res) => {
-                sendResponse(res)
+        if (target === 'background' && command === Commands.SET_VALUE) {
+            // this is dumb its only meant to be for record because it doesnt have access to storage
+            // but i guess we could just set the storage in background hmmmmmmm
+            if (data.property === 'pitch' || data.property === 'pitchWet' || data.property === 'reverbDecay' || data.property === 'reverbWet') {
+                console.log(`Special set value ${data.property} to ${data.value}`)
+                setProperty(data.property, data.value)
+            }
+        }
+        if ([Commands.GET_VALUE, Commands.SET_VALUE, Commands.TOGGLE_PLAYBACK].includes(command)) {
+            getContentTab().then((contentTab) => {
+                sendTab(contentTab, { target: 'content', command, data }).then((res) => {
+                    sendResponse(res)
+                })
             })
             return true
         }
     })
 
     chrome.webNavigation.onDOMContentLoaded.addListener(async (details) => {
-        const contentTabId = await getStorage('contentTab')
+        const contentTabId = await storage.getItem<number>('session:contentTab')
         if (details.tabId === contentTabId && details.frameType === 'outermost_frame') {
-            console.log('BG new dom loaded: ', details)
+            console.log('BG new domain: ', details)
             await pageChange(details.url)
         }
     })
 
     chrome.webNavigation.onHistoryStateUpdated.addListener(async ({ tabId, url }) => {
-        const contentTabId = await getStorage('contentTab')
-        const contentTabURL = await getStorage('contentTabURL')
+        const contentTabId = await storage.getItem<number>('session:contentTab')
+        const contentTabURL = await storage.getItem<string>('session:contentTabURL')
         if (tabId === contentTabId && url !== contentTabURL) {
             chrome.tabs.onUpdated.addListener(async function update(tabId, changeInfo) {
                 if (tabId === contentTabId && changeInfo.title) {
+                    console.log('BG same domain:', url)
+
                     await pageChange(url)
                     chrome.tabs.onUpdated.removeListener(update)
                 }
@@ -156,16 +187,18 @@ export default defineBackground(() => {
     })
 
     chrome.tabs.onRemoved.addListener(async (tabId) => {
-        const contentTabId = await getStorage('contentTab')
-        const recordTabId = await getStorage('recordTab')
+        const contentTabId = await storage.getItem<number>('session:contentTab')
         if (tabId === contentTabId) {
-            await exitRecordTab()
-            await exitCleanUp()
-        }
-
-        if (tabId === recordTabId) {
-            await sendContentTabCommand({ command: 'SET_VALUE', type: 'playbackRate', value: 1 })
-            await exitCleanUp()
+            const recordTab = await storage.getItem<number>('session:recordTab')
+            if (recordTab) {
+                //
+                return { message: MESSAGES.STATUS_QUIT }
+            }
+            // maybe only remove tabids
+            // await storage.removeItem('session:contentTab')
+            // await storage.removeItem('session:recordTab')
+            await storage.clear('session')
+            console.log(MESSAGES.EXITING)
         }
     })
 })

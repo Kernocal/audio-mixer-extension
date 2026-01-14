@@ -1,65 +1,68 @@
 <script lang='ts'>
     import type { PopUpCommands, Preset, PresetProperties, Properties, Property, StartMixerResponse } from 'lib/types'
-    import CarbonKnobSrc from 'lib/assets/CarbonPurple.png'
-    import GitHub from 'lib/assets/github.png'
-    import SmallKnobSrc from 'lib/assets/SmallLedKnob2.png'
-    import { messages, presets } from 'lib/data'
-    import Knob from 'lib/knob/Knob.svelte'
-    import { compareObjects, getPersistentStorage, getStorage, setPersistentStorage, setStorage } from 'lib/util/util'
+    import { storage } from '#imports'
+    import { Commands, sendRuntime } from 'lib/messaging/communication'
+    import { DEFAULT_PRESETS, MESSAGES } from 'lib/data'
+    import { compareObjects } from 'lib/util/util'
+    import { emptyPropeties } from 'lib/valueManager'
     import { onMount } from 'svelte'
+
+    import Presets from './Presets.svelte'
+    import PropertyControls from './PropertyControls.svelte'
 
     import 'virtual:uno.css'
 
-    let STATUS: string = messages.STATUS_WAITING
-    let PRESETS: Preset[] = []
-    let UI_DISABLED: boolean = true
-    let ACTIVE_PRESET_INDEX: number = 0
-    let SAVE_PRESET_HIDDEN = true
-    let NEW_PRESET_NAME = ''
-    const PROPERTIES: Properties = {
-        pitch: 0,
-        pitchWet: 0,
-        reverbDecay: 0.01,
-        reverbWet: 0,
-        volume: 0,
-        playbackRate: 1,
-    }
+    let STATUS = $state<string>(MESSAGES.STATUS_WAITING)
 
-    function sendCommand(data: PopUpCommands, text: string) {
-        try {
-            chrome.runtime.sendMessage(data, (response) => {
-                if (response?.message === 'success') {
-                    STATUS = text
-                }
-                else {
-                    STATUS = messages.STATUS_FAILED_COMMAND
-                }
-            })
-        }
-        catch (e) {
-            console.warn(e)
-        }
+    let PRESETS = $state<Preset[]>(DEFAULT_PRESETS)
+    let UI_DISABLED = $state<boolean>(true)
+    let ACTIVE_PRESET_INDEX = $state<number>(0)
+    let PROPERTIES = $state<Properties>(emptyPropeties())
+    $inspect(PRESETS)
+
+    // Debug: Monitor PROPERTIES changes
+    $effect(() => {
+        console.log('[Popup] PROPERTIES changed:', JSON.stringify(PROPERTIES))
+    })
+
+    async function sendCommand(message) {
+        const { target = 'background', command, data = {}} = message
+        console.log('Sending command', data)
+        return await sendRuntime({ target, command, data })
     }
+    // data.property, data.value
+    // data.tabId
+
+    // function sendCommand(data: PopUpCommands) {
+    //     try {
+    //         chrome.runtime.sendMessage(data, (response) => {
+    //             return response?.message === 'success'
+    //         })
+    //     }
+    //     catch (e) {
+    //         console.warn(e)
+    //         return false
+    //     }
+    // }
 
     function setPreset(presetIndex: number) {
         ACTIVE_PRESET_INDEX = presetIndex
-        setStorage('preset', ACTIVE_PRESET_INDEX)
+        storage.setItem('session:preset', ACTIVE_PRESET_INDEX)
     }
 
-    async function savePreset() {
-        PRESETS = await getPersistentStorage('presets')
-        const { volume, ...newProperties } = PROPERTIES
-        const newPreset = { name: NEW_PRESET_NAME, values: (newProperties as PresetProperties) }
+    async function savePreset(name: string) {
+        PRESETS = await storage.getItem<Preset[]>('local:presets') ?? PRESETS
+        const { volume: _volume, ...newProperties } = PROPERTIES
+        const newPreset = { name, values: (newProperties as PresetProperties) }
         PRESETS.splice((PRESETS.length - 1), 0, newPreset)
-        await setPersistentStorage('presets', PRESETS)
-        NEW_PRESET_NAME = ''
+        await storage.setItem('local:presets', PRESETS)
     }
 
     async function deletePreset(presetIndex: number) {
-        PRESETS = await getPersistentStorage('presets')
+        PRESETS = await storage.getItem<Preset[]>('local:presets') ?? PRESETS
         if (presetIndex !== 0 || presetIndex !== PRESETS.length - 1) {
             PRESETS.splice(presetIndex, 1)
-            await setPersistentStorage('presets', PRESETS)
+            await storage.setItem('local:presets', PRESETS)
             setValues(PRESETS[0].values, 'GLOBAL')
         }
     }
@@ -67,7 +70,7 @@
     function getPresetIndexFromProperties() {
         // If no valid preset found set to the last preset, custom.
         const customIndex = PRESETS.length - 1
-        const presetProperties = (({ volume, ...key }) => key)(PROPERTIES)
+        const presetProperties = (({ volume: _volume, ...key }) => key)(PROPERTIES)
         for (let i = 0; i < customIndex; i++) {
             if (compareObjects(PRESETS[i].values, presetProperties)) {
                 return i
@@ -76,7 +79,7 @@
         return customIndex
     }
 
-    function getUpdatedStatus(property: Property) {
+    function updateStatusProperty(property: Property) {
         // Splits on capital letter: playbackRate -> ['playback', 'Rate']
         const properties = property.split(/(?=[A-Z])/)
         if (properties.length > 1) {
@@ -87,13 +90,18 @@
         }
     }
 
-    function setValue(property: Property, value: number) {
+    async function setValue(property: Property, value: number) {
+        console.log('Popup setValue: ', property, value)
         if (!UI_DISABLED) {
-            sendCommand({
-                command: 'SET_VALUE',
-                type: property,
-                value,
-            }, getUpdatedStatus(property))
+            const response = await sendCommand({
+                target: 'content',
+                command: Commands.SET_VALUE,
+                data: {
+                    property,
+                    value
+                }
+            })
+            STATUS = response ? updateStatusProperty(property) : MESSAGES.STATUS_FAILED_COMMAND
             if (property !== 'volume') {
                 const presetValues = PRESETS[ACTIVE_PRESET_INDEX].values
                 if ((presetValues as PresetProperties)[property] !== value) {
@@ -104,8 +112,8 @@
         }
     }
 
-    function setValues(newValues: StartMixerResponse | {}, scope: 'LOCAL' | 'GLOBAL') {
-        console.log(`Setting values ${newValues} scope ${scope}`)
+    function setValues(newValues: StartMixerResponse | object, scope: 'LOCAL' | 'GLOBAL') {
+        console.log(`Setting values ${JSON.stringify(newValues)} scope ${scope}`)
         for (const [objKey, objValue] of Object.entries(newValues)) {
             const key: Property = objKey as Property
             const value: number = objValue as number
@@ -121,184 +129,84 @@
     function exitMixer() {
         PROPERTIES.playbackRate = 1
         setValue('playbackRate', PROPERTIES.playbackRate)
-        sendCommand({ command: 'EXIT_MIXER' }, messages.STATUS_EXIT)
+        sendCommand({ command: Commands.EXIT_MIXER })
+        STATUS = MESSAGES.STATUS_EXIT
         window.close()
     }
 
+    function handlePresetSelect(index: number) {
+        setPreset(index)
+        setValues(PRESETS[ACTIVE_PRESET_INDEX]?.values, 'GLOBAL')
+    }
+
+    function handleTogglePlayback() {
+        sendCommand({ command: Commands.TOGGLE_PLAYBACK })
+    }
+
     onMount(async () => {
-        PRESETS = await getPersistentStorage('presets')
-        if (PRESETS?.length < 1 || PRESETS === undefined) {
-            STATUS = messages.STATUS_PRESETS_EMPTY
-            console.warn(messages.GITHUB_ISSUE)
-            PRESETS = presets
-        }
-        console.log('presets', PRESETS)
-        getStorage('preset').then((storedPreset) => {
-            ACTIVE_PRESET_INDEX = storedPreset ?? ACTIVE_PRESET_INDEX
-        })
-        chrome.runtime.sendMessage({ command: 'START_MIXER' }, (response) => {
+        PRESETS = await storage.getItem<Preset[]>('local:presets') ?? PRESETS
+        ACTIVE_PRESET_INDEX = await storage.getItem<number>('session:preset') ?? ACTIVE_PRESET_INDEX
+        chrome.runtime.sendMessage({ command: Commands.START_MIXER }, (response) => {
             if (['Playing.', 'Already playing.'].includes(response.message)) {
                 UI_DISABLED = false
                 setValues(response, 'LOCAL')
+                STATUS = response.message
             }
-            STATUS = response.message
         })
     })
-
 </script>
 
-<div class='bg flex flex-col h-fit min-h-[550px] min-w-[500px] w-fit whitespace-nowrap'>
-    {#if !SAVE_PRESET_HIDDEN}
-        <div class='bg-black/80 flex h-100% w-100% items-center justify-center fixed z-1'>
-            <div class='p-3 rounded-md bg-mixer-secondary/30 flex flex-col w-fit'>
-                <h1 class='propertyText'>New Preset Name</h1>
-                <input type='text' name='presetName' class='m-2 p-2 w-32' bind:value={NEW_PRESET_NAME}>
-                <div>
-                    <button class='button' on:click={() => {
-                        savePreset()
-                        SAVE_PRESET_HIDDEN = !SAVE_PRESET_HIDDEN
-                    }}>Save
-                    </button>
-                    <button class='button' on:click={() => {
-                        SAVE_PRESET_HIDDEN = !SAVE_PRESET_HIDDEN
-                        NEW_PRESET_NAME = ''
-                    }}>Cancel
-                    </button>
-                </div>
-            </div>
-        </div>
-    {/if}
+<div class='bg animate flex flex-col h-fit min-h-[550px] min-w-[500px] w-fit whitespace-nowrap'>
+    <p class='text-white'>{JSON.stringify(PROPERTIES)} </p>
+    <p class='text-white'>{UI_DISABLED}</p>
     <div class='grid-parent items-center justify-evenly children:m-2'>
-        <div class='grid-child1'>
-            <div class={`rounded-md ${PROPERTIES.pitchWet > 0 ? 'bg-mixer-secondary/30' : 'bg-mixer-secondary/10'}`}>
-                <h1 class='propertyText'>Pitch</h1>
-                <div class='flex justify-around'>
-                    <Knob id='pitch' label='Semitone Shift:' src={SmallKnobSrc} bind:value={PROPERTIES.pitch} min='-12' max='12' step='1' disabled={UI_DISABLED} on:change={() => { setValue('pitch', PROPERTIES.pitch) }} />
-                    <Knob id='pitchWet' label='Active amount:' src={CarbonKnobSrc} bind:value={PROPERTIES.pitchWet} min='0' max='1' step='0.01' disabled={UI_DISABLED} on:change={() => { setValue('pitchWet', PROPERTIES.pitchWet) }} />
-                </div>
-            </div>
-            <div class={`rounded-md mt-2 ${PROPERTIES.reverbWet > 0 ? 'bg-mixer-secondary/30' : 'bg-mixer-secondary/10'}`}>
-                <h1 class='propertyText'>Reverb</h1>
-                <div class='flex justify-around'>
-                    <Knob id='reverb' label='Decay:' src={SmallKnobSrc} bind:value={PROPERTIES.reverbDecay} min='0.01' max='10' step='0.10' disabled={UI_DISABLED} on:change={() => { setValue('reverbDecay', PROPERTIES.reverbDecay) }} />
-                    <Knob id='reverbWet' label='Active amount:' src={CarbonKnobSrc} bind:value={PROPERTIES.reverbWet} min='0' max='1' step='0.01' disabled={UI_DISABLED} on:change={() => { setValue('reverbWet', PROPERTIES.reverbWet) }} />
-                </div>
-            </div>
-            <div class='mt-2 rounded-md bg-mixer-secondary/30 whitespace-nowrap'>
-                <h1 class='propertyText'>Media Settings</h1>
-                <div class='flex justify-around'>
-                    <Knob id='volume' label='Volume:' src={SmallKnobSrc} bind:value={PROPERTIES.volume} min='0' max='1' step='0.01' disabled={UI_DISABLED} on:change={() => { setValue('volume', PROPERTIES.volume) }} />
-                    <Knob id='playbackRate' label='Playback Rate:' src={SmallKnobSrc} bind:value={PROPERTIES.playbackRate} min='0.1' max='2' step='0.05' disabled={UI_DISABLED} on:change={() => { setValue('playbackRate', PROPERTIES.playbackRate) }} />
-                </div>
-            </div>
-            <div class='flex items-center justify-between'>
-                <button class='button' disabled={UI_DISABLED} on:click={() => { sendCommand({ command: 'TOGGLE_PLAYBACK' }, messages.STATUS_TOGGLE_PLAYBACK) }}>Play/Pause</button>
-                <button class='button' on:click={exitMixer}>Quit</button>
-            </div>
-        </div>
-        <div class='grid-child2 flex flex-col h-99% items-center self-start'>
-            <h1 class='propertyText'>Presets</h1>
-            <div class='pb-2 pl-2 pt-1 flex flex-col w-100% children:(rounded-md)'>
-                {#each PRESETS as preset, i}
-                    <label class={`font-medium cursor-pointer mb-1 p-2 pr-4 hover:(bg-mixer-secondary/30) ${ACTIVE_PRESET_INDEX === i && !UI_DISABLED ? 'bg-mixer-secondary/30' : 'bg-mixer-secondary/10'}`}>
-                        <input class='radio mx-2 mt-auto' type='radio' name='activePreset' disabled={UI_DISABLED || (ACTIVE_PRESET_INDEX === 0 && PRESETS.length - 1 === i)} bind:group={ACTIVE_PRESET_INDEX} value={i} on:click={() => {
-                            setPreset(i)
-                            setValues(PRESETS[ACTIVE_PRESET_INDEX]?.values, 'GLOBAL')
-                        }}>
-                        <span class='text-sm text-light-600 m-auto'>{preset.name}</span>
-                    </label>
-                {/each}
-            </div>
-            {#if PRESETS[ACTIVE_PRESET_INDEX]?.name === 'Custom'}
-                <button class='button pt-1' disabled={UI_DISABLED} on:click={() => { SAVE_PRESET_HIDDEN = !SAVE_PRESET_HIDDEN }}>Save preset</button>
-            {:else}
-                <button class='button pt-1' disabled={UI_DISABLED || ACTIVE_PRESET_INDEX === 0} on:click={async () => { await deletePreset(ACTIVE_PRESET_INDEX) }}>Delete preset</button>
-            {/if}
-            <p class={`text-light-600 p-1 w-fit whitespace-pre-line ${(STATUS.length > 80 ? 'text-xs' : 'text-sm')}`}>{STATUS}</p>
-            <a title='Get help on GitHub!' class='mb-4 mr-2 mt-auto self-end hover:opacity-75' href='https://github.com/Kernocal/audio-mixer-extension' target='_blank'>
-                <img src={GitHub} alt="" class='filter-svg max-h-6 max-w-6 min-h-6 min-w-6' />
-            </a>
-        </div>
+        <PropertyControls
+            bind:properties={PROPERTIES}
+            disabled={UI_DISABLED}
+            onPropertyChange={setValue}
+            onTogglePlayback={handleTogglePlayback}
+            onExit={exitMixer}
+        />
+        <Presets
+            bind:presets={PRESETS}
+            bind:activePresetIndex={ACTIVE_PRESET_INDEX}
+            status={STATUS}
+            disabled={UI_DISABLED}
+            onPresetSelect={handlePresetSelect}
+            onPresetSave={savePreset}
+            onPresetDelete={deletePreset}
+        />
+
     </div>
 </div>
 
 <style>
 :global(body) {
-@apply scrollbar scrollbar-rounded scrollbar-w-8px scrollbar-radius-8 scrollbar-thumb-color-mixer-primary scrollbar-track-color-mixer-secondary;
-}
-
-.radio {
--webkit-appearance: none;
--moz-appearance: none;
-appearance: none;
-margin: 0;
-@apply rounded-[9999px] border-purple-900;
-height: 1rem;
-width: 1rem;
-border-radius: 9999px;
-border-width: 1px;
-}
-.radio:checked {
-@apply bg-purple-600 shadow-purple;
-}
-
-.radio:disabled, .radio:active:disabled {
-@apply bg-transparent border-dark-950;
-}
-
-.text {
-@apply text-light-600 text-sm p-1;
-}
-.propertyText {
-@apply text-light-600 text-lg p-1 pl-2 font-medium;
-}
-
-.button {
-@apply w-fit h-fit p-2 m-2 bg-purple-700 rounded-md text-white;
-}
-.button:active:enabled {
-@apply ring-4 ring-light-200/25;
-}
-.button:hover:enabled {
-@apply opacity-80;
-}
-.button:disabled {
-@apply bg-purple-950/20 cursor-not-allowed;
+    @apply scrollbar scrollbar-rounded scrollbar-w-8px scrollbar-radius-8 scrollbar-thumb-color-mixer-primary scrollbar-track-color-mixer-secondary;
 }
 
 .grid-parent {
-display: grid;
-grid-template-columns: 1fr 1fr;
-grid-template-rows: 1fr;
-grid-column-gap: 0px;
-grid-row-gap: 0px;
-}
-.grid-child1 {
-grid-area: 1 / 1 / 2 / 2;
-}
-.grid-child2 {
-grid-area: 1 / 2 / 2 / 3;
-}
-
-.filter-svg {
-filter: invert(14%) sepia(65%) saturate(6557%) hue-rotate(272deg) brightness(89%) contrast(91%);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+    grid-column-gap: 0px;
+    grid-row-gap: 0px;
 }
 
 .bg, .animate {
-background-color: rgba(0, 1, 20, 0.92);
+    background-color: rgba(0, 1, 20, 0.92);
 }
 
 .animate {
-animation: bg-animation 60s infinite linear;
+    animation: bg-animation 60s infinite linear;
 }
 
 @keyframes bg-animation {
-0%   { background-color: rgba(0, 1, 20, 0.92); }
-20%   { background-color: rgba(31, 0, 0, 0.92); }
-40%   { background-color: rgba(0, 43, 10, 0.92); }
-60%   { background-color: rgba(17, 0, 31, 0.92); }
-80%   { background-color: rgba(1, 0, 63, 0.92); }
-100%   { background-color: rgba(43, 23, 0, 0.92); }
+    0%   { background-color: rgba(0, 1, 20, 0.92); }
+    20%   { background-color: rgba(31, 0, 0, 0.92); }
+    40%   { background-color: rgba(0, 43, 10, 0.92); }
+    60%   { background-color: rgba(17, 0, 31, 0.92); }
+    80%   { background-color: rgba(1, 0, 63, 0.92); }
+    100%   { background-color: rgba(43, 23, 0, 0.92); }
 }
-
 </style>

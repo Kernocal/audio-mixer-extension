@@ -1,7 +1,7 @@
 {
     "name": "audio-mixer",
     "type": "module",
-    "version": "1.5.0",
+    "version": "1.5.1",
     "description": "extension",
     "scripts": {
         "dev": "wxt",
@@ -16,17 +16,16 @@
         "lint:fix": "eslint --fix ."
     },
     "devDependencies": {
-        "@antfu/eslint-config": "^6.7.3",
+        "@antfu/eslint-config": "^7.0.0",
         "@tsconfig/svelte": "^5.0.6",
-        "@types/chrome": "^0.0.248",
-        "@types/node": "^20.8.10",
+        "@types/chrome": "^0.1.33",
+        "@types/node": "^20.19.29",
         "@unocss/eslint-plugin": "^66.5.12",
-        "@unocss/preset-wind4": "^66.5.12",
         "@wxt-dev/module-svelte": "^2.0.4",
         "@wxt-dev/unocss": "^1.0.1",
         "eslint": "^9.39.2",
-        "eslint-plugin-svelte": "^3.13.1",
-        "svelte": "^5.46.1",
+        "eslint-plugin-svelte": "^3.14.0",
+        "svelte": "^5.46.3",
         "svelte-check": "^4.3.5",
         "tone": "^15.1.22",
         "tslib": "^2.8.1",

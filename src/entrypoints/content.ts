@@ -1,17 +1,17 @@
 import type { ContentProperty, CustomMedia, NullMedia, PropertyValue } from 'lib/types'
-import { messages } from 'lib/data'
+import { storage } from '#imports'
+import { MESSAGES } from 'lib/data'
 import { getInjectedValue, INJECT_WEBSITE, sendEvent, setInjectedValue, updateSlider } from 'lib/util/siteSpecific'
-import { getStorage, setStorage } from 'lib/util/util'
 
 let myMedia: NullMedia = null
 
 async function getValue(type: ContentProperty) {
     if (!INJECT_WEBSITE && myMedia) {
-        const storedValue = await getStorage(type)
+        const storedValue = await storage.getItem<number>(`session:${type}`)
         const mediaValue = myMedia[type]
         if (storedValue !== mediaValue) {
             console.warn(`Out of sync ${type}: stored ${storedValue},  media ${mediaValue}`)
-            setStorage(type, mediaValue)
+            await storage.setItem(`session:${type}`, mediaValue)
             return mediaValue
         }
         else {
@@ -20,7 +20,7 @@ async function getValue(type: ContentProperty) {
     }
     else {
         const value = await getInjectedValue(type)
-        await setStorage(type, value)
+        await storage.setItem(`session:${type}`, value)
         return value
     }
 }
@@ -32,7 +32,7 @@ async function setValue(type: ContentProperty, value: PropertyValue) {
     else {
         setInjectedValue(type, value)
     }
-    await setStorage(type, value)
+    await storage.setItem(`session:${type}`, value)
     if (type === 'volume') {
         updateSlider(value)
     }
@@ -44,13 +44,13 @@ async function setMediaValues(volume: number, playbackRate: number) {
 }
 
 async function setupInjected() {
-    const pageChange = await getStorage('pageChange')
+    const pageChange = await storage.getItem<boolean>('session:pageChange')
     if (!pageChange) {
         const volume = await getValue('volume')
         const playbackRate = await getValue('playbackRate')
         await setMediaValues(volume, playbackRate)
     }
-    await setStorage('pageChange', false)
+    await storage.setItem('session:pageChange', false)
 }
 
 function getPlayingMedia(mediaElements: CustomMedia[]) {
@@ -60,10 +60,10 @@ function getPlayingMedia(mediaElements: CustomMedia[]) {
     }
     else if (mediaPlaying.length > 1) {
         // todo: Let user pick which media if many playing.
-        console.warn(messages.CONTENT_MULTIPLE, mediaPlaying)
+        console.warn(MESSAGES.CONTENT_MULTIPLE, mediaPlaying)
         return mediaPlaying[0]
     }
-    console.warn(messages.NO_MEDIA_PLAYING, mediaPlaying)
+    console.warn(MESSAGES.NO_MEDIA_PLAYING, mediaPlaying)
     return null
 }
 
@@ -76,12 +76,12 @@ function getMedia(): NullMedia {
     else if (mediaElements.length > 1) {
         return getPlayingMedia(mediaElements)
     }
-    console.warn(messages.NO_MEDIA, messages.GITHUB_WEBSITE)
+    console.warn(MESSAGES.NO_MEDIA, MESSAGES.GITHUB_WEBSITE)
     return null
 }
 
 function init() {
-    console.log(messages.CONTENT_EXECUTED)
+    console.log(MESSAGES.CONTENT_EXECUTED)
 
     const dummyElement = document.createElement('audio')
     if (!('playing' in dummyElement)) {
@@ -97,8 +97,10 @@ function init() {
         if (!INJECT_WEBSITE) {
             myMedia = getMedia()
             if (myMedia) {
-                setStorage('volume', myMedia.volume)
-                setStorage('playbackRate', myMedia.playbackRate)
+                console.log(`current playbackRate ${myMedia.playbackRate} current volume ${myMedia.volume}`)
+
+                storage.setItem('session:volume', myMedia.volume)
+                storage.setItem('session:playbackRate', myMedia.playbackRate)
             }
         }
         else {
@@ -107,25 +109,28 @@ function init() {
     }
 
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-        if (request.command === 'PING') {
+        const { target, command, data } = request
+        console.log('CONTENT message: ', target, command, data)
+        if (command === 'PING') {
             sendResponse({ message: 'PONG' })
             return true
         }
-        if (['playbackRate', 'volume'].includes(request.type)) {
-            if (request.command === 'GET_VALUE') {
-                getValue(request.type).then((value) => {
-                    sendResponse({ message: 'success', type: request.type, value })
+        if (data.property === 'volume' || data.property === 'playbackRate') {
+            if (command === 'GET_VALUE') {
+                console.log('CONTENT GET_VALUE: ', data.property)
+                getValue(data.property).then((value) => {
+                    sendResponse({ message: 'success', property: data.property, value })
                 })
                 return true
             }
-            if (request.command === 'SET_VALUE') {
-                setValue(request.type, request.value).then(() => {
+            if (command === 'SET_VALUE') {
+                setValue(data.property, data.value).then(() => {
                     sendResponse({ message: 'success' })
                 })
                 return true
             }
         }
-        if (request.command === 'TOGGLE_PLAYBACK') {
+        if (command === 'TOGGLE_PLAYBACK') {
             if (!INJECT_WEBSITE && myMedia) {
                 myMedia.paused ? myMedia.play() : myMedia.pause()
             }
@@ -135,15 +140,16 @@ function init() {
             sendResponse({ message: 'success' })
             return true
         }
-        if (request.command === 'PAGE_CHANGE') {
+        if (command === 'PAGE_CHANGE') {
+            const { volume, playbackRate } = data
             if (!INJECT_WEBSITE) {
                 myMedia?.addEventListener('timeupdate', () => {
-                    console.log('CONTENT: PLAYING NAOW setting vol', request.volume, 'playbackRate', request.playbackRate)
-                    setMediaValues(request.volume, request.playbackRate)
+                    console.log('CONTENT: PLAYING NAOW setting vol', volume, 'playbackRate', playbackRate)
+                    setMediaValues(volume, playbackRate)
                 }, { once: true })
             }
             else {
-                setMediaValues(request.volume, request.playbackRate)
+                setMediaValues(volume, playbackRate)
                 sendEvent('PAGE_CHANGE')
             }
             sendResponse({ message: 'success' })
@@ -153,12 +159,13 @@ function init() {
 }
 
 export default defineContentScript({
-    matches: ['*://*/*'],
-    main() {
-        getStorage('contentExecuted').then((executed) => {
+    registration: 'runtime',
+    // matches: ['<all_urls>'],
+    main(ctx) {
+        storage.getItem<boolean>('session:contentExecuted').then((executed) => {
             if (!executed || executed === undefined) {
                 init()
-                setStorage('contentExecuted', true)
+                storage.setItem('session:contentExecuted', true)
             }
         })
     },

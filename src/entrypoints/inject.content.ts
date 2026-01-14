@@ -12,7 +12,7 @@ export default defineContentScript({
         let myPlaybackRate: number
 
         function log(...args: any[]) {
-            console.warn('Audio Mixer INJECT:', ...args)
+            console.log('Audio Mixer INJECT:', ...args)
         }
 
         function createEvent(name: string, callback: EventListener) {

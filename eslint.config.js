@@ -6,6 +6,7 @@ export default antfu(
         svelte: true,
         typescript: true,
         yaml: false,
+        jsonc: true,
         stylistic: {
             indent: 4,
         },
@@ -20,6 +21,7 @@ export default antfu(
         rules: {
             'style/max-statements-per-line': ['warn'],
             'no-console': ['warn'],
+            '@typescript-eslint/consistent-type-definitions': ['off'],
         },
     },
 )

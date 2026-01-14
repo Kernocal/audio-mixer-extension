@@ -1,22 +1,22 @@
-<script lang='ts'>
+<script lang="ts">
     import type { ToneProperty } from 'lib/types'
     import type { PitchShift as PitchType, Reverb as ReverbType } from 'tone'
-    import { messages } from 'lib/data'
-    import { tabCapture } from 'lib/util/handleTab'
-    import { setStorage } from 'lib/util/util'
-    import { onMount } from 'svelte'
+    import { Commands, sendRuntime } from 'lib/messaging/communication'
+    import { MESSAGES } from 'lib/data'
+    import { onMount, onDestroy } from 'svelte'
     import { connect, PitchShift, Reverb, setContext } from 'tone'
 
-    let pitchShift: PitchType | undefined
-    let reverb: ReverbType | undefined
+    let audioContext: AudioContext | null = null;
+    let pitchShift: PitchType | null = $state(null);
+    let reverb: ReverbType | null = $state(null);
+    let isRecording: boolean = $state(false);
 
-    async function setValue(type: ToneProperty, value: number) {
+    async function setValue(property: ToneProperty, value: number) {
         if (!pitchShift || !reverb) {
             return
         }
-
         try {
-            switch (type) {
+            switch (property) {
                 case 'pitch':
                     pitchShift.pitch = value
                     break
@@ -30,27 +30,34 @@
                     reverb.wet.value = value
                     break
             }
-            await setStorage(type, value)
+            // should be storing not resetting would just loop xd
+            sendRuntime({ target: 'background', command: 'SET_VALUE', data: { property, value } })
         }
         catch (e) {
-            console.warn(messages.SET_VALUE, type, value, e)
+            console.warn(MESSAGES.SET_VALUE, property, value, e)
         }
     }
 
-    async function startRecord() {
-        const stream = await tabCapture()
+    async function startRecord(stream: MediaStream) {
+        console.log(`2nd stream: ${stream}`)
         if (!stream) {
-            console.warn(messages.CAPTURE_TAB_ERROR, stream)
+            console.warn(MESSAGES.CAPTURE_TAB_ERROR, stream)
             window.close()
             return null
         }
-        const context = new AudioContext()
-        const audioStream = context.createMediaStreamSource(stream)
-        const gainNode = context.createGain()
+
+        // Clean up any existing context
+        if (audioContext) {
+            await audioContext.close();
+        }
+
+        audioContext = new AudioContext()
+        const audioStream = audioContext.createMediaStreamSource(stream)
+        const gainNode = audioContext.createGain()
         audioStream.connect(gainNode)
 
         // tone.js needs to be told about the context
-        setContext(context)
+        setContext(audioContext)
 
         pitchShift = new PitchShift({
             pitch: 0,
@@ -65,32 +72,66 @@
 
         connect(gainNode, reverb)
         connect(reverb, pitchShift)
-        connect(pitchShift, context.destination)
+        connect(pitchShift, audioContext.destination)
+
+        isRecording = true;
     }
 
-    onMount(() => {
-        const listener = (request: any, _sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => {
-            if (request.command === 'START_RECORDING') {
-                startRecord().then(() => {
-                    sendResponse({ message: 'success' })
-                })
-                return true
-            }
+    async function handleMessages(message, _sender, sendResponse) {
+        // if (message.target !== 'offscreen-doc') {
+        //     return 2
+        // }
+        console.log(`OFFS DOC message: ${JSON.stringify(message)}`)
 
-            if (request.command === 'SET_VALUE' && ['pitch', 'pitchWet', 'reverbDecay', 'reverbWet'].includes(request.type)) {
-                setValue(request.type, request.value).then(() => {
-                    sendResponse({ message: 'success' })
+        if (message.command === Commands.RECORD) {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        mandatory: {
+                            chromeMediaSource: 'tab',
+                            chromeMediaSourceId: message.data.streamId,
+                        },
+                    },
                 })
+                console.log(`1st stream: ${stream}`)
+
+                await startRecord(stream)
+                sendResponse({ message: 'success' })
                 return true
+            } catch (error) {
+                console.error('Error getting media stream:', error);
+                sendResponse({ message: 'error', error: error.message });
+                return true;
             }
         }
 
-        chrome.runtime.onMessage.addListener(listener)
-        return () => chrome.runtime.onMessage.removeListener(listener)
+        if (message.command === Commands.SET_VALUE) {
+            const validTypes = ['pitch', 'pitchWet', 'reverbDecay', 'reverbWet']
+            if (validTypes.includes(message.data.property)) {
+                await setValue(message.data.property, message.data.value)
+                sendResponse({ message: 'success' })
+                return true
+            }
+        }
+    }
+
+//     $effect(() => {
+//     console.log('Offscreen is alive')
+//     chrome.runtime.onMessage.addListener(handleMessages)
+    
+//     return () => {
+//         chrome.runtime.onMessage.removeListener(handleMessages)
+//         audioContext?.close()
+//     }
+// })
+
+    onMount(() => {
+        console.log('Offscreen is alive')
+        chrome.runtime.onMessage.addListener(handleMessages)
     })
 </script>
 
-<div class='recording-indicator'>
+<!-- <div class='recording-indicator'>
     <div class='status-card'>
         <h1>Audio Mixer</h1>
         <div class='indicator'>
@@ -165,4 +206,4 @@
         margin-top: 1rem;
         font-style: italic;
     }
-</style>
+</style> -->

@@ -1,10 +1,13 @@
 import type { Preset } from './types'
 
-export function genProperties(playbackRate: number, pitch: number, pitchWet: number, reverbDecay: number, reverbWet: number) {
+function genProperties(playbackRate: number, pitch: number, pitchWet: number, reverbDecay: number, reverbWet: number) {
     return { playbackRate, pitch, pitchWet, reverbDecay, reverbWet }
 };
 
-export enum messages {
+export const ERROR_VOLUME = 0.6767676767
+export const ERROR_PLAYBACK_RATE = 1
+
+export enum MESSAGES {
     STATUS_WAITING = 'Waiting for media.',
     STATUS_PLAYING = 'Playing.',
     STATUS_TOGGLE_PLAYBACK = 'Played/paused.',
@@ -34,7 +37,7 @@ export enum messages {
     GITHUB_WEBSITE = 'If this website is already supported please open an issue on GitHub, if it isn\'t supported yet feel free to message me or open an issue on GitHub.',
 }
 
-export const presets: Preset[] = [
+export const DEFAULT_PRESETS: Preset[] = [
     {
         name: 'Default/Reset',
         values: genProperties(1, 0, 0, 0.01, 0),
