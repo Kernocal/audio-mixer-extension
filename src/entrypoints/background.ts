@@ -4,6 +4,7 @@ import { Commands, sendRuntime, sendTab } from 'lib/messaging/communication'
 import { getActiveTab, openRecordTab } from 'lib/util/handleTab'
 import { executeScript, sleep } from 'lib/util/util'
 import { getProperty, setProperty } from 'lib/valueManager'
+import { backgroundLogger } from 'lib/logger'
 
 async function getContentTab() {
     const tabId = await storage.getItem<number>('session:contentTab')
@@ -15,14 +16,14 @@ async function getContentTab() {
 
 async function getContentValue(property: 'volume' | 'playbackRate') {
     const res = await sendTab(await getContentTab(), { target: 'content', command: Commands.GET_VALUE, data: property })
-    console.log('BG getContentValue: ', property, res)
+    backgroundLogger.debug('getContentValue: ', property, res)
     return res?.value
 }
 
 async function executeContent() {
     const contentTabId = await storage.getItem<number>('session:contentTab')
     if (contentTabId) {
-        console.log('executing content script')
+        backgroundLogger.info('Executing content script')
         await executeScript(contentTabId, 'content-scripts/content.js')
         await sleep(500)
     }
@@ -70,10 +71,10 @@ async function alreadyRecording() {
 
 async function runMixer() {
     const contentTab: chrome.tabs.Tab = await getActiveTab()
-    console.log(`content tab: ${contentTab}`)
+    backgroundLogger.debug(`Content tab: ${contentTab}`)
 
     const recordTab = await storage.getItem<number>('session:recordTab')
-    console.log(`record tab: ${recordTab}`)
+    backgroundLogger.debug(`Record tab: ${recordTab}`)
     await storage.setItem('session:contentTab', contentTab.id)
     await storage.setItem('session:contentTabURL', contentTab.url)
     if (!contentTab?.audible) {
@@ -87,14 +88,14 @@ async function runMixer() {
             volume: await getContentValue('volume'),
             playbackRate: await getContentValue('playbackRate'),
         }
-        console.log('BG recording: ', res)
+        backgroundLogger.info('Recording: ', res)
         return res
     }
     return await alreadyRecording()
 }
 
 async function getAllStorage(type: StorageArea) {
-    console.log(`BG: ${type} storage`, await storage.snapshot(type))
+    backgroundLogger.debug(`${type} storage`, await storage.snapshot(type))
 }
 
 async function pageChange(url: string) {
@@ -104,7 +105,7 @@ async function pageChange(url: string) {
     await storage.setItem('session:contentTabURL', url)
     // what is this LMAO?
     if (res?.message !== 'PONG') {
-        console.log('BG: page change failed pong')
+        backgroundLogger.warn('Page change failed pong')
         await storage.setItem('session:contentExecuted', false)
         await storage.setItem('session:pageChange', true)
         await executeContent()
@@ -119,8 +120,8 @@ export default defineBackground(() => {
         await storage.watch<number>(
             'local:installDate',
             (newInstallDate, oldInstallDate) => {
-                console.log('newInstallDate', newInstallDate)
-                console.log('oldInstallDate', oldInstallDate)
+                backgroundLogger.info('New install date', newInstallDate)
+                backgroundLogger.info('Old install date', oldInstallDate)
             },
         )
 
@@ -148,7 +149,7 @@ export default defineBackground(() => {
             // this is dumb its only meant to be for record because it doesnt have access to storage
             // but i guess we could just set the storage in background hmmmmmmm
             if (data.property === 'pitch' || data.property === 'pitchWet' || data.property === 'reverbDecay' || data.property === 'reverbWet') {
-                console.log(`Special set value ${data.property} to ${data.value}`)
+                backgroundLogger.debug(`Special set value ${data.property} to ${data.value}`)
                 setProperty(data.property, data.value)
             }
         }
@@ -165,7 +166,7 @@ export default defineBackground(() => {
     chrome.webNavigation.onDOMContentLoaded.addListener(async (details) => {
         const contentTabId = await storage.getItem<number>('session:contentTab')
         if (details.tabId === contentTabId && details.frameType === 'outermost_frame') {
-            console.log('BG new domain: ', details)
+            backgroundLogger.info('New domain: ', details)
             await pageChange(details.url)
         }
     })
@@ -176,7 +177,7 @@ export default defineBackground(() => {
         if (tabId === contentTabId && url !== contentTabURL) {
             chrome.tabs.onUpdated.addListener(async function update(tabId, changeInfo) {
                 if (tabId === contentTabId && changeInfo.title) {
-                    console.log('BG same domain:', url)
+                    backgroundLogger.info('Same domain:', url)
 
                     await pageChange(url)
                     chrome.tabs.onUpdated.removeListener(update)
@@ -197,7 +198,7 @@ export default defineBackground(() => {
             // await storage.removeItem('session:contentTab')
             // await storage.removeItem('session:recordTab')
             await storage.clear('session')
-            console.log(MESSAGES.EXITING)
+            backgroundLogger.info(MESSAGES.EXITING)
         }
     })
 })

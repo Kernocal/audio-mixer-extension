@@ -2,6 +2,7 @@
     import type { ToneProperty } from 'lib/types'
     import type { PitchShift as PitchType, Reverb as ReverbType } from 'tone'
     import { MESSAGES } from 'lib/data'
+    import { recordLogger } from 'lib/logger'
     import { Commands, sendRuntime } from 'lib/messaging/communication'
     import { onMount } from 'svelte'
     import { connect, PitchShift, Reverb, setContext } from 'tone'
@@ -34,14 +35,14 @@
             sendRuntime({ target: 'background', command: 'SET_VALUE', data: { property, value } })
         }
         catch (e) {
-            console.warn(MESSAGES.SET_VALUE, property, value, e)
+            recordLogger.warn(MESSAGES.SET_VALUE, property, value, e)
         }
     }
 
     async function startRecord(stream: MediaStream) {
-        console.log(`2nd stream: ${stream}`)
+        recordLogger.debug(`2nd stream: ${stream}`)
         if (!stream) {
-            console.warn(MESSAGES.CAPTURE_TAB_ERROR, stream)
+            recordLogger.warn(MESSAGES.CAPTURE_TAB_ERROR, stream)
             window.close()
             return null
         }
@@ -81,7 +82,7 @@
         // if (message.target !== 'offscreen-doc') {
         //     return 2
         // }
-        console.log(`OFFS DOC message: ${JSON.stringify(message)}`)
+        recordLogger.debug(`OFFS DOC message: ${JSON.stringify(message)}`)
 
         if (message.command === Commands.RECORD) {
             try {
@@ -93,14 +94,14 @@
                         },
                     },
                 })
-                console.log(`1st stream: ${stream}`)
+                recordLogger.debug(`1st stream: ${stream}`)
 
                 await startRecord(stream)
                 sendResponse({ message: 'success' })
                 return true
             }
             catch (error) {
-                console.error('Error getting media stream:', error)
+                recordLogger.error('Error getting media stream:', error)
                 sendResponse({ message: 'error', error: error.message })
                 return true
             }
@@ -127,7 +128,7 @@
 // })
 
     onMount(() => {
-        console.log('Offscreen is alive')
+        recordLogger.info('Offscreen is alive')
         chrome.runtime.onMessage.addListener(handleMessages)
     })
 </script>

@@ -12,23 +12,32 @@ export default defineContentScript({
         let myPlaybackRate: number
 
         function log(...args: any[]) {
-            console.log('Audio Mixer INJECT:', ...args)
+            sendEvent('LOG', { message: args.join(' ') })
         }
 
         function createEvent(name: string, callback: EventListener) {
-            const eventName = EVENT_PREFIX + name
-            document.addEventListener(eventName, callback)
+            document.addEventListener(`${EVENT_PREFIX}${name}`, callback)
+        }
+
+        function sendEvent(name: string, data: any) {
+            const event = new CustomEvent(`${EVENT_PREFIX}${name}`, {
+                detail: data,
+            })
+            document.dispatchEvent(event)
         }
 
         function setValue(type: string, value: any) {
             if (myMedia) {
                 myMedia[type] = value
             }
+            else {
+                log('setValue: myMedia is null')
+            }
         }
 
         function getMedia(media: any, pageChange = false) {
             if (myMedia && !myMedia.isSameNode(media)) {
-                log('Different media playing.')
+                log('Different media playing to origional one stored.')
             }
             if (myMedia || pageChange) {
                 myMedia = media
@@ -77,14 +86,14 @@ export default defineContentScript({
             if (!myMedia) {
                 return
             }
-            const resObj = { detail: { type: e.detail.type, value: 0 } as any }
+            const resObj = { type: e.detail.type, value: 0 }
             if (e.detail.type === 'playbackRate') {
-                resObj.detail.value = myMedia.myPlaybackRate
+                resObj.value = myMedia.myPlaybackRate
             }
             else {
-                resObj.detail.value = myMedia[e.detail.type]
+                resObj.value = myMedia[e.detail.type]
             }
-            document.dispatchEvent(new CustomEvent(`${EVENT_PREFIX}GIVE_VALUE`, resObj))
+            sendEvent('GIVE_VALUE', resObj)
         })
 
         createEvent('SET_VALUE', (e: any) => {
@@ -98,7 +107,7 @@ export default defineContentScript({
                     setValue('myPlaybackRate', myPlaybackRate)
                     break
                 default:
-                    console.warn('Audio Mixer INJECT: SET_VALUE property is unknown/unexpected.', e.detail.type)
+                    log('SET_VALUE property is unknown/unexpected')
             }
         })
 

@@ -34,5 +34,8 @@
         "unocss": "^66.5.12",
         "unocss-preset-scrollbar": "^3.2.0",
         "wxt": "^0.20.13"
+    },
+    "dependencies": {
+        "tslog": "^4.10.2"
     }
 }

@@ -1,12 +1,13 @@
 import type { ContentCommand } from '../types'
 import { MESSAGES } from '../data'
+import { miscLogger } from '../logger'
 
 export async function getTab(tabId: number) {
     try {
         return await chrome.tabs.get(tabId)
     }
     catch (e) {
-        console.warn(MESSAGES.GET_TAB, e)
+        miscLogger.warn(MESSAGES.GET_TAB, e)
         return null
     }
 }
@@ -16,7 +17,7 @@ export async function removeTab(tabId: number) {
         return await chrome.tabs.remove(tabId)
     }
     catch (e) {
-        console.warn(MESSAGES.REMOVE_TAB, e)
+        miscLogger.warn(MESSAGES.REMOVE_TAB, e)
         return null
     }
 }
@@ -56,20 +57,20 @@ export async function openRecordTab(): Promise<boolean> {
         return true
     }
     catch (e) {
-        console.warn(MESSAGES.CREATE_TAB, e)
+        miscLogger.warn(MESSAGES.CREATE_TAB, e)
         return false
     }
 }
 
 export async function sendTabCommand(tabId: number, data: object, warn = true) {
     try {
-        console.log(`Sending command to tab ${tabId} data ${JSON.stringify(data)}`)
+        miscLogger.debug(`Sending command to tab ${tabId} data ${JSON.stringify(data)}`)
 
         return await chrome.tabs.sendMessage(tabId, data)
     }
     catch (e) {
         if (warn) {
-            console.warn(MESSAGES.COMMAND_FAILED, e)
+            miscLogger.warn(MESSAGES.COMMAND_FAILED, e)
         }
         return null
     }
@@ -94,7 +95,7 @@ export async function sendTabCommand(tabId: number, data: object, warn = true) {
 export async function sendContentTabCommand(data: ContentCommand, warn = true) {
     const tabId = await storage.getItem<number>('session:contentTab')
     if (!tabId) {
-        console.warn('Error: storage content tab empty')
+        miscLogger.warn('Error: storage content tab empty')
         return null
     }
     return await sendTabCommand(tabId, data, warn)

@@ -13,6 +13,7 @@
 // runtime.sendMessage target = ['background', 'offscreen', 'popup']
 
 import { MESSAGES } from 'lib/data'
+import { miscLogger } from 'lib/logger'
 
 type ContentProperty = 'volume' | 'playbackRate'
 type ToneProperty = 'pitch' | 'pitchWet' | 'reverbDecay' | 'reverbWet'
@@ -69,7 +70,7 @@ export async function sendTab(tabId: number, message: BaseMessage) {
         return await chrome.tabs.sendMessage(tabId, message)
     }
     catch (e) {
-        console.warn(`[Messaging] ${MESSAGES.COMMAND_FAILED} to tab ${tabId} data ${message.data}`, e)
+        miscLogger.warn(`${MESSAGES.COMMAND_FAILED} to tab ${tabId} data ${message.data}`, e)
         return null
     }
 }
@@ -79,7 +80,7 @@ export async function sendRuntime(message: BaseMessage) {
         return await chrome.runtime.sendMessage(message)
     }
     catch (e) {
-        console.warn(`[Messaging] ${MESSAGES.COMMAND_FAILED} to runtime target ${message.target} data ${message.data}`, e)
+        miscLogger.warn(`${MESSAGES.COMMAND_FAILED} to runtime target ${message.target} data ${message.data}`, e)
         return null
     }
 }

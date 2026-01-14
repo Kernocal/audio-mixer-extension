@@ -1,4 +1,5 @@
 import { MESSAGES } from '../data'
+import { miscLogger } from '../logger'
 
 export function sleep(ms = 0): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms))
@@ -13,7 +14,7 @@ export function URLIncludes(name: string) {
 }
 
 export function compareObjects(obj1: object, obj2: object) {
-    console.log('Comparing', obj1, 'vs', obj2)
+    miscLogger.debug('Comparing', obj1, 'vs', obj2)
     return Object.entries(obj1).sort().toString() === Object.entries(obj2).sort().toString()
 }
 
@@ -44,13 +45,13 @@ export function setElementAttributes(query: string, data: object) {
             }
         }
         catch (e) {
-            console.warn(MESSAGES.QUERY_UNABLE_SET_ATTRIBUTE, data, e)
+            miscLogger.warn(MESSAGES.QUERY_UNABLE_SET_ATTRIBUTE, data, e)
         }
     }
     else if (elements.length > 1) {
-        console.warn(MESSAGES.QUERY_MULTIPLE, query, elements)
+        miscLogger.warn(MESSAGES.QUERY_MULTIPLE, query, elements)
     }
     else {
-        console.warn(MESSAGES.QUERY_NONE, query)
+        miscLogger.warn(MESSAGES.QUERY_NONE, query)
     }
 }

@@ -1,6 +1,7 @@
 import type { ContentProperty, CustomMedia, NullMedia, PropertyValue } from 'lib/types'
 import { storage } from '#imports'
 import { MESSAGES } from 'lib/data'
+import { contentLogger, injectLogger } from 'lib/logger'
 import { getInjectedValue, INJECT_WEBSITE, sendEvent, setInjectedValue, updateSlider } from 'lib/util/siteSpecific'
 
 let myMedia: NullMedia = null
@@ -10,7 +11,7 @@ async function getValue(type: ContentProperty) {
         const storedValue = await storage.getItem<number>(`session:${type}`)
         const mediaValue = myMedia[type]
         if (storedValue !== mediaValue) {
-            console.warn(`Out of sync ${type}: stored ${storedValue},  media ${mediaValue}`)
+            contentLogger.warn(`Out of sync ${type}: stored ${storedValue},  media ${mediaValue}`)
             await storage.setItem(`session:${type}`, mediaValue)
             return mediaValue
         }
@@ -60,10 +61,10 @@ function getPlayingMedia(mediaElements: CustomMedia[]) {
     }
     else if (mediaPlaying.length > 1) {
         // todo: Let user pick which media if many playing.
-        console.warn(MESSAGES.CONTENT_MULTIPLE, mediaPlaying)
+        contentLogger.warn(MESSAGES.CONTENT_MULTIPLE, mediaPlaying)
         return mediaPlaying[0]
     }
-    console.warn(MESSAGES.NO_MEDIA_PLAYING, mediaPlaying)
+    contentLogger.warn(MESSAGES.NO_MEDIA_PLAYING, mediaPlaying)
     return null
 }
 
@@ -76,12 +77,17 @@ function getMedia(): NullMedia {
     else if (mediaElements.length > 1) {
         return getPlayingMedia(mediaElements)
     }
-    console.warn(MESSAGES.NO_MEDIA, MESSAGES.GITHUB_WEBSITE)
+    contentLogger.warn(MESSAGES.NO_MEDIA, MESSAGES.GITHUB_WEBSITE)
     return null
 }
 
 function init() {
-    console.log(MESSAGES.CONTENT_EXECUTED)
+    contentLogger.info(MESSAGES.CONTENT_EXECUTED)
+
+    // Listen for log events from the inject script
+    document.addEventListener('AUDIO_MIXER_LOG', (event: any) => {
+        injectLogger.debug(event.detail)
+    })
 
     const dummyElement = document.createElement('audio')
     if (!('playing' in dummyElement)) {
@@ -97,10 +103,16 @@ function init() {
         if (!INJECT_WEBSITE) {
             myMedia = getMedia()
             if (myMedia) {
-                console.log(`current playbackRate ${myMedia.playbackRate} current volume ${myMedia.volume}`)
+                contentLogger.debug(`Current playbackRate ${myMedia.playbackRate} current volume ${myMedia.volume}`)
 
                 storage.setItem('session:volume', myMedia.volume)
                 storage.setItem('session:playbackRate', myMedia.playbackRate)
+                storage.getItem('session:volume').then((volume) => {
+                    contentLogger.debug('volume in storage', volume)
+                })
+                storage.getItem('session:playbackRate').then((playbackRate) => {
+                    contentLogger.debug('playbackRate in storage', playbackRate)
+                })
             }
         }
         else {
@@ -110,15 +122,16 @@ function init() {
 
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         const { target, command, data } = request
-        console.log('CONTENT message: ', target, command, data)
+        contentLogger.debug('Content message: ', target, command, data)
         if (command === 'PING') {
             sendResponse({ message: 'PONG' })
             return true
         }
         if (data.property === 'volume' || data.property === 'playbackRate') {
             if (command === 'GET_VALUE') {
-                console.log('CONTENT GET_VALUE: ', data.property)
+                contentLogger.debug('Content GET_VALUE: ', data.property)
                 getValue(data.property).then((value) => {
+                    contentLogger.debug('Sending response for Content GET_VALUE: ', data.property, value)
                     sendResponse({ message: 'success', property: data.property, value })
                 })
                 return true
@@ -144,7 +157,7 @@ function init() {
             const { volume, playbackRate } = data
             if (!INJECT_WEBSITE) {
                 myMedia?.addEventListener('timeupdate', () => {
-                    console.log('CONTENT: PLAYING NAOW setting vol', volume, 'playbackRate', playbackRate)
+                    contentLogger.info('PLAYING NOW setting vol', volume, 'playbackRate', playbackRate)
                     setMediaValues(volume, playbackRate)
                 }, { once: true })
             }

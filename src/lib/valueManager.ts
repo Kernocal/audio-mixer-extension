@@ -1,12 +1,13 @@
 import type { Properties } from 'lib/messaging/communication'
 import { ERROR_PLAYBACK_RATE, ERROR_VOLUME } from './data'
+import { miscLogger } from './logger'
 
 type STORAGE_AREAS = 'session' | 'local'
 
 async function getSafeValue(area: STORAGE_AREAS, key: string, defaultValue: number) {
     const value = await storage.getItem<number>(`${area}:${key}`)
     if (!value) {
-        console.warn(`Expected storage of ${area}:${key} but empty, using default ${defaultValue}`)
+        miscLogger.warn(`Expected storage of ${area}:${key} but empty, using default ${defaultValue}`)
         return defaultValue
     }
     return value

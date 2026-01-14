@@ -2,6 +2,7 @@
     import type { Preset, PresetProperties, Properties, Property, StartMixerResponse } from 'lib/types'
     import { storage } from '#imports'
     import { DEFAULT_PRESETS, MESSAGES } from 'lib/data'
+    import { popupLogger } from 'lib/logger'
     import { Commands, sendRuntime } from 'lib/messaging/communication'
     import { compareObjects } from 'lib/util/util'
     import { emptyPropeties } from 'lib/valueManager'
@@ -20,14 +21,9 @@
     let PROPERTIES = $state<Properties>(emptyPropeties())
     $inspect(PRESETS)
 
-    // Debug: Monitor PROPERTIES changes
-    $effect(() => {
-        console.log('[Popup] PROPERTIES changed:', JSON.stringify(PROPERTIES))
-    })
-
     async function sendCommand(message) {
         const { target = 'background', command, data = {} } = message
-        console.log('Sending command', data)
+        popupLogger.debug('Sending command', data)
         return await sendRuntime({ target, command, data })
     }
     // data.property, data.value
@@ -91,17 +87,38 @@
     }
 
     async function setValue(property: Property, value: number) {
-        console.log('Popup setValue: ', property, value)
+        popupLogger.debug('Popup setValue: ', property, value)
         if (!UI_DISABLED) {
-            const response = await sendCommand({
-                target: 'content',
-                command: Commands.SET_VALUE,
-                data: {
-                    property,
-                    value,
-                },
-            })
-            STATUS = response ? updateStatusProperty(property) : MESSAGES.STATUS_FAILED_COMMAND
+            let response
+            if (property === 'volume' || property === 'playbackRate') {
+                response = await sendCommand({
+                    target: 'content',
+                    command: Commands.SET_VALUE,
+                    data: {
+                        property,
+                        value,
+                    },
+                })
+            }
+            else {
+                response = await sendCommand({
+                    target: 'offscreen',
+                    command: Commands.SET_VALUE,
+                    data: {
+                        property,
+                        value,
+                    },
+                })
+            }
+
+            if (!response) {
+                popupLogger.error('Popup setValue failed for: ', property, value, 'no reponse')
+                STATUS = MESSAGES.STATUS_FAILED_COMMAND
+            }
+            else {
+                popupLogger.debug('Popup setValue success for: ', property, value)
+                STATUS = updateStatusProperty(property)
+            }
             if (property !== 'volume') {
                 const presetValues = PRESETS[ACTIVE_PRESET_INDEX].values
                 if ((presetValues as PresetProperties)[property] !== value) {
@@ -113,7 +130,7 @@
     }
 
     function setValues(newValues: StartMixerResponse | object, scope: 'LOCAL' | 'GLOBAL') {
-        console.log(`Setting values ${JSON.stringify(newValues)} scope ${scope}`)
+        popupLogger.debug(`Setting values ${JSON.stringify(newValues)} scope ${scope}`)
         for (const [objKey, objValue] of Object.entries(newValues)) {
             const key: Property = objKey as Property
             const value: number = objValue as number
