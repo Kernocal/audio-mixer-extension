@@ -1,4 +1,3 @@
-import type { AnyResponse, ContentProperty, ToneProperty } from 'lib/types'
 import { storage } from '#imports'
 import { DEFAULT_PRESETS, MESSAGES } from 'lib/data'
 import { Commands, sendRuntime, sendTab } from 'lib/messaging/communication'

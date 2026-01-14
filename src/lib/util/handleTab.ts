@@ -1,4 +1,4 @@
-import type { ContentCommand, PopUpCommands } from '../types'
+import type { ContentCommand } from '../types'
 import { MESSAGES } from '../data'
 
 export async function getTab(tabId: number) {

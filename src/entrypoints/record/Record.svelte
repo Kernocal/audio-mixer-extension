@@ -1,15 +1,15 @@
-<script lang="ts">
+<script lang='ts'>
     import type { ToneProperty } from 'lib/types'
     import type { PitchShift as PitchType, Reverb as ReverbType } from 'tone'
-    import { Commands, sendRuntime } from 'lib/messaging/communication'
     import { MESSAGES } from 'lib/data'
-    import { onMount, onDestroy } from 'svelte'
+    import { Commands, sendRuntime } from 'lib/messaging/communication'
+    import { onMount } from 'svelte'
     import { connect, PitchShift, Reverb, setContext } from 'tone'
 
-    let audioContext: AudioContext | null = null;
-    let pitchShift: PitchType | null = $state(null);
-    let reverb: ReverbType | null = $state(null);
-    let isRecording: boolean = $state(false);
+    let audioContext: AudioContext | null = null
+    let pitchShift: PitchType | null = $state(null)
+    let reverb: ReverbType | null = $state(null)
+    let isRecording: boolean = $state(false)
 
     async function setValue(property: ToneProperty, value: number) {
         if (!pitchShift || !reverb) {
@@ -48,7 +48,7 @@
 
         // Clean up any existing context
         if (audioContext) {
-            await audioContext.close();
+            await audioContext.close()
         }
 
         audioContext = new AudioContext()
@@ -74,7 +74,7 @@
         connect(reverb, pitchShift)
         connect(pitchShift, audioContext.destination)
 
-        isRecording = true;
+        isRecording = true
     }
 
     async function handleMessages(message, _sender, sendResponse) {
@@ -98,10 +98,11 @@
                 await startRecord(stream)
                 sendResponse({ message: 'success' })
                 return true
-            } catch (error) {
-                console.error('Error getting media stream:', error);
-                sendResponse({ message: 'error', error: error.message });
-                return true;
+            }
+            catch (error) {
+                console.error('Error getting media stream:', error)
+                sendResponse({ message: 'error', error: error.message })
+                return true
             }
         }
 
@@ -115,10 +116,10 @@
         }
     }
 
-//     $effect(() => {
+    //     $effect(() => {
 //     console.log('Offscreen is alive')
 //     chrome.runtime.onMessage.addListener(handleMessages)
-    
+
 //     return () => {
 //         chrome.runtime.onMessage.removeListener(handleMessages)
 //         audioContext?.close()

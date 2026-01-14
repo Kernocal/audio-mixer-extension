@@ -1,8 +1,8 @@
 <script lang='ts'>
-    import type { PopUpCommands, Preset, PresetProperties, Properties, Property, StartMixerResponse } from 'lib/types'
+    import type { Preset, PresetProperties, Properties, Property, StartMixerResponse } from 'lib/types'
     import { storage } from '#imports'
-    import { Commands, sendRuntime } from 'lib/messaging/communication'
     import { DEFAULT_PRESETS, MESSAGES } from 'lib/data'
+    import { Commands, sendRuntime } from 'lib/messaging/communication'
     import { compareObjects } from 'lib/util/util'
     import { emptyPropeties } from 'lib/valueManager'
     import { onMount } from 'svelte'
@@ -26,7 +26,7 @@
     })
 
     async function sendCommand(message) {
-        const { target = 'background', command, data = {}} = message
+        const { target = 'background', command, data = {} } = message
         console.log('Sending command', data)
         return await sendRuntime({ target, command, data })
     }
@@ -98,8 +98,8 @@
                 command: Commands.SET_VALUE,
                 data: {
                     property,
-                    value
-                }
+                    value,
+                },
             })
             STATUS = response ? updateStatusProperty(property) : MESSAGES.STATUS_FAILED_COMMAND
             if (property !== 'volume') {

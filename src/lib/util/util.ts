@@ -1,5 +1,3 @@
-import type { OptionalProperties, Properties } from '../types'
-import { storage } from '#imports'
 import { MESSAGES } from '../data'
 
 export function sleep(ms = 0): Promise<void> {
