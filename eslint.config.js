@@ -12,12 +12,6 @@ export default antfu(
         },
     },
     {
-        ignores: [
-            'AGENT.md',
-            'src/lib/knob/webaudio-controls-module.ts',
-        ],
-    },
-    {
         rules: {
             'style/max-statements-per-line': ['warn'],
             'no-console': ['warn'],

@@ -21,6 +21,7 @@
         "@types/chrome": "^0.1.33",
         "@types/node": "^20.19.29",
         "@unocss/eslint-plugin": "^66.5.12",
+        "@wxt-dev/i18n": "^0.2.4",
         "@wxt-dev/module-svelte": "^2.0.4",
         "@wxt-dev/unocss": "^1.0.1",
         "eslint": "^9.39.2",

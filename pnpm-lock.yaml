@@ -23,6 +23,9 @@ importers:
       '@unocss/eslint-plugin':
         specifier: ^66.5.12
         version: 66.5.12(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
+      '@wxt-dev/i18n':
+        specifier: ^0.2.4
+        version: 0.2.4(wxt@0.20.13(@types/node@20.19.29)(jiti@2.6.1)(rollup@4.55.1)(yaml@2.8.2))
       '@wxt-dev/module-svelte':
         specifier: ^2.0.4
         version: 2.0.4(svelte@5.46.3)(vite@7.3.1(@types/node@20.19.29)(jiti@2.6.1)(yaml@2.8.2))(wxt@0.20.13(@types/node@20.19.29)(jiti@2.6.1)(rollup@4.55.1)(yaml@2.8.2))
@@ -941,8 +944,19 @@ packages:
   '@webext-core/match-patterns@1.0.3':
     resolution: {integrity: sha512-NY39ACqCxdKBmHgw361M9pfJma8e4AZo20w9AY+5ZjIj1W2dvXC8J31G5fjfOGbulW9w4WKpT8fPooi0mLkn9A==}
 
+  '@wxt-dev/browser@0.0.318':
+    resolution: {integrity: sha512-rVZBWikRK8tkVOmvR1gCSMvN5omsIAt4L1Je32I/wl4yJgAcu3xb3ZjJceRWiXUNPvjH1vWfQbEUQD7+nJ2cCg==}
+
   '@wxt-dev/browser@0.1.32':
     resolution: {integrity: sha512-jvfSppeLzlH4sOkIvMBJoA1pKoI+U5gTkjDwMKdkTWh0P/fj+KDyze3lzo3S6372viCm8tXUKNez+VKyVz2ZDw==}
+
+  '@wxt-dev/i18n@0.2.4':
+    resolution: {integrity: sha512-qYWCRlMcRY/fCcwYpPcZV55NHFlri8K+eJqS/0bhHnDClWkiYHyYnIzI0tMeNdXCCo8oyKQr+qhrVM/LKNRymw==}
+    peerDependencies:
+      wxt: '>=0.19.7'
+    peerDependenciesMeta:
+      wxt:
+        optional: true
 
   '@wxt-dev/module-svelte@2.0.4':
     resolution: {integrity: sha512-zYrzhoaRZsudPDQE2Yb4AOLwZXD4fXCOf+/ud7tvFnAJJ71aFtvZ5OuW/U2oBBYXdAtm+S2erFN2L0Re79x6ZA==}
@@ -4063,10 +4077,24 @@ snapshots:
 
   '@webext-core/match-patterns@1.0.3': {}
 
+  '@wxt-dev/browser@0.0.318':
+    dependencies:
+      '@types/filesystem': 0.0.36
+      '@types/har-format': 1.2.16
+
   '@wxt-dev/browser@0.1.32':
     dependencies:
       '@types/filesystem': 0.0.36
       '@types/har-format': 1.2.16
+
+  '@wxt-dev/i18n@0.2.4(wxt@0.20.13(@types/node@20.19.29)(jiti@2.6.1)(rollup@4.55.1)(yaml@2.8.2))':
+    dependencies:
+      '@wxt-dev/browser': 0.0.318
+      chokidar: 4.0.3
+      confbox: 0.2.2
+      fast-glob: 3.3.3
+    optionalDependencies:
+      wxt: 0.20.13(@types/node@20.19.29)(jiti@2.6.1)(rollup@4.55.1)(yaml@2.8.2)
 
   '@wxt-dev/module-svelte@2.0.4(svelte@5.46.3)(vite@7.3.1(@types/node@20.19.29)(jiti@2.6.1)(yaml@2.8.2))(wxt@0.20.13(@types/node@20.19.29)(jiti@2.6.1)(rollup@4.55.1)(yaml@2.8.2))':
     dependencies:
