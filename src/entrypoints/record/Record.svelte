@@ -1,43 +1,14 @@
 <script lang='ts'>
-    import type { ToneProperty } from 'lib/types'
     import type { PitchShift as PitchType, Reverb as ReverbType } from 'tone'
     import { MESSAGES } from 'lib/data'
     import { recordLogger } from 'lib/logger'
-    import { Commands, sendRuntime } from 'lib/messaging/communication'
-    import { onMount } from 'svelte'
+    import { Commands } from 'lib/messaging/communication'
     import { connect, PitchShift, Reverb, setContext } from 'tone'
 
     let audioContext: AudioContext | null = null
     let pitchShift: PitchType | null = $state(null)
     let reverb: ReverbType | null = $state(null)
     let isRecording: boolean = $state(false)
-
-    async function setValue(property: ToneProperty, value: number) {
-        if (!pitchShift || !reverb) {
-            return
-        }
-        try {
-            switch (property) {
-                case 'pitch':
-                    pitchShift.pitch = value
-                    break
-                case 'pitchWet':
-                    pitchShift.wet.value = value
-                    break
-                case 'reverbDecay':
-                    reverb.decay = value
-                    break
-                case 'reverbWet':
-                    reverb.wet.value = value
-                    break
-            }
-            // should be storing not resetting would just loop xd
-            sendRuntime({ target: 'background', command: 'SET_VALUE', data: { property, value } })
-        }
-        catch (e) {
-            recordLogger.warn(MESSAGES.SET_VALUE, property, value, e)
-        }
-    }
 
     async function startRecord(stream: MediaStream) {
         recordLogger.debug(`2nd stream: ${stream}`)
@@ -47,7 +18,6 @@
             return null
         }
 
-        // Clean up any existing context
         if (audioContext) {
             await audioContext.close()
         }
@@ -57,7 +27,6 @@
         const gainNode = audioContext.createGain()
         audioStream.connect(gainNode)
 
-        // tone.js needs to be told about the context
         setContext(audioContext)
 
         pitchShift = new PitchShift({
@@ -78,10 +47,29 @@
         isRecording = true
     }
 
-    async function handleMessages(message, _sender, sendResponse) {
-        // if (message.target !== 'offscreen-doc') {
-        //     return 2
-        // }
+    type RecordMessage = {
+        command: typeof Commands.RECORD
+        data: {
+            streamId: string
+        }
+    }
+
+    type SetValueMessage = {
+        command: typeof Commands.SET_VALUE
+        data: {
+            property: 'pitch' | 'pitchWet' | 'reverbDecay' | 'reverbWet'
+            value: number
+        }
+    }
+
+    type RecordResponse = {
+        success: boolean
+    }
+
+    async function handleMessages(
+        message: RecordMessage | SetValueMessage,
+        _sender: chrome.runtime.MessageSender,
+    ): Promise<RecordResponse> {
         recordLogger.debug(`OFFS DOC message: ${JSON.stringify(message)}`)
 
         if (message.command === Commands.RECORD) {
@@ -93,44 +81,57 @@
                             chromeMediaSourceId: message.data.streamId,
                         },
                     },
-                })
+                // mandatory is (maybe) deprecated
+                } as MediaStreamConstraints)
                 recordLogger.debug(`1st stream: ${stream}`)
 
                 await startRecord(stream)
-                sendResponse({ message: 'success' })
-                return true
+                return { success: true }
             }
             catch (error) {
                 recordLogger.error('Error getting media stream:', error)
-                sendResponse({ message: 'error', error: error.message })
-                return true
+                return { success: false }
             }
         }
-
         if (message.command === Commands.SET_VALUE) {
-            const validTypes = ['pitch', 'pitchWet', 'reverbDecay', 'reverbWet']
-            if (validTypes.includes(message.data.property)) {
-                await setValue(message.data.property, message.data.value)
-                sendResponse({ message: 'success' })
-                return true
+            if (!pitchShift || !reverb) {
+                recordLogger.warn('Received value update before audio initialization')
+                return { success: false }
+            }
+            switch (message.data.property) {
+                case 'pitch':
+                    pitchShift.pitch = message.data.value
+                    break
+                case 'pitchWet':
+                    pitchShift.wet.value = message.data.value
+                    break
+                case 'reverbDecay':
+                    reverb.decay = message.data.value
+                    break
+                case 'reverbWet':
+                    reverb.wet.value = message.data.value
+                    break
             }
         }
+        return { success: false }
     }
 
-    //     $effect(() => {
-//     console.log('Offscreen is alive')
-//     chrome.runtime.onMessage.addListener(handleMessages)
-
-//     return () => {
-//         chrome.runtime.onMessage.removeListener(handleMessages)
-//         audioContext?.close()
-//     }
-// })
-
-    onMount(() => {
+    $effect(() => {
         recordLogger.info('Offscreen is alive')
         chrome.runtime.onMessage.addListener(handleMessages)
+
+        return () => {
+            chrome.runtime.onMessage.removeListener(handleMessages)
+            audioContext?.close()
+        }
     })
+
+// onMount(() => {
+        // recordLogger.info('Offscreen is alive')
+
+        // Keep RECORD command handler
+        // chrome.runtime.onMessage.addListener(handleMessages)
+    // })
 </script>
 
 <!-- <div class='recording-indicator'>

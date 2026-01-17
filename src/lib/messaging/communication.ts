@@ -25,7 +25,6 @@ export type Properties = ContentProperty | ToneProperty
 export const Commands = {
     START_MIXER: 'START_MIXER',
     EXIT_MIXER: 'EXIT_MIXER',
-
     GET_VALUE: 'GET_VALUE',
     SET_VALUE: 'SET_VALUE',
     TOGGLE_PLAYBACK: 'TOGGLE_PLAYBACK',

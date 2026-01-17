@@ -25,16 +25,25 @@
         onvaluechange,
     }: Props = $props()
 
-    function handleInput(e: Event) {
-        const ele = e.target as HTMLInputElement
-        value = Number(ele.value)
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null
+
+    function handleInput(_e: Event) {
+        if (debounceTimer) {
+            clearTimeout(debounceTimer)
+        }
+        debounceTimer = setTimeout(() => {
+            onvaluechange?.()
+        }, 150)
     }
 
-    function handleChange(e: Event) {
-        const ele = e.target as HTMLInputElement
-        value = Number(ele.value)
+    function handleChange(_e: Event) {
+        if (debounceTimer) {
+            clearTimeout(debounceTimer)
+            debounceTimer = null
+        }
         onvaluechange?.()
     }
+
 </script>
 
 <div class='knob-container'>

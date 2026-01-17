@@ -1,10 +1,10 @@
 import { storage } from '#imports'
 import { DEFAULT_PRESETS, MESSAGES } from 'lib/data'
+import { backgroundLogger } from 'lib/logger'
 import { Commands, sendRuntime, sendTab } from 'lib/messaging/communication'
 import { getActiveTab, openRecordTab } from 'lib/util/handleTab'
 import { executeScript, sleep } from 'lib/util/util'
-import { getProperty, setProperty } from 'lib/valueManager'
-import { backgroundLogger } from 'lib/logger'
+import { getProperty, setProperty, watchItem } from 'lib/valueManager'
 
 async function getContentTab() {
     const tabId = await storage.getItem<number>('session:contentTab')
@@ -12,12 +12,6 @@ async function getContentTab() {
         throw new Error('expected content tab id, none found')
     }
     return tabId
-}
-
-async function getContentValue(property: 'volume' | 'playbackRate') {
-    const res = await sendTab(await getContentTab(), { target: 'content', command: Commands.GET_VALUE, data: property })
-    backgroundLogger.debug('getContentValue: ', property, res)
-    return res?.value
 }
 
 async function executeContent() {
@@ -85,8 +79,8 @@ async function runMixer() {
         await startRecording()
         const res = {
             message: MESSAGES.STATUS_PLAYING,
-            volume: await getContentValue('volume'),
-            playbackRate: await getContentValue('playbackRate'),
+            volume: await getProperty('volume'),
+            playbackRate: await getProperty('playbackRate'),
         }
         backgroundLogger.info('Recording: ', res)
         return res
@@ -99,21 +93,37 @@ async function getAllStorage(type: StorageArea) {
 }
 
 async function pageChange(url: string) {
-    const res = await sendTab(await getContentTab(), { target: 'content', command: Commands.PING })
-    const volume = await getProperty('volume')
-    const playbackRate = await getProperty('playbackRate')
     await storage.setItem('session:contentTabURL', url)
-    // what is this LMAO?
-    if (res?.message !== 'PONG') {
-        backgroundLogger.warn('Page change failed pong')
-        await storage.setItem('session:contentExecuted', false)
-        await storage.setItem('session:pageChange', true)
-        await executeContent()
-    }
-    await sendTab(await getContentTab(), { target: 'content', command: Commands.PAGE_CHANGE, data: { volume, playbackRate } })
+    await storage.setItem('session:pageChange', true)
+    // Content script will react via watcher
+}
+
+async function setRecordValue(property: string, value: number) {
+    await storage.setItem(`session:${property}`, value)
+    await sendRuntime({ target: 'offscreen', command: Commands.SET_VALUE, data: { property, value } })
 }
 
 export default defineBackground(() => {
+    watchItem('pitch', (value) => {
+        if (value)
+            setRecordValue('pitch', value)
+    })
+
+    watchItem('pitchWet', (value) => {
+        if (value)
+            setRecordValue('pitchWet', value)
+    })
+
+    watchItem('reverbDecay', (value) => {
+        if (value)
+            setRecordValue('reverbDecay', value)
+    })
+
+    watchItem('reverbWet', (value) => {
+        if (value)
+            setRecordValue('reverbWet', value)
+    })
+
     chrome.runtime.onInstalled.addListener(async () => {
         await storage.clear('local')
         chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' })
@@ -132,10 +142,12 @@ export default defineBackground(() => {
     })
 
     chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
+        // async handler breaks popup
         const { target = '', command, data = {} } = request
         if (command === Commands.START_MIXER) {
             runMixer().then((res) => {
                 sendResponse(res)
+                return true
             })
             return true
         }
@@ -145,21 +157,20 @@ export default defineBackground(() => {
             // })
             return true
         }
-        if (target === 'background' && command === Commands.SET_VALUE) {
-            // this is dumb its only meant to be for record because it doesnt have access to storage
-            // but i guess we could just set the storage in background hmmmmmmm
-            if (data.property === 'pitch' || data.property === 'pitchWet' || data.property === 'reverbDecay' || data.property === 'reverbWet') {
-                backgroundLogger.debug(`Special set value ${data.property} to ${data.value}`)
-                setProperty(data.property, data.value)
+        if (command === 'SET_VALUE') {
+            if (target === 'background') {
+                // this is dumb its only meant to be for record because it doesnt have access to storage
+                // but i guess we could just set the storage in background hmmmmmmm
+                if (data.property === 'pitch' || data.property === 'pitchWet' || data.property === 'reverbDecay' || data.property === 'reverbWet') {
+                    backgroundLogger.debug(`Special set value ${data.property} to ${data.value}`)
+                    setProperty(data.property, data.value)
+                    return true
+                }
             }
-        }
-        if ([Commands.GET_VALUE, Commands.SET_VALUE, Commands.TOGGLE_PLAYBACK].includes(command)) {
-            getContentTab().then((contentTab) => {
-                sendTab(contentTab, { target: 'content', command, data }).then((res) => {
-                    sendResponse(res)
-                })
-            })
-            return true
+            else {
+                backgroundLogger.debug(`Who is this? ${target}`)
+                return true
+            }
         }
     })
 

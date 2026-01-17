@@ -5,7 +5,7 @@
     import { popupLogger } from 'lib/logger'
     import { Commands, sendRuntime } from 'lib/messaging/communication'
     import { compareObjects } from 'lib/util/util'
-    import { emptyPropeties } from 'lib/valueManager'
+    import { emptyPropeties, setProperty } from 'lib/valueManager'
     import { onMount } from 'svelte'
 
     import Presets from './Presets.svelte'
@@ -89,36 +89,9 @@
     async function setValue(property: Property, value: number) {
         popupLogger.debug('Popup setValue: ', property, value)
         if (!UI_DISABLED) {
-            let response
-            if (property === 'volume' || property === 'playbackRate') {
-                response = await sendCommand({
-                    target: 'content',
-                    command: Commands.SET_VALUE,
-                    data: {
-                        property,
-                        value,
-                    },
-                })
-            }
-            else {
-                response = await sendCommand({
-                    target: 'offscreen',
-                    command: Commands.SET_VALUE,
-                    data: {
-                        property,
-                        value,
-                    },
-                })
-            }
+            await setProperty(property, value)
+            STATUS = updateStatusProperty(property)
 
-            if (!response) {
-                popupLogger.error('Popup setValue failed for: ', property, value, 'no reponse')
-                STATUS = MESSAGES.STATUS_FAILED_COMMAND
-            }
-            else {
-                popupLogger.debug('Popup setValue success for: ', property, value)
-                STATUS = updateStatusProperty(property)
-            }
             if (property !== 'volume') {
                 const presetValues = PRESETS[ACTIVE_PRESET_INDEX].values
                 if ((presetValues as PresetProperties)[property] !== value) {
@@ -157,17 +130,17 @@
     }
 
     function handleTogglePlayback() {
-        sendCommand({ command: Commands.TOGGLE_PLAYBACK })
+        storage.setItem('session:togglePlayback', true)
     }
 
     onMount(async () => {
         PRESETS = await storage.getItem<Preset[]>('local:presets') ?? PRESETS
         ACTIVE_PRESET_INDEX = await storage.getItem<number>('session:preset') ?? ACTIVE_PRESET_INDEX
         chrome.runtime.sendMessage({ command: Commands.START_MIXER }, (response) => {
-            if (['Playing.', 'Already playing.'].includes(response.message)) {
+            if (['Playing.', 'Already playing.'].includes(response?.message)) {
                 UI_DISABLED = false
                 setValues(response, 'LOCAL')
-                STATUS = response.message
+                STATUS = response?.message
             }
         })
     })
@@ -198,9 +171,10 @@
 </div>
 
 <style>
-:global(body) {
+
+/* :global(body) {
     @apply scrollbar scrollbar-rounded scrollbar-w-8px scrollbar-radius-8 scrollbar-thumb-color-mixer-primary scrollbar-track-color-mixer-secondary;
-}
+} */
 
 .grid-parent {
     display: grid;

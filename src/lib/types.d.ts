@@ -68,7 +68,7 @@ export type ContentCommand = PageChange | {
 interface Custom {
     playing: boolean
 };
-type MediaElement = HTMLAudioElement | HTMLVideoElement
+export type MediaElement = HTMLAudioElement | HTMLVideoElement
 export type MediaElements = MediaElement[]
 export type NullMedia = MediaElement | null
 export type CustomMedia = (HTMLAudioElement & Custom)|(HTMLVideoElement & Custom)

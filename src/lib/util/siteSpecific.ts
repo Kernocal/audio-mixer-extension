@@ -1,6 +1,8 @@
 import type { CustomEventData, GiveValueEvent, Property, PropertyValue } from '../types'
 import { roundNumber, setElementAttributes, URLIncludes } from './util'
 
+export const INJECT_URLS = ['soundcloud.com', 'open.spotify.com']
+
 const SOUNDCLOUD = URLIncludes('soundcloud.com')
 const SPOTIFY = URLIncludes('open.spotify.com')
 const YOUTUBE = URLIncludes('youtube.com')
@@ -11,7 +13,7 @@ export const INJECT_WEBSITE = SOUNDCLOUD || SPOTIFY
 // Must equal same variable in static/scripts/inject.js
 const EVENT_PREFIX = 'AUDIO_MIXER_'
 
-export function sendEvent(name: string, data: CustomEventData = {}) {
+export function sendInjectEvent(name: string, data: CustomEventData = {}) {
     const eventName = EVENT_PREFIX + name
     document.dispatchEvent(new CustomEvent(eventName, data))
 }
@@ -21,14 +23,14 @@ export function getInjectedValue(type: Property) {
         document.addEventListener(`${EVENT_PREFIX}GIVE_VALUE`, (e) => {
             resolve((e as GiveValueEvent).detail.value)
         }, { once: true })
-        sendEvent('GET_VALUE', {
+        sendInjectEvent('GET_VALUE', {
             detail: { type },
         })
     })
 }
 
 export function setInjectedValue(type: Property, value: PropertyValue) {
-    sendEvent('SET_VALUE', {
+    sendInjectEvent('SET_VALUE', {
         detail: {
             type,
             value,

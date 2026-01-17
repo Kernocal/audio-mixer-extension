@@ -1,29 +1,21 @@
-import type { ContentProperty, CustomMedia, NullMedia, PropertyValue } from 'lib/types'
+import type { ContentProperty, MediaElement, NullMedia, PropertyValue } from 'lib/types'
 import { storage } from '#imports'
 import { MESSAGES } from 'lib/data'
 import { contentLogger, injectLogger } from 'lib/logger'
-import { getInjectedValue, INJECT_WEBSITE, sendEvent, setInjectedValue, updateSlider } from 'lib/util/siteSpecific'
+import { getInjectedValue, INJECT_URLS, sendInjectEvent, setInjectedValue, updateSlider } from 'lib/util/siteSpecific'
+import { getProperty, watchItem } from 'lib/valueManager'
 
 let myMedia: NullMedia = null
+let INJECT_WEBSITE = false
 
-async function getValue(type: ContentProperty) {
-    if (!INJECT_WEBSITE && myMedia) {
-        const storedValue = await storage.getItem<number>(`session:${type}`)
-        const mediaValue = myMedia[type]
-        if (storedValue !== mediaValue) {
-            contentLogger.warn(`Out of sync ${type}: stored ${storedValue},  media ${mediaValue}`)
-            await storage.setItem(`session:${type}`, mediaValue)
-            return mediaValue
-        }
-        else {
-            return storedValue
-        }
-    }
-    else {
-        const value = await getInjectedValue(type)
-        await storage.setItem(`session:${type}`, value)
-        return value
-    }
+function isPlaying(element: HTMLMediaElement): boolean {
+    return !!(element.currentTime > 0 && !element.paused && !element.ended && element.readyState > 2)
+}
+
+function injectWebsite() {
+    INJECT_WEBSITE = INJECT_URLS.some((url) => {
+        return window.location.host.includes(url)
+    })
 }
 
 async function setValue(type: ContentProperty, value: PropertyValue) {
@@ -39,134 +31,110 @@ async function setValue(type: ContentProperty, value: PropertyValue) {
     }
 }
 
-async function setMediaValues(volume: number, playbackRate: number) {
-    await setValue('volume', volume)
-    await setValue('playbackRate', playbackRate)
+function getMedia(): MediaElement {
+    const mediaElements: MediaElement[] = [...document.querySelectorAll<HTMLAudioElement | HTMLVideoElement>('audio, video')]
+    const mediaPlaying = mediaElements.filter(isPlaying)
+    if (mediaPlaying.length === 0) {
+        contentLogger.error(MESSAGES.NO_MEDIA, MESSAGES.GITHUB_WEBSITE)
+        throw new Error(`${MESSAGES.NO_MEDIA} ${MESSAGES.GITHUB_WEBSITE}`)
+    }
+    return mediaPlaying[0]
+}
+
+function setupContent() {
+    myMedia = getMedia()
+    contentLogger.debug(`Current playbackRate ${myMedia.playbackRate} current volume ${myMedia.volume} current media ${myMedia}`)
+
+    storage.setItem('session:volume', myMedia.volume)
+    storage.setItem('session:playbackRate', myMedia.playbackRate)
+    // debug
+    storage.getItem('session:volume').then((volume) => {
+        contentLogger.debug('volume in storage', volume)
+    })
+    storage.getItem('session:playbackRate').then((playbackRate) => {
+        contentLogger.debug('playbackRate in storage', playbackRate)
+    })
 }
 
 async function setupInjected() {
     const pageChange = await storage.getItem<boolean>('session:pageChange')
     if (!pageChange) {
-        const volume = await getValue('volume')
-        const playbackRate = await getValue('playbackRate')
-        await setMediaValues(volume, playbackRate)
+        await setValue('volume', await getProperty('volume'))
+        await setValue('playbackRate', await getProperty('playbackRate'))
     }
     await storage.setItem('session:pageChange', false)
 }
 
-function getPlayingMedia(mediaElements: CustomMedia[]) {
-    const mediaPlaying = Object.values(mediaElements).filter(element => element.playing)
-    if (mediaPlaying.length === 1) {
-        return mediaPlaying[0]
-    }
-    else if (mediaPlaying.length > 1) {
-        // todo: Let user pick which media if many playing.
-        contentLogger.warn(MESSAGES.CONTENT_MULTIPLE, mediaPlaying)
-        return mediaPlaying[0]
-    }
-    contentLogger.warn(MESSAGES.NO_MEDIA_PLAYING, mediaPlaying)
-    return null
-}
-
-function getMedia(): NullMedia {
-    // @ts-expect-error: mediaElements should always have playing attribute in this context space.
-    const mediaElements: CustomMedia[] = document.querySelectorAll('audio, video')
-    if (mediaElements.length === 1) {
-        return mediaElements[0]
-    }
-    else if (mediaElements.length > 1) {
-        return getPlayingMedia(mediaElements)
-    }
-    contentLogger.warn(MESSAGES.NO_MEDIA, MESSAGES.GITHUB_WEBSITE)
-    return null
-}
-
 function init() {
     contentLogger.info(MESSAGES.CONTENT_EXECUTED)
-
-    // Listen for log events from the inject script
     document.addEventListener('AUDIO_MIXER_LOG', (event: any) => {
         injectLogger.debug(event.detail)
     })
 
-    const dummyElement = document.createElement('audio')
-    if (!('playing' in dummyElement)) {
-        // Media elements do not have a native playing attribute, create attribute using media properties.
-        Object.defineProperty(HTMLMediaElement.prototype, 'playing', {
-            get() {
-                return !!(this.currentTime > 0 && !this.paused && !this.ended && this.readyState > 2)
-            },
-        })
+    injectWebsite()
+    if (INJECT_WEBSITE) {
+        setupInjected()
+    }
+    else {
+        setupContent()
     }
 
-    if (!(myMedia instanceof HTMLMediaElement)) {
-        if (!INJECT_WEBSITE) {
-            myMedia = getMedia()
-            if (myMedia) {
-                contentLogger.debug(`Current playbackRate ${myMedia.playbackRate} current volume ${myMedia.volume}`)
+    watchItem('volume', (value) => {
+        contentLogger.debug('new volume in storage', value)
+        if (value !== null) {
+            if (!INJECT_WEBSITE && myMedia) {
+                myMedia.volume = value
+            }
+            else {
+                setInjectedValue('volume', value)
+            }
+        }
+    })
 
-                storage.setItem('session:volume', myMedia.volume)
-                storage.setItem('session:playbackRate', myMedia.playbackRate)
-                storage.getItem('session:volume').then((volume) => {
-                    contentLogger.debug('volume in storage', volume)
-                })
-                storage.getItem('session:playbackRate').then((playbackRate) => {
-                    contentLogger.debug('playbackRate in storage', playbackRate)
-                })
+    watchItem('playbackRate', (value) => {
+        contentLogger.debug('new playbackRate in storage', value)
+        if (value !== null) {
+            if (!INJECT_WEBSITE && myMedia) {
+                myMedia.playbackRate = value
+            }
+            else {
+                setInjectedValue('playbackRate', value)
             }
         }
-        else {
-            setupInjected()
-        }
-    }
+    })
 
-    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-        const { target, command, data } = request
-        contentLogger.debug('Content message: ', target, command, data)
-        if (command === 'PING') {
-            sendResponse({ message: 'PONG' })
-            return true
-        }
-        if (data.property === 'volume' || data.property === 'playbackRate') {
-            if (command === 'GET_VALUE') {
-                contentLogger.debug('Content GET_VALUE: ', data.property)
-                getValue(data.property).then((value) => {
-                    contentLogger.debug('Sending response for Content GET_VALUE: ', data.property, value)
-                    sendResponse({ message: 'success', property: data.property, value })
-                })
-                return true
+    watchItem('pageChange', async (isChanging) => {
+        contentLogger.debug('new pageChange in storage', isChanging)
+        if (isChanging) {
+            const volume = await getProperty('volume')
+            const playbackRate = await getProperty('playbackRate')
+
+            if (!INJECT_WEBSITE && myMedia) {
+                myMedia?.addEventListener('timeupdate', () => {
+                    if (myMedia) {
+                        myMedia.volume = volume
+                        myMedia.playbackRate = playbackRate
+                    }
+                }, { once: true })
             }
-            if (command === 'SET_VALUE') {
-                setValue(data.property, data.value).then(() => {
-                    sendResponse({ message: 'success' })
-                })
-                return true
+            else {
+                setInjectedValue('volume', volume)
+                setInjectedValue('playbackRate', playbackRate)
+                sendInjectEvent('PAGE_CHANGE')
             }
+            await storage.setItem('session:pageChange', false)
         }
-        if (command === 'TOGGLE_PLAYBACK') {
+    })
+
+    watchItem('session:togglePlayback', (value) => {
+        if (value) {
             if (!INJECT_WEBSITE && myMedia) {
                 myMedia.paused ? myMedia.play() : myMedia.pause()
             }
             else {
-                sendEvent('TOGGLE_PLAYBACK')
+                sendInjectEvent('TOGGLE_PLAYBACK')
             }
-            sendResponse({ message: 'success' })
-            return true
-        }
-        if (command === 'PAGE_CHANGE') {
-            const { volume, playbackRate } = data
-            if (!INJECT_WEBSITE) {
-                myMedia?.addEventListener('timeupdate', () => {
-                    contentLogger.info('PLAYING NOW setting vol', volume, 'playbackRate', playbackRate)
-                    setMediaValues(volume, playbackRate)
-                }, { once: true })
-            }
-            else {
-                setMediaValues(volume, playbackRate)
-                sendEvent('PAGE_CHANGE')
-            }
-            sendResponse({ message: 'success' })
-            return true
+            storage.setItem('session:togglePlayback', false)
         }
     })
 }
@@ -178,6 +146,7 @@ export default defineContentScript({
         storage.getItem<boolean>('session:contentExecuted').then((executed) => {
             if (!executed || executed === undefined) {
                 init()
+                // need to set false when page changes
                 storage.setItem('session:contentExecuted', true)
             }
         })

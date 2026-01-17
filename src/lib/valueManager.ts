@@ -3,6 +3,7 @@ import { ERROR_PLAYBACK_RATE, ERROR_VOLUME } from './data'
 import { miscLogger } from './logger'
 
 type STORAGE_AREAS = 'session' | 'local'
+export type StorageKey = `${Properties}` | 'pageChange' | 'togglePlayback'
 
 async function getSafeValue(area: STORAGE_AREAS, key: string, defaultValue: number) {
     const value = await storage.getItem<number>(`${area}:${key}`)
@@ -30,4 +31,11 @@ export async function getProperty(property: Properties) {
 
 export async function setProperty(property: Properties, value: number) {
     await storage.setItem(`session:${property}`, value)
+}
+
+export function watchItem(
+    key: StorageKey,
+    callback: (newValue: number | null, oldValue: number | null) => void,
+): () => void {
+    return storage.watch(`session:${key}`, callback)
 }
