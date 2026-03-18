@@ -2,7 +2,7 @@
     import type { Properties, Property } from 'lib/types'
     import CarbonKnobSrc from 'lib/assets/CarbonPurple.png'
     import SmallKnobSrc from 'lib/assets/SmallLedKnob2.png'
-    import Knob from 'lib/knob/Knob.svelte'
+    import Knob from './Knob.svelte'
 
     interface Props {
         properties: Properties
