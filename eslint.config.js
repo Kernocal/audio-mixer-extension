@@ -7,6 +7,7 @@ export default antfu(
         typescript: true,
         yaml: false,
         jsonc: true,
+        markdown: false,
         stylistic: {
             indent: 4,
         },
