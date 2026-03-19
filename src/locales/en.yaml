@@ -1,0 +1,76 @@
+extension:
+  name: Audio Mixer
+  description: Control volume levels for individual tabs and audio sources.
+
+ui:
+  labels:
+    pitch: Pitch
+    semitoneShift: 'Semitone Shift:'
+    activeAmount: 'Active amount:'
+    reverb: Reverb
+    decay: 'Decay:'
+    mediaSettings: Media Settings
+    volume: 'Volume:'
+    playbackRate: 'Playback Rate:'
+    presets: Presets
+    custom: Custom
+    newPresetName: New Preset Name
+  buttons:
+    mute: Mute
+    unmute: Unmute
+    reset: Reset
+    settings: Settings
+    playPause: Play/Pause
+    quit: Quit
+    save: Save
+    cancel: Cancel
+    savePreset: Save preset
+    deletePreset: Delete preset
+  presets:
+    default: Default/Reset
+    classicNightcore: Classic Nightcore
+    slowedReverb: (slowed + reverb)
+    roomyReverb: Roomy Reverb
+
+status:
+  waiting: Waiting for media.
+  playing: Playing.
+  togglePlayback: Played/paused.
+  alreadyPlaying: Already playing.
+  failedCommand: Failed, check devtools.
+  presetsEmpty: "Couldn't get presets, reset to default."
+  exit: Exiting now.
+  quit: Quit connection.
+  noAudioContent: |-
+    No audio detected on current tab.
+    You must play audio before opening the extension.
+  recordFailed: 'Error: unable to create and record from tab, check devtools.'
+
+errors:
+  content:
+    executed: 'Audio Mixer CONTENT: executed.'
+    noMedia: 'Error: no media found, despite the content tab playing audio.'
+    noMediaPlaying: 'Error: no playing media found.'
+    noActiveTab: 'Error: no active tab found.'
+    multipleMedia: 'Error: multiple media elements playing, unable to pick one.'
+    unableSetAttribute: 'Error: unable to set attribute'
+  capture:
+    error: "Error: record tab isn't playing audio but content tab is."
+    tabError: 'Error: Unable to capture tab.'
+  query:
+    multiple: 'Error: expected one element but got many, check query'
+    none: 'Error: expected one element but got none, check query'
+  tabs:
+    create: 'Error: unable to create record tab.'
+    get: 'Error: tab does not exist.'
+    removeContent: 'Error: unable to remove content tab.'
+    removeRecord: 'Error: unable to remove record offscreen document.'
+  commands:
+    setValue: 'Error: unable to set value'
+    failed: 'Error: unable to send command'
+
+messages:
+  exiting: Exiting, closed tabs, cleared storage and reset playback rate.
+  github:
+    issue: Please open an issue on GitHub with any details you have.
+    website: "If this website is already supported please open an issue on GitHub, if it isn't supported yet feel free to message me or open an issue on GitHub."
