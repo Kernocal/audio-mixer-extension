@@ -5,9 +5,9 @@ languageIds:
   - typescriptreact
   - svelte
 
-# Look for t("...") or i18n.t("...")
+# Look for i18n.t("...")
 usageMatchRegex:
-  - "(?:i18n\\.)?t\\(['\"`]({key})['\"`]\\)"
+  - "i18n\\.t\\(['\"`]({key})['\"`]\\)"
 
 # Disable other built-in i18n ally frameworks
 monopoly: true
