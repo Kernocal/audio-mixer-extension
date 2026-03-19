@@ -1,55 +1,54 @@
 <script lang='ts'>
-    import type { Properties, Property } from 'lib/types'
-    import CarbonKnobSrc from 'lib/assets/CarbonPurple.png'
-    import SmallKnobSrc from 'lib/assets/SmallLedKnob2.png'
+    import type { ToneProperty } from 'lib/types'
+    import { i18n } from '#i18n'
+    import { popupLogger } from 'lib/logger'
+    import { sendMessage } from 'lib/messaging'
+    import { pitch, pitchWet, playbackRate, reverbDecay, reverbWet, togglePlayback, volume } from 'lib/storage/items.svelte'
     import Knob from './Knob.svelte'
 
     interface Props {
-        properties: Properties
         disabled: boolean
-        onPropertyChange: (property: Property, value: number) => void
-        onTogglePlayback: () => void
         onExit: () => void
     }
 
-    let {
-        properties = $bindable(),
-        disabled,
-        onPropertyChange,
-        onTogglePlayback,
-        onExit,
-    }: Props = $props()
+    const { disabled, onExit }: Props = $props()
+
+    function onToneChange(property: ToneProperty, value: number) {
+        popupLogger.debug('Popup setting value: ', property, value)
+        sendMessage('setOffscreenValue', { property, value })
+    }
+
 </script>
 
 <div class='grid-child1'>
-    <div class={`rounded-md ${properties.pitchWet > 0 ? 'bg-mixer-secondary/30' : 'bg-mixer-secondary/10'}`}>
-        <h1 class='propertyText'>Pitch</h1>
+    <div class={`rounded-md ${pitch.value > 0 ? 'bg-mixer-secondary/30' : 'bg-mixer-secondary/10'}`}>
+        <h1 class='propertyText'>{i18n.t('ui.labels.pitch')}</h1>
         <div class='flex justify-around'>
-            <Knob id='pitch' label='Semitone Shift:' src={SmallKnobSrc} bind:value={properties.pitch} min='-12' max='12' step='1' disabled={disabled} onvaluechange={() => { onPropertyChange('pitch', properties.pitch) }} />
-            <Knob id='pitchWet' label='Active amount:' src={CarbonKnobSrc} bind:value={properties.pitchWet} min='0' max='1' step='0.01' disabled={disabled} onvaluechange={() => { onPropertyChange('pitchWet', properties.pitchWet) }} />
+            <Knob id='pitch' label={i18n.t('ui.labels.semitoneShift')} bind:value={pitch.value} min='-12' max='12' step='1' disabled={disabled} onvaluechange={() => { onToneChange('pitch', pitch.value) }} />
+            <Knob id='pitchWet' label={i18n.t('ui.labels.activeAmount')} bind:value={pitchWet.value} min='0' max='1' step='0.01' disabled={disabled} onvaluechange={() => { onToneChange('pitchWet', pitchWet.value) }} />
         </div>
     </div>
-    <div class={`rounded-md mt-2 ${properties.reverbWet > 0 ? 'bg-mixer-secondary/30' : 'bg-mixer-secondary/10'}`}>
-        <h1 class='propertyText'>Reverb</h1>
+    <div class={`rounded-md mt-2 ${reverbWet.value > 0 ? 'bg-mixer-secondary/30' : 'bg-mixer-secondary/10'}`}>
+        <h1 class='propertyText'>{i18n.t('ui.labels.reverb')}</h1>
         <div class='flex justify-around'>
-            <Knob id='reverb' label='Decay:' src={SmallKnobSrc} bind:value={properties.reverbDecay} min='0.01' max='10' step='0.10' disabled={disabled} onvaluechange={() => { onPropertyChange('reverbDecay', properties.reverbDecay) }} />
-            <Knob id='reverbWet' label='Active amount:' src={CarbonKnobSrc} bind:value={properties.reverbWet} min='0' max='1' step='0.01' disabled={disabled} onvaluechange={() => { onPropertyChange('reverbWet', properties.reverbWet) }} />
+            <Knob id='reverb' label={i18n.t('ui.labels.decay')} bind:value={reverbDecay.value} min='0.01' max='10' step='0.10' disabled={disabled} onvaluechange={() => { onToneChange('reverbDecay', reverbDecay.value) }} />
+            <Knob id='reverbWet' label={i18n.t('ui.labels.activeAmount')} bind:value={reverbWet.value} min='0' max='1' step='0.01' disabled={disabled} onvaluechange={() => { onToneChange('reverbWet', reverbWet.value) }} />
         </div>
     </div>
     <div class='mt-2 rounded-md bg-mixer-secondary/30 whitespace-nowrap'>
-        <h1 class='propertyText'>Media Settings</h1>
+        <h1 class='propertyText'>{i18n.t('ui.labels.mediaSettings')}</h1>
         <div class='flex justify-around'>
-            <Knob id='volume' label='Volume:' src={SmallKnobSrc} bind:value={properties.volume} min='0' max='1' step='0.01' disabled={disabled} onvaluechange={() => { onPropertyChange('volume', properties.volume) }} />
-            <Knob id='playbackRate' label='Playback Rate:' src={SmallKnobSrc} bind:value={properties.playbackRate} min='0.1' max='2' step='0.05' disabled={disabled} onvaluechange={() => { onPropertyChange('playbackRate', properties.playbackRate) }} />
+            <Knob id='volume' label={i18n.t('ui.labels.volume')} bind:value={volume.value} min='0' max='1' step='0.01' disabled={disabled} />
+            <Knob id='playbackRate' label={i18n.t('ui.labels.playbackRate')} bind:value={playbackRate.value} min='0.1' max='2' step='0.05' disabled={disabled} />
         </div>
     </div>
     <div class='flex items-center justify-between'>
-        <button class='button' disabled={disabled} onclick={onTogglePlayback}>Play/Pause</button>
-        <button class='button' onclick={onExit}>Quit</button>
+        <button class='button' disabled={disabled} onclick={() => { togglePlayback.value = true }}>{i18n.t('ui.buttons.playPause')}</button>
+        <button class='button' onclick={onExit}>{i18n.t('ui.buttons.quit')}</button>
     </div>
 </div>
 
-<style>
+<style lang='postcss'>
 .propertyText {
     @apply text-light-600 text-lg p-1 pl-2 font-medium;
 }

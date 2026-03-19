@@ -1,85 +1,152 @@
 <script lang='ts'>
-    import type { Preset } from 'lib/types'
+    import type { Preset, ToneProperty } from 'lib/types'
+    import { i18n } from '#i18n'
     import GitHub from 'lib/assets/github.png'
+    import { popupLogger } from 'lib/logger'
+    import { sendMessage } from 'lib/messaging'
+    import { pitch, pitchWet, playbackRate, presets, reverbDecay, reverbWet } from 'lib/storage/items.svelte'
 
     interface Props {
-        presets: Preset[]
-        activePresetIndex: number
         status: string
         disabled: boolean
-        onPresetSelect: (index: number) => void
-        onPresetSave: (name: string) => Promise<void>
-        onPresetDelete: (index: number) => Promise<void>
     }
 
-    let {
-        presets = $bindable(),
-        activePresetIndex = $bindable(),
+    const {
         status,
         disabled,
-        onPresetSelect,
-        onPresetSave,
-        onPresetDelete,
     }: Props = $props()
 
-    let SAVE_PRESET_HIDDEN = $state(true)
+    let dialog: HTMLDialogElement
     let NEW_PRESET_NAME = $state('')
+    const activePresetIndex = $derived.by(() => {
+        const current = {
+            pitch: pitch.value,
+            pitchWet: pitchWet.value,
+            reverbDecay: reverbDecay.value,
+            reverbWet: reverbWet.value,
+            playbackRate: playbackRate.value,
+        }
+        const index = presets.value.findIndex(p =>
+            Object.entries(p.properties).every(([k, v]) => current[k as keyof typeof current] === v),
+        )
+        return index === -1 ? null : index
+    })
+    const activePreset = $derived(activePresetIndex !== null ? presets.value[activePresetIndex] : null)
 
     function handleSave() {
-        onPresetSave(NEW_PRESET_NAME)
-        SAVE_PRESET_HIDDEN = true
-        NEW_PRESET_NAME = ''
+        savePreset(NEW_PRESET_NAME)
+        dialog.close()
     }
 
-    function handleCancel() {
-        SAVE_PRESET_HIDDEN = true
-        NEW_PRESET_NAME = ''
+    function savePreset(name: string) {
+        const newPreset: Preset = {
+            name,
+            user: true,
+            properties: {
+                pitch: pitch.value,
+                pitchWet: pitchWet.value,
+                reverbDecay: reverbDecay.value,
+                reverbWet: reverbWet.value,
+                playbackRate: playbackRate.value,
+            },
+        }
+        presets.update(cur => [...cur, newPreset])
     }
+
+    function deletePreset(index: number) {
+        presets.update(cur => cur.filter((_, i) => i !== index))
+    }
+
+    function applyPreset(preset: Preset) {
+        popupLogger.debug(`Setting Preset ${JSON.stringify(preset)}`)
+        const storageMap = { pitch, pitchWet, reverbDecay, reverbWet, playbackRate } as const
+        for (const [key, value] of Object.entries(preset.properties)) {
+            storageMap[key as keyof typeof storageMap].value = value as number
+            if (key !== 'playbackRate') {
+                sendMessage('setOffscreenValue', { property: key as ToneProperty, value: value as number })
+            }
+        }
+    }
+
 </script>
 
-{#if !SAVE_PRESET_HIDDEN}
-    <div class='bg-black/80 flex h-100% w-100% items-center justify-center fixed z-1'>
-        <div class='p-3 rounded-md bg-mixer-secondary/30 flex flex-col w-fit'>
-            <h1 class='propertyText'>New Preset Name</h1>
-            <input type='text' name='presetName' class='m-2 p-2 w-32' bind:value={NEW_PRESET_NAME}>
-            <div>
-                <button class='button' onclick={handleSave}>Save</button>
-                <button class='button' onclick={handleCancel}>Cancel</button>
-            </div>
+<dialog bind:this={dialog} onclose={() => { NEW_PRESET_NAME = '' }}>
+    <div class='p-3 rounded-md bg-mixer-secondary/30 flex flex-col w-fit'>
+        <h1 class='propertyText'>{i18n.t('ui.labels.newPresetName')}</h1>
+        <input type='text' name='presetName' class='m-2 p-2 w-32' bind:value={NEW_PRESET_NAME}>
+        <div>
+            <button class='button' onclick={handleSave}>{i18n.t('ui.buttons.save')}</button>
+            <button class='button' onclick={() => dialog.close()}>{i18n.t('ui.buttons.cancel')}</button>
         </div>
     </div>
-{/if}
+</dialog>
 
-<div class='grid-child2 flex flex-col h-99% items-center self-start'>
-    <h1 class='propertyText'>Presets</h1>
-    <div class='pb-2 pl-2 pt-1 flex flex-col w-100% children:(rounded-md)'>
-        {#each presets as preset, i}
-            <label class={`font-medium cursor-pointer mb-1 p-2 pr-4 hover:(bg-mixer-secondary/30) ${activePresetIndex === i && !disabled ? 'bg-mixer-secondary/30' : 'bg-mixer-secondary/10'}`}>
+<div class='grid-child2 flex flex-col items-center self-start'>
+    <h1 class='propertyText'>{i18n.t('ui.labels.presets')}</h1>
+    <div class='scrollaa pb-2 pl-2 pt-1 flex flex-col h-[390px] w-100% overflow-y-scroll children:(rounded-md)'>
+        {#each presets.value as preset, i}
+            <label
+                class={['font-medium cursor-pointer mb-1 p-2 pr-4 hover:(bg-mixer-secondary/30)', activePresetIndex === i && !disabled ? 'bg-mixer-secondary/30' : 'bg-mixer-secondary/10']}>
                 <input
                     class='radio mx-2 mt-auto'
                     type='radio'
                     name='activePreset'
-                    disabled={disabled || (activePresetIndex === 0 && presets.length - 1 === i)}
-                    bind:group={activePresetIndex}
+                    disabled={disabled}
+                    checked={activePresetIndex === i}
                     value={i}
-                    onclick={() => onPresetSelect(i)}
+                    onclick={() => applyPreset(preset)}
                 >
                 <span class='text-sm text-light-600 m-auto'>{preset.name}</span>
             </label>
         {/each}
+        <label
+            class={['font-medium mb-1 p-2 pr-4', activePresetIndex === null && !disabled ? 'bg-mixer-secondary/30' : 'bg-mixer-secondary/10']}>
+            <input
+                class='radio mx-2 mt-auto'
+                type='radio'
+                name='activePreset'
+                disabled
+                checked={activePresetIndex === null}
+            >
+            <span class='text-sm text-light-600 m-auto'>{i18n.t('ui.labels.custom')}</span>
+        </label>
     </div>
-    {#if presets[activePresetIndex]?.name === 'Custom'}
-        <button class='button pt-1' disabled={disabled} onclick={() => { SAVE_PRESET_HIDDEN = false }}>Save preset</button>
+    {#if activePresetIndex !== null}
+        <button
+            class='button pt-1'
+            disabled={disabled || !activePreset?.user}
+            onclick={() => deletePreset(activePresetIndex!)}>
+            {i18n.t('ui.buttons.deletePreset')}
+        </button>
     {:else}
-        <button class='button pt-1' disabled={disabled || activePresetIndex === 0} onclick={() => onPresetDelete(activePresetIndex)}>Delete preset</button>
+        <button class='button pt-1' disabled={disabled} onclick={() => dialog.showModal()}>{i18n.t('ui.buttons.savePreset')}</button>
     {/if}
-    <p class={`text-light-600 p-1 w-fit whitespace-pre-line ${(status.length > 80 ? 'text-xs' : 'text-sm')}`}>{status}</p>
+    <p class={['text-light-600 p-1 w-fit whitespace-pre-line', status.length > 80 ? 'text-xs' : 'text-sm']}>{status}</p>
     <a title='Get help on GitHub!' class='mb-4 mr-2 mt-auto self-end hover:opacity-75' href='https://github.com/Kernocal/audio-mixer-extension' target='_blank'>
         <img src={GitHub} alt="" class='filter-svg max-h-6 max-w-6 min-h-6 min-w-6' />
     </a>
 </div>
 
-<style>
+<style lang='postcss'>
+
+.scrollaa {
+    @apply scrollbar scrollbar-rounded scrollbar-w-8px scrollbar-radius-8 scrollbar-thumb-color-mixer-primary scrollbar-track-color-mixer-secondary;
+}
+
+dialog::backdrop {
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+dialog {
+    background: transparent;
+    border: none;
+    padding: 0;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+}
+
 .radio {
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -93,6 +160,10 @@
 }
 .radio:checked {
     @apply bg-purple-600 shadow-purple;
+}
+
+.radio:checked:disabled {
+    @apply bg-purple-600 shadow-purple border-purple-900;
 }
 
 .radio:disabled, .radio:active:disabled {

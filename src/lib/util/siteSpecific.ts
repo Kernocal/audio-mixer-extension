@@ -1,44 +1,39 @@
-import type { CustomEventData, GiveValueEvent, Property, PropertyValue } from '../types'
-import { roundNumber, setElementAttributes, URLIncludes } from './util'
+import { i18n } from '#i18n'
+import { miscLogger } from '../logger'
 
-export const INJECT_URLS = ['soundcloud.com', 'open.spotify.com']
+function roundNumber(number: number, amount: 0 | 1 | 2 | 3 | 4 = 0) {
+    return Number.parseFloat(number.toFixed(amount))
+}
+
+function URLIncludes(name: string) {
+    return window.location.host.includes(name)
+}
+
+function setElementAttributes(query: string, data: object) {
+    const elements = document.querySelectorAll(query)
+    if (elements.length === 1) {
+        try {
+            for (const [attribute, attributeValue] of Object.entries(data)) {
+                elements[0].setAttribute(attribute, attributeValue)
+            }
+        }
+        catch (e) {
+            miscLogger.warn(i18n.t('errors.content.unableSetAttribute'), data, e)
+        }
+    }
+    else if (elements.length > 1) {
+        miscLogger.warn(i18n.t('errors.query.multiple'), query, elements)
+    }
+    else {
+        miscLogger.warn(i18n.t('errors.query.none'), query)
+    }
+}
 
 const SOUNDCLOUD = URLIncludes('soundcloud.com')
 const SPOTIFY = URLIncludes('open.spotify.com')
 const YOUTUBE = URLIncludes('youtube.com')
 
-export const INJECT_WEBSITE = SOUNDCLOUD || SPOTIFY
-// const SLIDER_WEBSITE = INJECT_WEBSITE || YOUTUBE
-
-// Must equal same variable in static/scripts/inject.js
-const EVENT_PREFIX = 'AUDIO_MIXER_'
-
-export function sendInjectEvent(name: string, data: CustomEventData = {}) {
-    const eventName = EVENT_PREFIX + name
-    document.dispatchEvent(new CustomEvent(eventName, data))
-}
-
-export function getInjectedValue(type: Property) {
-    return new Promise((resolve) => {
-        document.addEventListener(`${EVENT_PREFIX}GIVE_VALUE`, (e) => {
-            resolve((e as GiveValueEvent).detail.value)
-        }, { once: true })
-        sendInjectEvent('GET_VALUE', {
-            detail: { type },
-        })
-    })
-}
-
-export function setInjectedValue(type: Property, value: PropertyValue) {
-    sendInjectEvent('SET_VALUE', {
-        detail: {
-            type,
-            value,
-        },
-    })
-}
-
-export function updateSlider(volume: PropertyValue) {
+export function updateSlider(volume: number) {
     if (SOUNDCLOUD) {
         updateSoundcloudSlider(volume)
     }
@@ -50,7 +45,7 @@ export function updateSlider(volume: PropertyValue) {
     }
 }
 
-function updateSoundcloudSlider(volume: PropertyValue) {
+function updateSoundcloudSlider(volume: number) {
     // Any volume above 0 but below 0.05 sc considers muted.
     volume = (volume > 0 && volume < 0.05) ? 0.05 : volume
 
@@ -78,7 +73,7 @@ function updateSoundcloudSlider(volume: PropertyValue) {
     })
 }
 
-function updateSpotifySlider(volume: PropertyValue) {
+function updateSpotifySlider(volume: number) {
     // Update input, value 0-1. Selector was picking up more inputs, use all attributes.
     setElementAttributes('label > input[type=\'range\'][step=\'0.1\'][min=\'0\'][max=\'1\']', {
         value: volume,
@@ -112,7 +107,7 @@ function updateSpotifySlider(volume: PropertyValue) {
     })
 }
 
-function updateYoutubeSlider(volume: PropertyValue) {
+function updateYoutubeSlider(volume: number) {
     // Youtube has an inline player that has the exact same class names for the controls.
     const youtubeRealVolumeArea = '#movie_player > div.ytp-chrome-bottom > div.ytp-chrome-controls > div.ytp-left-controls > span.ytp-volume-area'
 

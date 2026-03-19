@@ -1,180 +1,54 @@
 <script lang='ts'>
-    import type { Preset, PresetProperties, Properties, Property, StartMixerResponse } from 'lib/types'
-    import { storage } from '#imports'
-    import { DEFAULT_PRESETS, MESSAGES } from 'lib/data'
+    import { i18n } from '#i18n'
     import { popupLogger } from 'lib/logger'
-    import { Commands, sendRuntime } from 'lib/messaging/communication'
-    import { compareObjects } from 'lib/util/util'
-    import { emptyPropeties, setProperty } from 'lib/valueManager'
+    import { sendMessage } from 'lib/messaging'
+    import { playbackRate, presets } from 'lib/storage/items.svelte'
     import { onMount } from 'svelte'
-
     import Presets from './Presets.svelte'
     import PropertyControls from './PropertyControls.svelte'
-
     import 'virtual:uno.css'
 
-    let STATUS = $state<string>(MESSAGES.STATUS_WAITING)
-
-    let PRESETS = $state<Preset[]>(DEFAULT_PRESETS)
-    let UI_DISABLED = $state<boolean>(true)
-    let ACTIVE_PRESET_INDEX = $state<number>(0)
-    let PROPERTIES = $state<Properties>(emptyPropeties())
-    $inspect(PRESETS)
-
-    async function sendCommand(message) {
-        const { target = 'background', command, data = {} } = message
-        popupLogger.debug('Sending command', data)
-        return await sendRuntime({ target, command, data })
-    }
-    // data.property, data.value
-    // data.tabId
-
-    // function sendCommand(data: PopUpCommands) {
-    //     try {
-    //         chrome.runtime.sendMessage(data, (response) => {
-    //             return response?.message === 'success'
-    //         })
-    //     }
-    //     catch (e) {
-    //         console.warn(e)
-    //         return false
-    //     }
-    // }
-
-    function setPreset(presetIndex: number) {
-        ACTIVE_PRESET_INDEX = presetIndex
-        storage.setItem('session:preset', ACTIVE_PRESET_INDEX)
-    }
-
-    async function savePreset(name: string) {
-        PRESETS = await storage.getItem<Preset[]>('local:presets') ?? PRESETS
-        const { volume: _volume, ...newProperties } = PROPERTIES
-        const newPreset = { name, values: (newProperties as PresetProperties) }
-        PRESETS.splice((PRESETS.length - 1), 0, newPreset)
-        await storage.setItem('local:presets', PRESETS)
-    }
-
-    async function deletePreset(presetIndex: number) {
-        PRESETS = await storage.getItem<Preset[]>('local:presets') ?? PRESETS
-        if (presetIndex !== 0 || presetIndex !== PRESETS.length - 1) {
-            PRESETS.splice(presetIndex, 1)
-            await storage.setItem('local:presets', PRESETS)
-            setValues(PRESETS[0].values, 'GLOBAL')
-        }
-    }
-
-    function getPresetIndexFromProperties() {
-        // If no valid preset found set to the last preset, custom.
-        const customIndex = PRESETS.length - 1
-        const presetProperties = (({ volume: _volume, ...key }) => key)(PROPERTIES)
-        for (let i = 0; i < customIndex; i++) {
-            if (compareObjects(PRESETS[i].values, presetProperties)) {
-                return i
-            }
-        }
-        return customIndex
-    }
-
-    function updateStatusProperty(property: Property) {
-        // Splits on capital letter: playbackRate -> ['playback', 'Rate']
-        const properties = property.split(/(?=[A-Z])/)
-        if (properties.length > 1) {
-            return `Updated ${properties[0]} ${properties[1].toLowerCase()}.`
-        }
-        else {
-            return `Updated ${properties[0]}.`
-        }
-    }
-
-    async function setValue(property: Property, value: number) {
-        popupLogger.debug('Popup setValue: ', property, value)
-        if (!UI_DISABLED) {
-            await setProperty(property, value)
-            STATUS = updateStatusProperty(property)
-
-            if (property !== 'volume') {
-                const presetValues = PRESETS[ACTIVE_PRESET_INDEX].values
-                if ((presetValues as PresetProperties)[property] !== value) {
-                    const presetIndex = getPresetIndexFromProperties()
-                    setPreset(presetIndex)
-                }
-            }
-        }
-    }
-
-    function setValues(newValues: StartMixerResponse | object, scope: 'LOCAL' | 'GLOBAL') {
-        popupLogger.debug(`Setting values ${JSON.stringify(newValues)} scope ${scope}`)
-        for (const [objKey, objValue] of Object.entries(newValues)) {
-            const key: Property = objKey as Property
-            const value: number = objValue as number
-            if (Object.prototype.hasOwnProperty.call(PROPERTIES, key)) {
-                PROPERTIES[key] = value
-                if (scope === 'GLOBAL') {
-                    setValue(key, value)
-                }
-            }
-        }
-    }
+    let status = $state<string>(i18n.t('status.waiting'))
+    let disabled = $state<boolean>(true)
 
     function exitMixer() {
-        PROPERTIES.playbackRate = 1
-        setValue('playbackRate', PROPERTIES.playbackRate)
-        sendCommand({ command: Commands.EXIT_MIXER })
-        STATUS = MESSAGES.STATUS_EXIT
+        playbackRate.value = 1
+        sendMessage('exitMixer')
+        status = i18n.t('status.exit')
         window.close()
     }
 
-    function handlePresetSelect(index: number) {
-        setPreset(index)
-        setValues(PRESETS[ACTIVE_PRESET_INDEX]?.values, 'GLOBAL')
-    }
-
-    function handleTogglePlayback() {
-        storage.setItem('session:togglePlayback', true)
-    }
-
     onMount(async () => {
-        PRESETS = await storage.getItem<Preset[]>('local:presets') ?? PRESETS
-        ACTIVE_PRESET_INDEX = await storage.getItem<number>('session:preset') ?? ACTIVE_PRESET_INDEX
-        chrome.runtime.sendMessage({ command: Commands.START_MIXER }, (response) => {
-            if (['Playing.', 'Already playing.'].includes(response?.message)) {
-                UI_DISABLED = false
-                setValues(response, 'LOCAL')
-                STATUS = response?.message
-            }
-        })
+        const response = await sendMessage('startMixer')
+        popupLogger.debug('response', response)
+        if (response) {
+            disabled = false
+            status = i18n.t('status.playing')
+        }
     })
+
 </script>
 
 <div class='bg animate flex flex-col h-fit min-h-[550px] min-w-[500px] w-fit whitespace-nowrap'>
-    <p class='text-white'>{JSON.stringify(PROPERTIES)} </p>
-    <p class='text-white'>{UI_DISABLED}</p>
-    <div class='grid-parent items-center justify-evenly children:m-2'>
+    <p class='text-white max-w-[300px]'>{JSON.stringify(presets.value)} </p>
+    <p class='asd text-white max-w-[300px]'>{disabled}</p>
+    <div class='grid-parent items-start justify-evenly children:m-2'>
         <PropertyControls
-            bind:properties={PROPERTIES}
-            disabled={UI_DISABLED}
-            onPropertyChange={setValue}
-            onTogglePlayback={handleTogglePlayback}
+            {disabled}
             onExit={exitMixer}
         />
         <Presets
-            bind:presets={PRESETS}
-            bind:activePresetIndex={ACTIVE_PRESET_INDEX}
-            status={STATUS}
-            disabled={UI_DISABLED}
-            onPresetSelect={handlePresetSelect}
-            onPresetSave={savePreset}
-            onPresetDelete={deletePreset}
+            {status}
+            {disabled}
         />
-
     </div>
 </div>
 
-<style>
+<style lang='postcss'>
 
-/* :global(body) {
+:global(body) {
     @apply scrollbar scrollbar-rounded scrollbar-w-8px scrollbar-radius-8 scrollbar-thumb-color-mixer-primary scrollbar-track-color-mixer-secondary;
-} */
+}
 
 .grid-parent {
     display: grid;

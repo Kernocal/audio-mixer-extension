@@ -1,102 +1,70 @@
-import type { ContentCommand } from '../types'
-import { MESSAGES } from '../data'
+import { i18n } from '#i18n'
 import { miscLogger } from '../logger'
 
-export async function getTab(tabId: number) {
-    try {
-        return await chrome.tabs.get(tabId)
-    }
-    catch (e) {
-        miscLogger.warn(MESSAGES.GET_TAB, e)
-        return null
-    }
-}
-
-export async function removeTab(tabId: number) {
-    try {
-        return await chrome.tabs.remove(tabId)
-    }
-    catch (e) {
-        miscLogger.warn(MESSAGES.REMOVE_TAB, e)
-        return null
-    }
-}
-
-export function getActiveTab(): Promise<chrome.tabs.Tab> {
-    return new Promise((resolve) => {
-        chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
-            resolve(tabs[0])
-        })
-    })
-}
-
-// export function openRecordTab(): Promise<chrome.tabs.Tab> {
-//     return new Promise((resolve) => {
-//         try {
-//             chrome.tabs.create({
-//                 pinned: true,
-//                 active: false,
-//                 url: `chrome-extension://${chrome.runtime.id}/record.html`,
-//             }, (tab) => {
-//                 resolve(tab)
-//             })
-//         }
-//         catch (e) {
-//             console.warn(MESSAGES.CREATE_TAB, e)
-//         }
-//     })
+// unused for now
+// export async function getTab(tabId: number) {
+//     try {
+//         return await chrome.tabs.get(tabId)
+//     }
+//     catch (e) {
+//         miscLogger.warn(i18n.t('errors.tabs.get'), e)
+//         return null
+//     }
 // }
 
-export async function openRecordTab(): Promise<boolean> {
+// export async function removeTab(tabId: number) {
+//     try {
+//         return await chrome.tabs.remove(tabId)
+//     }
+//     catch (e) {
+//         miscLogger.warn(i18n.t('errors.tabs.removeContent'), e)
+//         return null
+//     }
+// }
+
+// async function getContentTab() {
+//     const tabId = await contentTab.getValue()
+//     if (!tabId) {
+//         throw new Error('expected content tab id, none found')
+//     }
+//     return tabId
+// }
+
+export async function getActiveTab() {
+    const [tab] = await chrome.tabs.query({
+        active: true,
+        lastFocusedWindow: true,
+    })
+    return tab
+}
+
+export async function isRecordOpen() {
+    const contexts = await chrome.runtime.getContexts({
+        contextTypes: [chrome.runtime.ContextType.OFFSCREEN_DOCUMENT],
+    })
+    return contexts.length > 0
+}
+
+export async function openRecordDoc(streamId: string) {
     try {
         await chrome.offscreen.createDocument({
-            url: `chrome-extension://${chrome.runtime.id}/record.html`,
+            url: `chrome-extension://${chrome.runtime.id}/record.html?streamId=${encodeURIComponent(streamId)}`,
             reasons: [chrome.offscreen.Reason.CLIPBOARD],
             justification: 'Mixing audio from user media',
         })
         return true
     }
     catch (e) {
-        miscLogger.warn(MESSAGES.CREATE_TAB, e)
+        miscLogger.warn(i18n.t('errors.tabs.create'), e)
         return false
     }
 }
 
-export async function sendTabCommand(tabId: number, data: object, warn = true) {
-    try {
-        miscLogger.debug(`Sending command to tab ${tabId} data ${JSON.stringify(data)}`)
-
-        return await chrome.tabs.sendMessage(tabId, data)
+export async function closeRecordDoc() {
+    const isOpen = await isRecordOpen()
+    if (!isOpen) {
+        miscLogger.warn(i18n.t('errors.tabs.removeRecord'))
+        return
     }
-    catch (e) {
-        if (warn) {
-            miscLogger.warn(MESSAGES.COMMAND_FAILED, e)
-        }
-        return null
-    }
-}
-
-// function sendCommand(data: PopUpCommands, text: string) {
-//     try {
-//         chrome.runtime.sendMessage(data, (response) => {
-//             if (response?.message === 'success') {
-//                 STATUS = text
-//             }
-//             else {
-//                 STATUS = MESSAGES.STATUS_FAILED_COMMAND
-//             }
-//         })
-//     }
-//     catch (e) {
-//         console.warn(e)
-//     }
-// }
-
-export async function sendContentTabCommand(data: ContentCommand, warn = true) {
-    const tabId = await storage.getItem<number>('session:contentTab')
-    if (!tabId) {
-        miscLogger.warn('Error: storage content tab empty')
-        return null
-    }
-    return await sendTabCommand(tabId, data, warn)
+    await chrome.offscreen.closeDocument()
 }

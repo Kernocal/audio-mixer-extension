@@ -1,9 +1,7 @@
 <script lang='ts'>
-    import { roundNumber } from 'lib/util/util'
 
     interface Props {
         id: string
-        src?: string // Ignored, kept for API compatibility
         value?: number
         step?: number | string
         min?: number | string
@@ -15,7 +13,6 @@
 
     let {
         id,
-        src,
         value = $bindable(0),
         step = 1,
         min = 0,
@@ -60,7 +57,7 @@
         oninput={handleInput}
         onchange={handleChange}
     />
-    <p class='knob-value'>{roundNumber(value, 2)}</p>
+    <p class='knob-value'>{Number(value.toFixed(2))}</p>
 </div>
 
 <style>
