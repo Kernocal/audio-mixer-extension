@@ -30,8 +30,8 @@
 </script>
 
 <div class='bg animate flex flex-col h-fit min-h-[550px] min-w-[500px] w-fit whitespace-nowrap'>
-    <p class='text-white max-w-[300px]'>{JSON.stringify(presets.value)} </p>
-    <p class='asd text-white max-w-[300px]'>{disabled}</p>
+    <!-- <p class='text-white max-w-[300px]'>{JSON.stringify(presets.value)} </p>
+    <p class='asd text-white max-w-[300px]'>{disabled}</p> -->
     <div class='grid-parent items-start justify-evenly children:m-2'>
         <PropertyControls
             {disabled}
