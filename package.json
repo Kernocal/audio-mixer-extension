@@ -1,7 +1,7 @@
 {
     "name": "audio-mixer",
     "type": "module",
-    "version": "1.5.1",
+    "version": "1.5.2",
     "description": "extension",
     "scripts": {
         "dev": "wxt",
