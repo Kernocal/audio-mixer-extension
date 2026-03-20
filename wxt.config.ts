@@ -1,7 +1,6 @@
 import { resolve } from 'node:path'
 import { defineConfig } from 'wxt'
 
-// See https://wxt.dev/api/config.html
 export default defineConfig({
     manifest: {
         name: '__MSG_extension_name__',
@@ -27,15 +26,6 @@ export default defineConfig({
     modules: ['@wxt-dev/unocss', '@wxt-dev/module-svelte', '@wxt-dev/i18n/module'],
     alias: {
         lib: resolve('src/lib/'),
-    },
-    svelte: {
-        vite: {
-            compilerOptions: {
-                experimental: {
-                    async: true,
-                },
-            },
-        },
     },
     webExt: {
         disabled: false,

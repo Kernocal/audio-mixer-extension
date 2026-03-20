@@ -20,24 +20,24 @@
         "tslog": "^4.10.2"
     },
     "devDependencies": {
-        "@antfu/eslint-config": "^7.0.1",
-        "@tsconfig/svelte": "^5.0.6",
-        "@types/chrome": "^0.1.33",
-        "@types/node": "^25.0.9",
-        "@unocss/eslint-plugin": "^66.6.0",
+        "@antfu/eslint-config": "^7.7.3",
+        "@tsconfig/svelte": "^5.0.8",
+        "@types/chrome": "^0.1.38",
+        "@types/node": "^25.5.0",
+        "@unocss/eslint-plugin": "^66.6.7",
         "@webext-core/messaging": "^2.3.0",
-        "@wxt-dev/i18n": "^0.2.4",
-        "@wxt-dev/module-svelte": "^2.0.4",
+        "@wxt-dev/i18n": "^0.2.5",
+        "@wxt-dev/module-svelte": "^2.0.5",
         "@wxt-dev/unocss": "^1.0.1",
-        "eslint": "^9.39.2",
-        "eslint-plugin-svelte": "^3.14.0",
-        "svelte": "^5.46.4",
-        "svelte-check": "^4.3.5",
+        "eslint": "^10.0.3",
+        "eslint-plugin-svelte": "^3.15.2",
+        "svelte": "^5.54.0",
+        "svelte-check": "^4.4.5",
         "tone": "^15.1.22",
         "tslib": "^2.8.1",
         "typescript": "^5.9.3",
-        "unocss": "^66.6.0",
-        "unocss-preset-scrollbar": "^3.2.0",
-        "wxt": "^0.20.13"
+        "unocss": "^66.6.7",
+        "unocss-preset-scrollbar": "^4.0.0",
+        "wxt": "^0.20.20"
     }
 }
