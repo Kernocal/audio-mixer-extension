@@ -13,8 +13,7 @@
         "check": "svelte-check --tsconfig ./tsconfig.json",
         "postinstall": "wxt prepare",
         "lint": "eslint .",
-        "lint:fix": "eslint --fix .",
-        "lint:viewer": "eslint --inspect-config"
+        "lint:fix": "eslint --fix ."
     },
     "dependencies": {
         "tslog": "^4.10.2"
@@ -22,10 +21,9 @@
     "devDependencies": {
         "@antfu/eslint-config": "^7.7.3",
         "@tsconfig/svelte": "^5.0.8",
-        "@types/chrome": "^0.1.38",
-        "@types/node": "^25.5.0",
         "@unocss/eslint-plugin": "^66.6.7",
         "@webext-core/messaging": "^2.3.0",
+        "@wxt-dev/auto-icons": "^1.1.1",
         "@wxt-dev/i18n": "^0.2.5",
         "@wxt-dev/module-svelte": "^2.0.5",
         "@wxt-dev/unocss": "^1.0.1",

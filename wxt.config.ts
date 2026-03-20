@@ -23,7 +23,10 @@ export default defineConfig({
         action: {},
     },
     srcDir: 'src',
-    modules: ['@wxt-dev/unocss', '@wxt-dev/module-svelte', '@wxt-dev/i18n/module'],
+    modules: ['@wxt-dev/unocss', '@wxt-dev/module-svelte', '@wxt-dev/i18n/module', '@wxt-dev/auto-icons'],
+    autoIcons: {
+        baseIconPath: 'lib/assets/icon.png',
+    },
     alias: {
         lib: resolve('src/lib/'),
     },
