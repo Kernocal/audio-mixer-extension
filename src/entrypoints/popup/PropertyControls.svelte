@@ -1,6 +1,6 @@
 <script lang='ts'>
     import type { ToneProperty } from 'lib/types'
-    import { i18n } from '#i18n'
+    import { i18n } from '#imports'
     import { popupLogger } from 'lib/logger'
     import { sendMessage } from 'lib/messaging'
     import { pitch, pitchWet, playbackRate, reverbDecay, reverbWet, togglePlayback, volume } from 'lib/storage/items.svelte'

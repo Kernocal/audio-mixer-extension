@@ -1,6 +1,6 @@
 <script lang='ts'>
     import type { PitchShift as PitchType, Reverb as ReverbType } from 'tone'
-    import { i18n } from '#i18n'
+    import { i18n } from '#imports'
     import { recordLogger } from 'lib/logger'
     import { onMessage } from 'lib/messaging'
     import { onMount } from 'svelte'

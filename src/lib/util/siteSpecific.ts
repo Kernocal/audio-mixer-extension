@@ -1,4 +1,4 @@
-import { i18n } from '#i18n'
+import { i18n } from '#imports'
 import { miscLogger } from '../logger'
 
 function roundNumber(number: number, amount: 0 | 1 | 2 | 3 | 4 = 0) {

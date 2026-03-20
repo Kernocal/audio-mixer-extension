@@ -1,5 +1,4 @@
-import { i18n } from '#i18n'
-import { browser } from 'wxt/browser'
+import { browser, i18n } from '#imports'
 import { miscLogger } from '../logger'
 
 // unused for now

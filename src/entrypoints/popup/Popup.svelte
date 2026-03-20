@@ -1,5 +1,5 @@
 <script lang='ts'>
-    import { i18n } from '#i18n'
+    import { i18n } from '#imports'
     import { popupLogger } from 'lib/logger'
     import { sendMessage } from 'lib/messaging'
     import { playbackRate } from 'lib/storage/items.svelte'

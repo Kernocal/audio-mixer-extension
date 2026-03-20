@@ -1,5 +1,5 @@
 import type { MediaProperty } from 'lib/types'
-import { i18n } from '#i18n'
+import { i18n } from '#imports'
 import { contentLogger, injectLogger } from 'lib/logger'
 import { sendMessage } from 'lib/messaging'
 import { websiteMessenger } from 'lib/messaging/customEvent'

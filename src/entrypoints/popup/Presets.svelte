@@ -1,6 +1,6 @@
 <script lang='ts'>
     import type { Preset, ToneProperty } from 'lib/types'
-    import { i18n } from '#i18n'
+    import { i18n } from '#imports'
     import GitHub from 'lib/assets/github.png'
     import { popupLogger } from 'lib/logger'
     import { sendMessage } from 'lib/messaging'

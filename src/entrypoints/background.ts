@@ -1,10 +1,8 @@
-import { i18n } from '#i18n'
-import { storage } from '#imports'
+import { browser, i18n, storage } from '#imports'
 import { backgroundLogger } from 'lib/logger'
 import { onMessage, sendMessage } from 'lib/messaging'
 import { contentExecuted, contentTabId, contentTabUrl, installDate, pageChange, presets } from 'lib/storage/items'
 import { closeRecordDoc, getActiveTab, isRecordOpen, openRecordDoc } from 'lib/util/handleTab'
-import { browser } from 'wxt/browser'
 
 async function executeContent(tabId: number) {
     try {
