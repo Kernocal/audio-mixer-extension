@@ -8,7 +8,7 @@
 .output
 .wxt
 .code-worktrees
-old_stuff
+.old_stuff
 build.pem
 node_modules
 package
