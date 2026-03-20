@@ -1,10 +1,11 @@
 import { i18n } from '#i18n'
+import { browser } from 'wxt/browser'
 import { miscLogger } from '../logger'
 
 // unused for now
 // export async function getTab(tabId: number) {
 //     try {
-//         return await chrome.tabs.get(tabId)
+//         return await browser.tabs.get(tabId)
 //     }
 //     catch (e) {
 //         miscLogger.warn(i18n.t('errors.tabs.get'), e)
@@ -14,7 +15,7 @@ import { miscLogger } from '../logger'
 
 // export async function removeTab(tabId: number) {
 //     try {
-//         return await chrome.tabs.remove(tabId)
+//         return await browser.tabs.remove(tabId)
 //     }
 //     catch (e) {
 //         miscLogger.warn(i18n.t('errors.tabs.removeContent'), e)
@@ -31,7 +32,7 @@ import { miscLogger } from '../logger'
 // }
 
 export async function getActiveTab() {
-    const [tab] = await chrome.tabs.query({
+    const [tab] = await browser.tabs.query({
         active: true,
         lastFocusedWindow: true,
     })
@@ -39,17 +40,18 @@ export async function getActiveTab() {
 }
 
 export async function isRecordOpen() {
-    const contexts = await chrome.runtime.getContexts({
-        contextTypes: [chrome.runtime.ContextType.OFFSCREEN_DOCUMENT],
+    const contexts = await browser.runtime.getContexts({
+        contextTypes: [browser.runtime.ContextType.OFFSCREEN_DOCUMENT],
     })
     return contexts.length > 0
 }
 
 export async function openRecordDoc(streamId: string) {
     try {
-        await chrome.offscreen.createDocument({
-            url: `chrome-extension://${chrome.runtime.id}/record.html?streamId=${encodeURIComponent(streamId)}`,
-            reasons: [chrome.offscreen.Reason.CLIPBOARD],
+        // should be fine for chromium forks
+        await browser.offscreen.createDocument({
+            url: `chrome-extension://${browser.runtime.id}/record.html?streamId=${encodeURIComponent(streamId)}`,
+            reasons: [browser.offscreen.Reason.CLIPBOARD],
             justification: 'Mixing audio from user media',
         })
         return true
@@ -66,5 +68,5 @@ export async function closeRecordDoc() {
         miscLogger.warn(i18n.t('errors.tabs.removeRecord'))
         return
     }
-    await chrome.offscreen.closeDocument()
+    await browser.offscreen.closeDocument()
 }

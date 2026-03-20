@@ -4,14 +4,15 @@ import { backgroundLogger } from 'lib/logger'
 import { onMessage, sendMessage } from 'lib/messaging'
 import { contentExecuted, contentTabId, contentTabUrl, installDate, pageChange, presets } from 'lib/storage/items'
 import { closeRecordDoc, getActiveTab, isRecordOpen, openRecordDoc } from 'lib/util/handleTab'
+import { browser } from 'wxt/browser'
 
 async function executeContent(tabId: number) {
     try {
-        await chrome.scripting.executeScript({
+        await browser.scripting.executeScript({
             target: {
                 tabId,
             },
-            files: ['content-scripts/content.js'],
+            files: ['/content-scripts/content.js'],
         })
     }
     catch (e) {
@@ -58,7 +59,7 @@ async function startRecording() {
         backgroundLogger.error('expected content tab id, none found')
         return
     }
-    const streamId = await chrome.tabCapture.getMediaStreamId({ targetTabId })
+    const streamId = await browser.tabCapture.getMediaStreamId({ targetTabId })
     if (!streamId) {
         backgroundLogger.error('expected stream id, none found')
         return
@@ -77,7 +78,7 @@ export default defineBackground(() => {
     onMessage('contentReady', async () => await startRecording())
 
     // first time setup stuff
-    chrome.runtime.onInstalled.addListener(async (details) => {
+    browser.runtime.onInstalled.addListener(async (details) => {
         // random testing stuff
         installDate.watch((newInstallDate, oldInstallDate) => {
             backgroundLogger.info('New install date', newInstallDate)
@@ -92,14 +93,14 @@ export default defineBackground(() => {
         // await storage.clear('local')
 
         // real stuff
-        await chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' })
+        await browser.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' })
         if (details.reason === 'install') {
             await presets.setValue(presets.fallback)
         }
     })
 
     // stay working across page changes
-    chrome.webNavigation.onDOMContentLoaded.addListener(async (details) => {
+    browser.webNavigation.onDOMContentLoaded.addListener(async (details) => {
         const contentTab = await contentTabId.getValue()
         if (details.tabId === contentTab && details.frameType === 'outermost_frame') {
             backgroundLogger.info('New domain: ', details)
@@ -111,22 +112,22 @@ export default defineBackground(() => {
     })
 
     // SPAs (normally) update history for navigation,
-    chrome.webNavigation.onHistoryStateUpdated.addListener(async ({ tabId, url }) => {
+    browser.webNavigation.onHistoryStateUpdated.addListener(async ({ tabId, url }) => {
         const contentTab = await contentTabId.getValue()
         const oldContentTabUrl = await contentTabUrl.getValue()
         if (tabId === contentTab && url !== oldContentTabUrl) {
-            chrome.tabs.onUpdated.addListener(async function listener(tabId, changeInfo) {
+            browser.tabs.onUpdated.addListener(async function listener(tabId, changeInfo) {
                 if (tabId === contentTab && changeInfo.title) {
                     backgroundLogger.info('Same domain:', url)
                     await contentTabUrl.setValue(url)
                     await pageChange.setValue(true)
-                    chrome.tabs.onUpdated.removeListener(listener)
+                    browser.tabs.onUpdated.removeListener(listener)
                 }
             })
         }
     })
 
-    chrome.tabs.onRemoved.addListener(async (tabId) => {
+    browser.tabs.onRemoved.addListener(async (tabId) => {
         // should be same as just exit button i guess
         const contentTab = await contentTabId.getValue()
         if (tabId === contentTab) {
