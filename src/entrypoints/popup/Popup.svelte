@@ -2,7 +2,7 @@
     import { i18n } from '#i18n'
     import { popupLogger } from 'lib/logger'
     import { sendMessage } from 'lib/messaging'
-    import { playbackRate, presets } from 'lib/storage/items.svelte'
+    import { playbackRate } from 'lib/storage/items.svelte'
     import { onMount } from 'svelte'
     import Presets from './Presets.svelte'
     import PropertyControls from './PropertyControls.svelte'
