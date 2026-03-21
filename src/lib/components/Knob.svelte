@@ -44,7 +44,7 @@
         if (step) {
             v = Math.round((v - min) / step) * step + min
         }
-        return Math.min(max, Math.max(min, v))
+        return Number(Math.min(max, Math.max(min, v)).toFixed(6))
     }
 
     function notify(debounce = false) {
