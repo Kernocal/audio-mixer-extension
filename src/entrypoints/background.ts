@@ -2,8 +2,10 @@ import { browser, i18n, storage } from '#imports'
 import { backgroundLogger } from 'lib/logger'
 import { onMessage, sendMessage } from 'lib/messaging'
 import { contentExecuted, contentTabId, contentTabUrl, installDate, pageChange } from 'lib/storage/items'
+import { executeContent } from 'lib/util/handleScript'
 import { fixLegacyPresets } from 'lib/util/legacy'
-import { closeRecordDoc, executeContent, getActiveTab, isRecordOpen, openRecordDoc } from 'lib/util/tab'
+import { getActiveTab } from 'lib/util/manageTab'
+import { closeRecordDoc, isRecordOpen, openRecordDoc } from 'lib/util/offscreen'
 
 export default defineBackground(() => {
     async function exitMixer() {
@@ -19,6 +21,10 @@ export default defineBackground(() => {
         const { id, url } = await getActiveTab()
         if (!id || !url) {
             backgroundLogger.error(i18n.t('errors.content.noActiveTab'))
+            return false
+        }
+        if (url.startsWith('chrome://') || url.startsWith('about:')) {
+            backgroundLogger.error(i18n.t('errors.content.notValidTab'))
             return false
         }
         backgroundLogger.debug(`Content tab:`, { id, url })

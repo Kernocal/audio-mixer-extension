@@ -42,33 +42,32 @@ status:
   noAudioContent: |-
     No audio detected on current tab.
     You must play audio before opening the extension.
-  recordFailed: 'Error: unable to create and record from tab, check devtools.'
+  recordFailed: 'unable to create and record from tab, check devtools.'
 errors:
   content:
     executed: 'Audio Mixer CONTENT: executed.'
-    noMedia: 'Error: no media found.'
-    noMediaPlaying: 'Error: no playing media found.'
-    noActiveTab: 'Error: no active tab found.'
-    multipleMedia: 'Error: multiple media elements playing, unable to pick one.'
-    unableSetAttribute: 'Error: unable to set attribute'
+    noMedia: 'no media found.'
+    noMediaPlaying: 'no playing media found.'
+    noActiveTab: 'no active tab found.'
+    notValidTab: 'tab is not valid.'
+    multipleMedia: 'multiple media elements playing, unable to pick one.'
+    unableSetAttribute: 'unable to set attribute'
   capture:
-    error: 'Error: record tab isn''t playing audio but content tab is.'
-    tabError: 'Error: Unable to capture tab.'
+    error: 'record tab isn''t playing audio but content tab is.'
+    tabError: 'Unable to capture tab.'
   query:
-    multiple: 'Error: expected one element but got many, check query'
-    none: 'Error: expected one element but got none, check query'
+    multiple: 'expected one element but got many, check query'
+    none: 'expected one element but got none, check query'
   tabs:
-    create: 'Error: unable to create record tab.'
-    get: 'Error: tab does not exist.'
-    removeContent: 'Error: unable to remove content tab.'
-    removeRecord: 'Error: unable to remove record offscreen document.'
+    create: 'unable to create record tab.'
+    get: 'tab does not exist.'
+    removeContent: 'unable to remove content tab.'
+    removeRecord: 'unable to remove record offscreen document.'
   commands:
-    setValue: 'Error: unable to set value'
-    failed: 'Error: unable to send command'
+    setValue: 'unable to set value'
+    failed: 'unable to send command'
 messages:
   exiting: Exiting, closed tabs, cleared storage and reset playback rate.
   github:
     issue: Please open an issue on GitHub with any details you have.
-    website: >-
-      If this website is already supported please open an issue on GitHub, if it
-      isn't supported yet feel free to message me or open an issue on GitHub.
+    website: If this website is already supported please open an issue on GitHub, if it isn't supported yet feel free to message me or open an issue on GitHub.
