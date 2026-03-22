@@ -3,13 +3,13 @@ name: Build and Release on tag
 on:
     push:
         tags:
-            -   'v*'
+            - 'v*'
 
 jobs:
     build-extension:
         runs-on: ubuntu-latest
         steps:
-            -   uses: actions/checkout@v3
-            -   uses: ./.github/actions/publish-extension
+            - uses: actions/checkout@v3
+            - uses: ./.github/actions/publish-extension
         env:
             CHROME_CRX_PRIVATE_KEY: ${{ secrets.CHROME_CRX_PRIVATE_KEY }}
