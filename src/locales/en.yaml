@@ -1,6 +1,6 @@
 extension:
   name: Audio Mixer
-  description: Control volume levels for individual tabs and audio sources.
+  description: Apply audio presets such as Nightcore or (slowed + reverb) to websites playing audio.
 ui:
   labels:
     pitch: Pitch
