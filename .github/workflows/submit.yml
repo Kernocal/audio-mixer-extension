@@ -82,8 +82,9 @@ jobs:
 
       - name: Submit
         run: |
-          pnpm wxt submit \
-            --chrome-zip .output/*-chrome.zip
+          pnpm publish-extension \
+            --chrome-zip .output/*-chrome.zip \
+            --edge-zip .output/*-chrome.zip
         env:
           DRY_RUN: ${{ inputs.dryRun }}
           CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
