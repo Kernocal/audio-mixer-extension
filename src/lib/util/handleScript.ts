@@ -12,7 +12,8 @@ export async function executeContent(tabId: number) {
         return true
     }
     catch (err) {
-        backgroundLogger.error(`Failed to execute content script, contentTabId at the time: ${tabId} error: ${err}`)
+        const errMessage = err instanceof Error ? err.message : String(err)
+        backgroundLogger.error(i18n.t('errors.content.executeFailed', [tabId, errMessage]))
         return false
     }
 }

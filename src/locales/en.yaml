@@ -46,6 +46,7 @@ status:
 errors:
   content:
     executed: 'Audio Mixer CONTENT: executed.'
+    executeFailed: 'Failed to execute content script, contentTabId at the time: $1 error: $2'
     noMedia: 'no media found.'
     noMediaPlaying: 'no playing media found.'
     noActiveTab: 'no active tab found.'

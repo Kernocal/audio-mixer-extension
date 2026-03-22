@@ -1,5 +1,5 @@
 import { i18n } from '#imports'
-import { miscLogger } from '../logger'
+import { contentLogger } from '../logger'
 
 function roundNumber(number: number, amount: 0 | 1 | 2 | 3 | 4 = 0) {
     return Number.parseFloat(number.toFixed(amount))
@@ -18,14 +18,14 @@ function setElementAttributes(query: string, data: object) {
             }
         }
         catch (err) {
-            miscLogger.warn(i18n.t('errors.content.unableSetAttribute'), data, err)
+            contentLogger.warn(i18n.t('errors.content.unableSetAttribute'), data, err)
         }
     }
     else if (elements.length > 1) {
-        miscLogger.warn(i18n.t('errors.query.multiple'), query, elements)
+        contentLogger.warn(i18n.t('errors.query.multiple'), query, elements)
     }
     else {
-        miscLogger.warn(i18n.t('errors.query.none'), query)
+        contentLogger.warn(i18n.t('errors.query.none'), query)
     }
 }
 
