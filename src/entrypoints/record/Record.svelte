@@ -64,8 +64,8 @@
                 await startRecord(stream)
                 return true
             }
-            catch (error) {
-                recordLogger.error('Error getting media stream:', error)
+            catch (err) {
+                recordLogger.error('Error getting media stream:', err)
                 return false
             }
         })

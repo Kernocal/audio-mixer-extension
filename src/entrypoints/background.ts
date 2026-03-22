@@ -4,7 +4,7 @@ import { onMessage, sendMessage } from 'lib/messaging'
 import { contentExecuted, contentTabId, contentTabUrl, installDate, pageChange } from 'lib/storage/items'
 import { executeContent } from 'lib/util/handleScript'
 import { fixLegacyPresets } from 'lib/util/legacy'
-import { getActiveTab } from 'lib/util/manageTab'
+import { getActiveTab, validTab } from 'lib/util/manageTab'
 import { closeRecordDoc, isRecordOpen, openRecordDoc } from 'lib/util/offscreen'
 
 export default defineBackground(() => {
@@ -18,15 +18,11 @@ export default defineBackground(() => {
         if (await isRecordOpen()) {
             return true
         }
-        const { id, url } = await getActiveTab()
-        if (!id || !url) {
-            backgroundLogger.error(i18n.t('errors.content.noActiveTab'))
+        const activeTab = await getActiveTab()
+        if (!validTab(activeTab)) {
             return false
         }
-        if (url.startsWith('chrome://') || url.startsWith('about:')) {
-            backgroundLogger.error(i18n.t('errors.content.notValidTab'))
-            return false
-        }
+        const { id, url } = activeTab
         backgroundLogger.debug(`Content tab:`, { id, url })
 
         await contentTabId.setValue(id)
@@ -85,7 +81,7 @@ export default defineBackground(() => {
         if (tabId === contentTab && url !== oldContentTabUrl) {
             browser.tabs.onUpdated.addListener(async function listener(tabId, changeInfo) {
                 if (tabId === contentTab && changeInfo.title) {
-                    backgroundLogger.info('Same domain:', url)
+                    backgroundLogger.info('Same domain page change:', url)
                     await contentTabUrl.setValue(url)
                     await pageChange.setValue(true)
                     browser.tabs.onUpdated.removeListener(listener)
@@ -95,7 +91,6 @@ export default defineBackground(() => {
     })
 
     browser.tabs.onRemoved.addListener(async (tabId) => {
-        // should be same as just exit button i guess
         const contentTab = await contentTabId.getValue()
         if (tabId === contentTab) {
             await exitMixer()

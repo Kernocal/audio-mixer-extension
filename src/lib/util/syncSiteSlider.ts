@@ -17,8 +17,8 @@ function setElementAttributes(query: string, data: object) {
                 elements[0].setAttribute(attribute, attributeValue)
             }
         }
-        catch (e) {
-            miscLogger.warn(i18n.t('errors.content.unableSetAttribute'), data, e)
+        catch (err) {
+            miscLogger.warn(i18n.t('errors.content.unableSetAttribute'), data, err)
         }
     }
     else if (elements.length > 1) {

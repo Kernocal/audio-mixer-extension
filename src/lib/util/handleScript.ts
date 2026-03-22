@@ -11,8 +11,8 @@ export async function executeContent(tabId: number) {
         })
         return true
     }
-    catch (e) {
-        backgroundLogger.error(`Failed to execute content script, contentTabId at the time: ${tabId} error: ${e}`)
+    catch (err) {
+        backgroundLogger.error(`Failed to execute content script, contentTabId at the time: ${tabId} error: ${err}`)
         return false
     }
 }
