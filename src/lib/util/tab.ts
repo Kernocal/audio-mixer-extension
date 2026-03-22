@@ -1,5 +1,5 @@
 import { browser, i18n } from '#imports'
-import { onMessage, sendMessage } from 'lib/messaging'
+import { onMessage } from 'lib/messaging'
 import { backgroundLogger } from '../logger'
 
 // unused for now

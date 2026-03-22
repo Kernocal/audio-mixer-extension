@@ -1,7 +1,8 @@
 import { browser, i18n, storage } from '#imports'
 import { backgroundLogger } from 'lib/logger'
 import { onMessage, sendMessage } from 'lib/messaging'
-import { contentExecuted, contentTabId, contentTabUrl, installDate, pageChange, presets } from 'lib/storage/items'
+import { contentExecuted, contentTabId, contentTabUrl, installDate, pageChange } from 'lib/storage/items'
+import { fixLegacyPresets } from 'lib/util/legacy'
 import { closeRecordDoc, executeContent, getActiveTab, isRecordOpen, openRecordDoc } from 'lib/util/tab'
 
 export default defineBackground(() => {
@@ -33,6 +34,7 @@ export default defineBackground(() => {
         }
         await openRecordDoc(streamId)
         if (!await sendMessage('record')) {
+            backgroundLogger.error('failed to start recording')
             return false
         }
         browser.action.setBadgeText({ text: '+' })
@@ -56,9 +58,7 @@ export default defineBackground(() => {
 
         // real stuff
         await browser.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' })
-        if (details.reason === 'install') {
-            await presets.setValue(presets.fallback)
-        }
+        await fixLegacyPresets(details)
     })
 
     // stay working across page changes
