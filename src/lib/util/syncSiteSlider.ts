@@ -1,12 +1,9 @@
 import { i18n } from '#imports'
+import { MatchPattern } from '@webext-core/match-patterns'
 import { contentLogger } from '../logger'
 
 function roundNumber(number: number, amount: 0 | 1 | 2 | 3 | 4 = 0) {
     return Number.parseFloat(number.toFixed(amount))
-}
-
-function URLIncludes(name: string) {
-    return window.location.host.includes(name)
 }
 
 function setElementAttributes(query: string, data: object) {
@@ -28,22 +25,6 @@ function setElementAttributes(query: string, data: object) {
         contentLogger.warn(i18n.t('errors.query.none'), query)
     }
 }
-
-// const SOUNDCLOUD = URLIncludes('soundcloud.com')
-// const SPOTIFY = URLIncludes('open.spotify.com')
-// const YOUTUBE = URLIncludes('youtube.com')
-
-// export function updateSlider(volume: number) {
-//     if (SOUNDCLOUD) {
-//         updateSoundcloudSlider(volume)
-//     }
-//     else if (SPOTIFY) {
-//         updateSpotifySlider(volume)
-//     }
-//     else if (YOUTUBE) {
-//         updateYoutubeSlider(volume)
-//     }
-// }
 
 function updateSoundcloudSlider(volume: number) {
     // Any volume above 0 but below 0.05 sc considers muted.
@@ -122,4 +103,20 @@ function updateYoutubeSlider(volume: number) {
         'aria-valuenow': wholeVolume,
         'aria-valuetext': `${wholeVolume}% volume`,
     })
+}
+
+const SITE_UPDATER_MAP = [
+    { pattern: '*://soundcloud.com/*', updater: updateSoundcloudSlider },
+    { pattern: '*://open.spotify.com/*', updater: updateSpotifySlider },
+    { pattern: '*://www.youtube.com/*', updater: updateYoutubeSlider },
+]
+
+let cachedUpdater: ((volume: number) => void) | null = null
+
+export function updateSlider(volume: number) {
+    if (cachedUpdater === null) {
+        const match = SITE_UPDATER_MAP.find(({ pattern }) => new MatchPattern(pattern).includes(window.location))
+        cachedUpdater = match?.updater ?? (() => {})
+    }
+    cachedUpdater(volume)
 }

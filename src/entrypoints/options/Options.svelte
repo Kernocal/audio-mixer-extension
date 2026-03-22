@@ -45,7 +45,7 @@
 </script>
 
 <input bind:this={fileInput} type='file' accept='.json' onchange={onFileSelected} hidden />
-<a bind:this={downloadLink} hidden></a>
+<a bind:this={downloadLink} href='google.com' aria-hidden='true' hidden>export</a>
 
 <div class='container'>
     <h3>Custom Presets</h3>

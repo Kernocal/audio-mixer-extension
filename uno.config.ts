@@ -2,7 +2,7 @@ import { defineConfig, presetWind4, transformerDirectives, transformerVariantGro
 import { presetScrollbar } from 'unocss-preset-scrollbar'
 
 export default defineConfig({
-    presets: [presetWind4(), presetScrollbar({ compatible: true })],
+    presets: [presetWind4(), presetScrollbar({ compatible: true }) as any],
     theme: {
         colors: {
             mixer: {
