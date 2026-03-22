@@ -10,6 +10,7 @@ import { closeRecordDoc, isRecordOpen, openRecordDoc } from 'lib/util/offscreen'
 export default defineBackground(() => {
     async function exitMixer() {
         await closeRecordDoc()
+        browser.action.setBadgeText({ text: '' })
         await storage.clear('session')
         backgroundLogger.info(i18n.t('messages.exiting'))
     }
