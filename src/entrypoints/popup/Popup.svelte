@@ -1,11 +1,11 @@
 <script lang='ts'>
     import { i18n } from '#imports'
+    import Presets from 'lib/components/Presets.svelte'
+    import PropertyControls from 'lib/components/PropertyControls.svelte'
     import { popupLogger } from 'lib/logger'
     import { sendMessage } from 'lib/messaging'
     import { playbackRate } from 'lib/storage/items.svelte'
     import { onMount } from 'svelte'
-    import Presets from './Presets.svelte'
-    import PropertyControls from './PropertyControls.svelte'
     import 'virtual:uno.css'
 
     let status = $state<string>(i18n.t('status.waiting'))

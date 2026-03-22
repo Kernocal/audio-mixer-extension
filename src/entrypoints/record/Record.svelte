@@ -11,7 +11,7 @@
     let reverb: ReverbType | null = null
 
     async function startRecord(stream: MediaStream) {
-        recordLogger.debug(`2nd stream: ${stream}`)
+        recordLogger.debug(`1st stream: ${stream}`)
         if (!stream) {
             recordLogger.warn(i18n.t('errors.capture.tabError'), stream)
             window.close()
@@ -93,7 +93,6 @@
         sendMessage('offscreenReady')
 
         return () => {
-            // i forgot background dies and re dies
             removeRecord()
             removeSetValue()
             audioContext?.close()
