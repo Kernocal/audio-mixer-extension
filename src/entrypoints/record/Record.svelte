@@ -2,7 +2,7 @@
     import type { PitchShift as PitchType, Reverb as ReverbType } from 'tone'
     import { i18n } from '#imports'
     import { recordLogger } from 'lib/logger'
-    import { onMessage } from 'lib/messaging'
+    import { onMessage, sendMessage } from 'lib/messaging'
     import { onMount } from 'svelte'
     import { connect, PitchShift, Reverb, setContext } from 'tone'
 
@@ -62,9 +62,11 @@
                     },
                 } as MediaStreamConstraints)
                 await startRecord(stream)
+                return true
             }
             catch (error) {
                 recordLogger.error('Error getting media stream:', error)
+                return false
             }
         })
 
@@ -88,6 +90,7 @@
                     break
             }
         })
+        sendMessage('offscreenReady')
 
         return () => {
             // i forgot background dies and re dies

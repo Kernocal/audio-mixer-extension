@@ -2,78 +2,47 @@ import { browser, i18n, storage } from '#imports'
 import { backgroundLogger } from 'lib/logger'
 import { onMessage, sendMessage } from 'lib/messaging'
 import { contentExecuted, contentTabId, contentTabUrl, installDate, pageChange, presets } from 'lib/storage/items'
-import { closeRecordDoc, getActiveTab, isRecordOpen, openRecordDoc } from 'lib/util/handleTab'
-
-async function executeContent(tabId: number) {
-    try {
-        await browser.scripting.executeScript({
-            target: {
-                tabId,
-            },
-            files: ['/content-scripts/content.js'],
-        })
-    }
-    catch (e) {
-        backgroundLogger.error(`Failed to execute content script, contentTabId at the time: ${tabId} error: ${e}`)
-    }
-}
-
-async function runMixer() {
-    const { id, url, audible } = await getActiveTab() ?? {}
-    backgroundLogger.debug(`Content tab:`, { id, url, audible })
-    if (!id || !url) {
-        backgroundLogger.warn(i18n.t('errors.content.noActiveTab'))
-        return false
-    }
-    if (!audible) {
-        backgroundLogger.warn(i18n.t('status.noAudioContent'))
-        return false
-    }
-    const isOpen = await isRecordOpen()
-    if (isOpen) {
-        return true
-    }
-    await contentTabId.setValue(id)
-    await contentTabUrl.setValue(url)
-    await executeContent(id)
-    backgroundLogger.debug(`final stores:`, { contentTabId: await contentTabId.getValue(), contentTabUrl: await contentTabUrl.getValue() })
-    return true
-}
-
-async function exitMixer() {
-    await closeRecordDoc()
-    await storage.clear('session')
-    backgroundLogger.info(i18n.t('messages.exiting'))
-}
-
-async function startRecording() {
-    const isOpen = await isRecordOpen()
-    if (isOpen) {
-        backgroundLogger.debug('Record doc already open, skipping capture')
-        return
-    }
-    const targetTabId = await contentTabId.getValue()
-    if (!targetTabId) {
-        backgroundLogger.error('expected content tab id, none found')
-        return
-    }
-    const streamId = await browser.tabCapture.getMediaStreamId({ targetTabId })
-    if (!streamId) {
-        backgroundLogger.error('expected stream id, none found')
-        return
-    }
-    const recordTabOpened = await openRecordDoc(streamId)
-    if (!recordTabOpened) {
-        return
-    }
-    await sendMessage('record')
-}
+import { closeRecordDoc, executeContent, getActiveTab, isRecordOpen, openRecordDoc } from 'lib/util/tab'
+import asd from '~/entrypoints/inject.content'
 
 export default defineBackground(() => {
+    const injects = Array.isArray(asd.matches) ? asd.matches : []
+    backgroundLogger.debug('matches', injects)
+    async function exitMixer() {
+        await closeRecordDoc()
+        await storage.clear('session')
+        backgroundLogger.info(i18n.t('messages.exiting'))
+    }
+
+    async function runMixer() {
+        if (await isRecordOpen()) {
+            return true
+        }
+        const { id, url } = await getActiveTab()
+        if (!id || !url) {
+            backgroundLogger.error(i18n.t('errors.content.noActiveTab'))
+            return false
+        }
+        backgroundLogger.debug(`Content tab:`, { id, url })
+
+        await contentTabId.setValue(id)
+        await contentTabUrl.setValue(url)
+        backgroundLogger.debug(`final stores:`, { contentTabId: await contentTabId.getValue(), contentTabUrl: await contentTabUrl.getValue() })
+        await executeContent(id)
+        const streamId = await browser.tabCapture.getMediaStreamId({ targetTabId: id })
+        if (!streamId) {
+            backgroundLogger.error('expected stream id, none found')
+            return false
+        }
+        await openRecordDoc(streamId)
+        if (!await sendMessage('record')) {
+            return false
+        }
+        browser.action.setBadgeText({ text: '+' })
+        return true
+    }
     onMessage('startMixer', async () => await runMixer())
     onMessage('exitMixer', async () => await exitMixer())
-    // content needs to send
-    onMessage('contentReady', async () => await startRecording())
 
     // first time setup stuff
     browser.runtime.onInstalled.addListener(async (details) => {
@@ -87,8 +56,6 @@ export default defineBackground(() => {
         // debug stuff
         backgroundLogger.debug(`session storage`, await storage.snapshot('session'))
         backgroundLogger.debug(`local storage`, await storage.snapshot('local'))
-        backgroundLogger.debug(`test`, i18n.t('extension.name'))
-        // await storage.clear('local')
 
         // real stuff
         await browser.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' })
@@ -104,7 +71,6 @@ export default defineBackground(() => {
             backgroundLogger.info('New domain: ', details)
             await contentTabUrl.setValue(details.url)
             await contentExecuted.setValue(false)
-            await pageChange.setValue(true)
             await executeContent(contentTab)
         }
     })

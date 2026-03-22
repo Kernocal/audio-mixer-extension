@@ -1,119 +1,117 @@
 import type { MediaProperty } from 'lib/types'
 import { i18n } from '#imports'
+import { MatchPattern } from '@webext-core/match-patterns'
 import { contentLogger, injectLogger } from 'lib/logger'
-import { sendMessage } from 'lib/messaging'
 import { websiteMessenger } from 'lib/messaging/customEvent'
 import { contentExecuted, pageChange, playbackRate, togglePlayback, volume } from 'lib/storage/items'
+import script from '~/entrypoints/inject.content'
 
-let myMedia: HTMLMediaElement | null = null
-let INJECT_WEBSITE = false
+type MediaAdapter = {
+    apply: (property: MediaProperty, value: number) => void
+    bind: (reason: 'initial' | 'pageChange') => Promise<void>
+    toggle: () => void
+}
 
 function isPlaying(element: HTMLMediaElement): boolean {
     return !!(element.currentTime > 0 && !element.paused && !element.ended && element.readyState > 2)
 }
 
-function applyToMedia(property: MediaProperty, value: number) {
-    if (!INJECT_WEBSITE && myMedia) {
-        myMedia[property] = value
+async function waitForMedia(signal: AbortSignal): Promise<HTMLMediaElement> {
+    for (let i = 0; i < 20 && !signal.aborted; i++) {
+        const mediaElements = [...document.querySelectorAll<HTMLMediaElement>('audio, video')]
+        const aliveMedia = mediaElements.find(el => isPlaying(el)) ?? mediaElements.find(el => el.isConnected && (el.currentSrc || el.src)) ?? null
+        if (aliveMedia) {
+            return aliveMedia
+        }
+        await new Promise(resolve => setTimeout(resolve, 500))
     }
-    else {
-        websiteMessenger.sendMessage('setValue', { property, value })
+    throw new Error('No media found')
+}
+
+function directAdapter(): MediaAdapter {
+    let myMedia: HTMLMediaElement | null = null
+    let controller: AbortController | null = null
+
+    return {
+        apply(property, value) {
+            if (myMedia) {
+                myMedia[property] = value
+            }
+        },
+
+        async bind(reason) {
+            controller?.abort()
+            controller = new AbortController()
+
+            try {
+                myMedia = await waitForMedia(controller.signal)
+                contentLogger.debug(`Media bound (${reason})`)
+                if (reason === 'pageChange') {
+                    myMedia.volume = await volume.getValue()
+                    myMedia.playbackRate = await playbackRate.getValue()
+                }
+                else {
+                    await volume.setValue(myMedia.volume)
+                    await playbackRate.setValue(myMedia.playbackRate)
+                }
+            }
+            catch {
+                contentLogger.error(i18n.t('errors.content.noMedia'))
+            }
+        },
+
+        toggle() {
+            if (myMedia) {
+                myMedia.paused ? myMedia.play() : myMedia.pause()
+            }
+        },
     }
 }
 
-function getMedia(): HTMLMediaElement {
-    const mediaElements: HTMLMediaElement[] = [...document.querySelectorAll<HTMLAudioElement | HTMLVideoElement>('audio, video')]
-    const mediaPlaying = mediaElements.filter(isPlaying)
-    if (mediaPlaying.length === 0) {
-        contentLogger.error(i18n.t('errors.content.noMedia'), i18n.t('messages.github.website'))
-        throw new Error(`${i18n.t('errors.content.noMedia')} ${i18n.t('messages.github.website')}`)
+function injectedAdapter(): MediaAdapter {
+    return {
+        apply(property, value) {
+            websiteMessenger.sendMessage('setValue', { property, value })
+        },
+
+        async bind(reason) {
+            if (reason === 'pageChange') {
+                this.apply('volume', await volume.getValue())
+                this.apply('playbackRate', await playbackRate.getValue())
+                websiteMessenger.sendMessage('pageChange')
+            }
+        },
+
+        toggle() {
+            websiteMessenger.sendMessage('togglePlayback')
+        },
     }
-    return mediaPlaying[0]
 }
 
-async function setupContent() {
-    myMedia = getMedia()
-    contentLogger.debug(`Current playbackRate ${myMedia.playbackRate} current volume ${myMedia.volume} current media ${myMedia}`)
-
-    const isPageChange = await pageChange.getValue()
-    if (isPageChange) {
-        myMedia.volume = await volume.getValue()
-        myMedia.playbackRate = await playbackRate.getValue()
-        await pageChange.setValue(false)
-    }
-    else {
-        await volume.setValue(myMedia.volume)
-        await playbackRate.setValue(myMedia.playbackRate)
-    }
-    // debug
-    contentLogger.debug('volume in storage', await volume.getValue())
-    contentLogger.debug('playbackRate in storage', await playbackRate.getValue())
-}
-
-async function setupInjected() {
-    const isPageChange = await pageChange.getValue()
-    if (!isPageChange) {
-        applyToMedia('volume', await volume.getValue())
-        applyToMedia('playbackRate', await playbackRate.getValue())
-    }
-    await pageChange.setValue(false)
-}
-
-function init() {
+async function init() {
     contentLogger.info(i18n.t('errors.content.executed'))
     websiteMessenger.onMessage('log', ({ data }) => {
         injectLogger.debug(data)
     })
 
-    // should probably move/infer from manifest
-    INJECT_WEBSITE = ['soundcloud.com', 'open.spotify.com'].some((url) => {
-        return window.location.host.includes(url)
-    })
-    if (INJECT_WEBSITE) {
-        setupInjected()
-    }
-    else {
-        setupContent()
-    }
+    const injects = Array.isArray(script.matches) ? script.matches : []
+    const isInjected = injects.some(url => new MatchPattern(url).includes(window.location))
+    const adapter = isInjected ? injectedAdapter() : directAdapter()
+    await adapter.bind('initial')
+    volume.watch(value => adapter.apply('volume', value))
+    playbackRate.watch(value => adapter.apply('playbackRate', value))
 
-    volume.watch(value => applyToMedia('volume', value))
-    playbackRate.watch(value => applyToMedia('playbackRate', value))
-
-    pageChange.watch(async (isChanging) => {
-        contentLogger.debug('new pageChange in storage', isChanging)
+    pageChange.watch((isChanging) => {
         if (isChanging) {
-            const volumeValue = await volume.getValue()
-            const playbackRateValue = await playbackRate.getValue()
-
-            if (!INJECT_WEBSITE) {
-                try {
-                    myMedia = getMedia()
-                }
-                catch {
-                    contentLogger.warn('No media found after page change')
-                }
-                if (myMedia) {
-                    myMedia.volume = volumeValue
-                    myMedia.playbackRate = playbackRateValue
-                }
-            }
-            else {
-                websiteMessenger.sendMessage('setValue', { property: 'volume', value: volumeValue })
-                websiteMessenger.sendMessage('setValue', { property: 'playbackRate', value: playbackRateValue })
-                websiteMessenger.sendMessage('pageChange')
-            }
-            await pageChange.setValue(false)
+            contentLogger.debug('pageChange detected')
+            adapter.bind('pageChange')
+            pageChange.setValue(false)
         }
     })
 
-    togglePlayback.watch((value) => {
-        if (value) {
-            if (!INJECT_WEBSITE && myMedia) {
-                myMedia.paused ? myMedia.play() : myMedia.pause()
-            }
-            else {
-                websiteMessenger.sendMessage('togglePlayback')
-            }
+    togglePlayback.watch((toggle) => {
+        if (toggle) {
+            adapter.toggle()
             togglePlayback.setValue(false)
         }
     })
@@ -123,11 +121,9 @@ export default defineContentScript({
     registration: 'runtime',
     // matches: ['<all_urls>'],
     async main() {
-        const executed = await contentExecuted.getValue()
-        if (!executed) {
-            init()
-            sendMessage('contentReady')
-            contentExecuted.setValue(true)
+        if (!await contentExecuted.getValue()) {
+            await init()
+            await contentExecuted.setValue(true)
         }
     },
 })

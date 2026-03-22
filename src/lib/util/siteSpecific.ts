@@ -29,21 +29,21 @@ function setElementAttributes(query: string, data: object) {
     }
 }
 
-const SOUNDCLOUD = URLIncludes('soundcloud.com')
-const SPOTIFY = URLIncludes('open.spotify.com')
-const YOUTUBE = URLIncludes('youtube.com')
+// const SOUNDCLOUD = URLIncludes('soundcloud.com')
+// const SPOTIFY = URLIncludes('open.spotify.com')
+// const YOUTUBE = URLIncludes('youtube.com')
 
-export function updateSlider(volume: number) {
-    if (SOUNDCLOUD) {
-        updateSoundcloudSlider(volume)
-    }
-    else if (SPOTIFY) {
-        updateSpotifySlider(volume)
-    }
-    else if (YOUTUBE) {
-        updateYoutubeSlider(volume)
-    }
-}
+// export function updateSlider(volume: number) {
+//     if (SOUNDCLOUD) {
+//         updateSoundcloudSlider(volume)
+//     }
+//     else if (SPOTIFY) {
+//         updateSpotifySlider(volume)
+//     }
+//     else if (YOUTUBE) {
+//         updateYoutubeSlider(volume)
+//     }
+// }
 
 function updateSoundcloudSlider(volume: number) {
     // Any volume above 0 but below 0.05 sc considers muted.

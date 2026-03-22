@@ -4,8 +4,8 @@ import { defineExtensionMessaging } from '@webext-core/messaging'
 interface ProtocolMap {
     startMixer: () => boolean
     exitMixer: () => void
-    record: () => void
-    contentReady: () => void
+    record: () => boolean
+    offscreenReady: () => void
     setOffscreenValue: (data: PropertyPayload<ToneProperty>) => void
 }
 
