@@ -15,11 +15,6 @@ export default defineConfig({
             'webNavigation',
             'offscreen',
         ],
-        host_permissions: [
-            '*://soundcloud.com/*',
-            '*://open.spotify.com/*',
-            '*://*.youtube.com/*',
-        ],
         action: {},
     },
     srcDir: 'src',

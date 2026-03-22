@@ -3,11 +3,8 @@ import { backgroundLogger } from 'lib/logger'
 import { onMessage, sendMessage } from 'lib/messaging'
 import { contentExecuted, contentTabId, contentTabUrl, installDate, pageChange, presets } from 'lib/storage/items'
 import { closeRecordDoc, executeContent, getActiveTab, isRecordOpen, openRecordDoc } from 'lib/util/tab'
-import asd from '~/entrypoints/inject.content'
 
 export default defineBackground(() => {
-    const injects = Array.isArray(asd.matches) ? asd.matches : []
-    backgroundLogger.debug('matches', injects)
     async function exitMixer() {
         await closeRecordDoc()
         await storage.clear('session')
