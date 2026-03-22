@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@webext-core/match-patterns':
+        specifier: ^1.0.3
+        version: 1.0.3
       tslog:
         specifier: ^4.10.2
         version: 4.10.2

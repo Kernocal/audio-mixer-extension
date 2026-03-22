@@ -16,6 +16,7 @@
         "lint:fix": "eslint --fix ."
     },
     "dependencies": {
+        "@webext-core/match-patterns": "^1.0.3",
         "tslog": "^4.10.2"
     },
     "devDependencies": {
