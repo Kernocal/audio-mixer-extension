@@ -44,7 +44,7 @@ export const details = {
         category: 'Entertainment',
         icon: { path: 'publish/assets/chrome-128.png', width: 128, height: 128 },
         officialUrl: null,
-        supportUrl: 'https://github.com/kernocal/audio-mixer-extension/issues',
+        supportUrl: 'https://github.com/Kernocal/audio-mixer-extension/issues/new?template=bug-report.md',
         singlePurpose: 'Modifies audio output locally.',
         permissionJustifications: {
             activeTab: 'apply audio effects to media on the active page.',
@@ -62,7 +62,7 @@ export const details = {
         category: 'Entertainment',
         icon: { path: 'publish/assets/edge-300.png', width: 300, height: 300 },
         searchTerms: ['music mixer', 'music', 'mixer', 'audio', 'audio mixer', 'nightcore', 'reverb'],
-        supportContact: 'https://github.com/kernocal/audio-mixer-extension/issues',
+        supportContact: 'https://github.com/Kernocal/audio-mixer-extension/issues/new?template=bug-report.md',
         collectsPersonalData: false,
     },
 } satisfies PublishDetails

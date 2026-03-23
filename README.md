@@ -1,9 +1,18 @@
-## Music Mixer
 ![extension soundcloud image](publish/assets/1g1280x800.png "Music Mixer Extension on Soundcloud")
-![extension image](publish/assets/github.png "Music Mixer Extension")
+![extension image](publish/assets/github/full.png "Music Mixer Extension")
 
-Music Mixer applies presets to audio on most websites such as Spotify, SoundCloud, and YouTube.
-The presets were built around Nightcore but have expanded to include reverb. 
+## Music Mixer
+<p float="left">
+<a target="_blank" href="https://chrome.google.com/webstore/detail/ilfcefenjflalkfibcfjjjhpbjmkiang">
+<img src="publish/assets/github/chrome.png" height="56" title="install from the Chrome Web Store">
+</a>
+<a target="_blank" href="https://microsoftedge.microsoft.com/addons/detail/eeimcbbmlncdkekcgoodnafbgeopllle">
+<img src="publish/assets/github/edge.png" height="56" title="install from the Edge Store">
+</a>
+</p>
+
+Applies presets to audio on most websites such as Spotify, SoundCloud, and YouTube.
+The presets were built around Nightcore but have expanded to include reverb.
 You can also create custom presets with whatever values you want.
 
 Features:

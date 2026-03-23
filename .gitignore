@@ -1,9 +1,5 @@
-!.env.example
-.DS_Store
 .env
 .env.*
-.npmrc
-.svelte-kit
 .thoughts
 .output
 .wxt
