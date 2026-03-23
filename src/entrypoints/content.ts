@@ -12,6 +12,8 @@ type MediaAdapter = {
     toggle: () => void
 }
 
+const INJECTS = Array.isArray(script.matches) ? script.matches : []
+
 function scoreMediaElement(el: HTMLMediaElement): number {
     return [
         el.currentTime > 0,
@@ -104,8 +106,7 @@ async function init() {
         injectLogger.debug(data)
     })
 
-    const injects = Array.isArray(script.matches) ? script.matches : []
-    const isInjected = injects.some(url => new MatchPattern(url).includes(window.location))
+    const isInjected = INJECTS.some(url => new MatchPattern(url).includes(window.location))
     const adapter = isInjected ? injectedAdapter() : directAdapter()
     await adapter.bind('initial')
     volume.watch(value => adapter.apply('volume', value))
@@ -129,7 +130,7 @@ async function init() {
 
 export default defineContentScript({
     registration: 'runtime',
-    // matches: ['<all_urls>'],
+    matches: [...INJECTS, '*://*.youtube.com/*'],
     async main() {
         if (!await contentExecuted.getValue()) {
             await init()
