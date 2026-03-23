@@ -18,7 +18,7 @@ export async function openRecordDoc(streamId: string) {
     })
     await browser.offscreen.createDocument({
         url: `chrome-extension://${browser.runtime.id}/record.html?streamId=${encodeURIComponent(streamId)}`,
-        reasons: [browser.offscreen.Reason.CLIPBOARD],
+        reasons: [browser.offscreen.Reason.USER_MEDIA],
         justification: 'Mixing audio from user media',
     })
     await ready

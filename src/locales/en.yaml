@@ -1,6 +1,6 @@
 extension:
   name: Audio Mixer
-  description: Apply audio presets such as Nightcore or (slowed + reverb) to websites playing audio.
+  description: Applies presets like Nightcore or (slowed + reverb)to music on most websites such as Spotify, SoundCloud, YouTube.
 ui:
   labels:
     pitch: Pitch
