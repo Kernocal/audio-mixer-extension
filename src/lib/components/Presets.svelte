@@ -81,9 +81,9 @@
     </div>
 </dialog>
 
-<div class='grid-child2 flex flex-col items-center self-start'>
+<div class='grid-child2 flex flex-col gap-2 items-center min-h-0 w-full h-full overflow-hidden'>
     <h1 class='propertyText'>{i18n.t('ui.labels.presets')}</h1>
-    <div class='scrollaa pb-2 pl-2 pt-1 flex flex-col h-[390px] w-100% overflow-y-scroll children:(rounded-md)'>
+    <div class='custom-scrollbar pb-2 pl-2 pt-1 flex flex-1 flex-col w-full overflow-y-scroll children:(rounded-md)'>
         {#each presets.value as preset, i}
             <label
                 class={['font-medium cursor-pointer mb-1 p-2 pr-4 hover:(bg-mixer-secondary/30)', activePresetIndex === i && !disabled ? 'bg-mixer-secondary/30' : 'bg-mixer-secondary/10']}>
@@ -111,26 +111,45 @@
             <span class='text-sm text-light-600 m-auto'>{i18n.t('ui.labels.custom')}</span>
         </label>
     </div>
-    {#if activePresetIndex !== null}
-        <button
-            class='button pt-1'
-            disabled={disabled || !activePreset?.user}
-            onclick={() => deletePreset(activePresetIndex!)}>
-            {i18n.t('ui.buttons.deletePreset')}
-        </button>
-    {:else}
-        <button class='button pt-1' disabled={disabled} onclick={() => dialog.showModal()}>{i18n.t('ui.buttons.savePreset')}</button>
-    {/if}
-    <p class={['text-light-600 p-1 w-fit whitespace-pre-line', status.length > 80 ? 'text-xs' : 'text-sm']}>{status}</p>
-    <a title='Get help on GitHub!' class='mb-4 mr-2 mt-auto self-end hover:opacity-75' href='https://github.com/Kernocal/audio-mixer-extension' target='_blank'>
-        <img src={GitHub} alt="" class='filter-svg max-h-6 max-w-6 min-h-6 min-w-6' />
-    </a>
+    <div class='flex items-center justify-center shrink-0 w-full px-1 pb-1'>
+        {#if activePresetIndex !== null}
+            <button
+                class='button w-[calc(50%-1rem)]'
+                disabled={disabled || !activePreset?.user}
+                onclick={() => deletePreset(activePresetIndex!)}>
+                {i18n.t('ui.buttons.deletePreset')}
+            </button>
+        {:else}
+            <button class='button w-[calc(50%-1rem)]' disabled={disabled} onclick={() => dialog.showModal()}>{i18n.t('ui.buttons.savePreset')}</button>
+        {/if}
+    </div>
+    <div class="relative w-full flex items-center justify-center mt-auto mb-2 px-1 text-center min-h-6">
+        <p class={['text-light-600 p-1 w-fit whitespace-pre-line', status.length > 80 ? 'text-xs' : 'text-sm']}>{status}</p>
+        <a title='Get help on GitHub!' class='absolute right-1 hover:opacity-75' href='https://github.com/Kernocal/audio-mixer-extension' target='_blank'>
+            <img src={GitHub} alt="" class='filter-svg max-h-6 max-w-6 min-h-6 min-w-6' />
+        </a>
+    </div>
 </div>
 
 <style lang='postcss'>
 
-.scrollaa {
-    @apply scrollbar scrollbar-rounded scrollbar-w-8px scrollbar-radius-8 scrollbar-thumb-color-mixer-primary scrollbar-track-color-mixer-secondary;
+.custom-scrollbar::-webkit-scrollbar {
+    width: 0.5rem;
+    border-radius: 0.5rem;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 0.5rem;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(168, 85, 247, 0.5);
+    border-radius: 0.5rem;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(168, 85, 247, 0.8);
 }
 
 dialog::backdrop {
@@ -156,7 +175,7 @@ dialog {
     height: 1rem;
     width: 1rem;
     border-radius: 9999px;
-    border-width: 1px;
+    border-width: 0.0625rem;
 }
 .radio:checked {
     @apply bg-purple-600 shadow-purple;
@@ -171,11 +190,11 @@ dialog {
 }
 
 .propertyText {
-    @apply text-light-600 text-lg p-1 pl-2 font-medium;
+    @apply text-light-600 text-lg p-1 font-medium text-center;
 }
 
 .button {
-    @apply w-fit h-fit p-2 m-2 bg-purple-700 rounded-md text-white;
+    @apply p-2 m-2 bg-purple-700 rounded-md text-white;
 }
 .button:active:enabled {
     @apply ring-4 ring-light-200/25;
@@ -184,7 +203,7 @@ dialog {
     @apply opacity-80;
 }
 .button:disabled {
-    @apply bg-purple-950/20 cursor-not-allowed;
+    @apply opacity-50 cursor-not-allowed;
 }
 
 .grid-child2 {

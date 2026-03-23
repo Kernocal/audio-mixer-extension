@@ -17,6 +17,12 @@
         status = i18n.t('status.exit')
         window.close()
     }
+    function preventOuterScroll(e: Event) {
+        const target = e.target as HTMLElement | null
+        if (target && !target.closest('.custom-scrollbar')) {
+            e.preventDefault()
+        }
+    }
 
     onMount(async () => {
         const response = await sendMessage('startMixer')
@@ -29,10 +35,10 @@
 
 </script>
 
-<div class='bg animate flex flex-col h-fit min-h-[550px] min-w-[500px] w-fit whitespace-nowrap'>
-    <!-- <p class='text-white max-w-[300px]'>{JSON.stringify(presets.value)} </p>
-    <p class='asd text-white max-w-[300px]'>{disabled}</p> -->
-    <div class='grid-parent items-start justify-evenly children:m-2'>
+<svelte:window onwheel={preventOuterScroll} ontouchmove={preventOuterScroll} />
+
+<div class='bg animate flex flex-col h-[34.375rem] min-w-[31.25rem] w-fit whitespace-nowrap overflow-hidden'>
+    <div class='grid-parent p-3 flex-1 gap-3 min-h-0 items-stretch'>
         <PropertyControls
             {disabled}
             onExit={exitMixer}
@@ -46,16 +52,23 @@
 
 <style lang='postcss'>
 
-:global(body) {
-    @apply scrollbar scrollbar-rounded scrollbar-w-8px scrollbar-radius-8 scrollbar-thumb-color-mixer-primary scrollbar-track-color-mixer-secondary;
+:global(html), :global(body) {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    overscroll-behavior: none;
+}
+
+:global(html)::-webkit-scrollbar, :global(body)::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
 }
 
 .grid-parent {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr;
-    grid-column-gap: 0px;
-    grid-row-gap: 0px;
+    grid-template-rows: minmax(0, 1fr);
 }
 
 .bg, .animate {
