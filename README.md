@@ -3,10 +3,10 @@
 
 ## Music Mixer
 <p float="left">
-<a target="_blank" href="https://chrome.google.com/webstore/detail/ilfcefenjflalkfibcfjjjhpbjmkiang">
+<a href="https://chrome.google.com/webstore/detail/ilfcefenjflalkfibcfjjjhpbjmkiang" style="text-decoration: none;">
 <img src="publish/assets/github/chrome.png" height="56" title="install from the Chrome Web Store">
 </a>
-<a target="_blank" href="https://microsoftedge.microsoft.com/addons/detail/eeimcbbmlncdkekcgoodnafbgeopllle">
+<a href="https://microsoftedge.microsoft.com/addons/detail/eeimcbbmlncdkekcgoodnafbgeopllle" style="text-decoration: none;">
 <img src="publish/assets/github/edge.png" height="56" title="install from the Edge Store">
 </a>
 </p>
