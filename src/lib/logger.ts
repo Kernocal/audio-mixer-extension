@@ -5,7 +5,7 @@ import { Logger } from 'tslog'
 
 export const extensionLogger: Logger<ILogObj> = new Logger({
     name: 'Music Mixer',
-    minLevel: import.meta.env.PROD ? 4 : 2,
+    minLevel: import.meta.env.PROD && import.meta.env.MODE !== 'testing' ? 4 : 2,
     type: 'pretty',
 })
 
