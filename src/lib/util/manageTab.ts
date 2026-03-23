@@ -8,7 +8,7 @@ export function validTab(tab: Browser.tabs.Tab): tab is ValidatedTab {
         backgroundLogger.error(i18n.t('errors.content.noActiveTab'))
         return false
     }
-    if (tab.url.startsWith('chrome://') || tab.url.startsWith('about:')) {
+    if (tab.url.startsWith('chrome://') || tab.url.startsWith('about:') || tab.url.startsWith('chrome-extension://')) {
         backgroundLogger.error(i18n.t('errors.content.notValidTab'))
         return false
     }
