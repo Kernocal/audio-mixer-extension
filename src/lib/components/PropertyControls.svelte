@@ -30,8 +30,8 @@
 
 </script>
 
-<div class='grid-child1 flex flex-col gap-1 min-h-0 h-full w-full overflow-hidden'>
-    <div class='flex-1 min-h-0 flex flex-col gap-3'>
+<div class='grid-child1 flex flex-col gap-1 h-full min-h-0 w-full overflow-hidden'>
+    <div class='flex flex-1 flex-col gap-3 min-h-0'>
         <div class={`rounded-md shrink-0 ${pitch.value > 0 ? 'bg-mixer-secondary/30' : 'bg-mixer-secondary/10'}`}>
             <h1 class='propertyText'>{i18n.t('ui.labels.pitch')}</h1>
             <div class='flex justify-around'>
@@ -46,7 +46,7 @@
                 <Knob id='reverbWet' label={i18n.t('ui.labels.activeAmount')} bind:value={reverbWet.value} min={0} max={1} step={0.01} src={knobSprite} {frameCount} disabled={disabled} onvaluechange={() => { onToneChange('reverbWet', reverbWet.value) }} />
             </div>
         </div>
-        <div class='rounded-md shrink-0 bg-mixer-secondary/30 whitespace-nowrap mb-1'>
+        <div class='mb-1 rounded-md bg-mixer-secondary/30 shrink-0 whitespace-nowrap'>
             <h1 class='propertyText'>{i18n.t('ui.labels.mediaSettings')}</h1>
             <div class='flex justify-around'>
                 <Knob id='volume' label={i18n.t('ui.labels.volume')} bind:value={volume.value} min={0} max={1} step={0.01} src={knobSprite} {frameCount} disabled={disabled} />
@@ -54,7 +54,7 @@
             </div>
         </div>
     </div>
-    <div class='flex items-center justify-center shrink-0 w-full px-1 pb-1'>
+    <div class='px-1 pb-1 flex shrink-0 w-full items-center justify-center'>
         <button class='button flex-1' disabled={disabled} onclick={() => { togglePlayback.value = true }}>{i18n.t('ui.buttons.playPause')}</button>
         <button class='button flex-1' onclick={onExit}>{i18n.t('ui.buttons.quit')}</button>
     </div>

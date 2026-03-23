@@ -81,7 +81,7 @@
     </div>
 </dialog>
 
-<div class='grid-child2 flex flex-col gap-2 items-center min-h-0 w-full h-full overflow-hidden'>
+<div class='grid-child2 flex flex-col gap-2 h-full min-h-0 w-full items-center overflow-hidden'>
     <h1 class='propertyText'>{i18n.t('ui.labels.presets')}</h1>
     <div class='custom-scrollbar pb-2 pl-2 pt-1 flex flex-1 flex-col w-full overflow-y-scroll children:(rounded-md)'>
         {#each presets.value as preset, i}
@@ -111,7 +111,7 @@
             <span class='text-sm text-light-600 m-auto'>{i18n.t('ui.labels.custom')}</span>
         </label>
     </div>
-    <div class='flex items-center justify-center shrink-0 w-full px-1 pb-1'>
+    <div class='px-1 pb-1 flex shrink-0 w-full items-center justify-center'>
         {#if activePresetIndex !== null}
             <button
                 class='button w-[calc(50%-1rem)]'
@@ -123,9 +123,9 @@
             <button class='button w-[calc(50%-1rem)]' disabled={disabled} onclick={() => dialog.showModal()}>{i18n.t('ui.buttons.savePreset')}</button>
         {/if}
     </div>
-    <div class="relative w-full flex items-center justify-center mt-auto mb-2 px-1 text-center min-h-6">
+    <div class='mb-2 mt-auto px-1 text-center flex min-h-6 w-full items-center justify-center relative'>
         <p class={['text-light-600 p-1 w-fit whitespace-pre-line', status.length > 80 ? 'text-xs' : 'text-sm']}>{status}</p>
-        <a title='Get help on GitHub!' class='absolute right-1 hover:opacity-75' href='https://github.com/Kernocal/audio-mixer-extension' target='_blank'>
+        <a title='Get help on GitHub!' class='right-1 absolute hover:opacity-75' href='https://github.com/Kernocal/audio-mixer-extension' target='_blank'>
             <img src={GitHub} alt="" class='filter-svg max-h-6 max-w-6 min-h-6 min-w-6' />
         </a>
     </div>
