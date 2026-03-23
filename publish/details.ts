@@ -12,7 +12,7 @@ import type { PublishDetails } from './types'
 // Make the icon face the viewer, rather than having built-in perspective. See Perspective for details.
 
 const description = { data:
-`FOSS Music Mixer that applies presets to audio on most websites such as Spotify, SoundCloud, and YouTube.
+`FOSS Music Mixer applies presets to audio on most websites such as Spotify, SoundCloud, and YouTube.
 The presets were built around Nightcore but have expanded to include reverb. 
 You can also create custom presets with whatever values you want.
 
@@ -61,7 +61,7 @@ export const details = {
     edge: {
         category: 'Entertainment',
         icon: { path: 'publish/assets/edge-300.png', width: 300, height: 300 },
-        searchTerms: ['audio mixer', 'nightcore', 'slowed reverb', 'pitch shift'],
+        searchTerms: ['music mixer', 'music', 'mixer', 'audio', 'audio mixer', 'nightcore', 'reverb'],
         supportContact: 'https://github.com/kernocal/audio-mixer-extension/issues',
         collectsPersonalData: false,
     },

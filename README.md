@@ -1,37 +1,52 @@
-# Audio Mixer
-![extension spotify image](screenshots/1280window.png "Audio Mixer Extension on Spotify")
-![extension image](screenshots/640extension.png "Audio Mixer Extension")
+## Music Mixer
+![extension soundcloud image](publish/assets/1g1280x800.png "Music Mixer Extension on Soundcloud")
+![extension image](publish/assets/github.png "Music Mixer Extension")
 
-Audio Mixer is a browser extension that currently works on Chromium-based browsers, e.g Chrome and Microsoft Edge. It allows you to apply audio presets to most websites playing audio such as YouTube, SoundCloud, Spotify.
+Music Mixer applies presets to audio on most websites such as Spotify, SoundCloud, and YouTube.
+The presets were built around Nightcore but have expanded to include reverb. 
+You can also create custom presets with whatever values you want.
 
-The presets were built around Nightcore but have expanded to include reverb. The extension lets you create custom presets though.
+Features:
+- Pitch shifting with semitone control
+- Reverb with adjustable decay
+- Playback rate control
+- Save and load custom presets
 
-# Building
+### Building
 
 To build and load the extension from source run:
 
 ```
-if you don't want git history:
 degit Kernocal/audio-mixer-extension <folder-name>
-
-or if you do:
-git clone https://github.com/Kernocal/audio-mixer-extension.git <folder-name>
 
 pnpm install
 
 pnpm run build
+
+go to chrome://extensions/ (enable developer mode)
+
+load unpacked folder <folder-name>/.output/chrome-mv3
 ```
 
-Then you can load unpacked using the created folder in ./output.
 
-# About
+### Acknowledgements
 
-UnoCSS for styling.
+[Aklinker1](https://github.com/sponsors/aklinker1) making extension development bareable:
+- [WXT](https://wxt.dev/)
+- [webext-core](https://github.com/aklinker1/webext-core)
+- [publish-browser-extension](https://github.com/aklinker1/publish-browser-extension)
 
-# Credits
+[Antfu's](https://github.com/sponsors/antfu) really cool projects:
+- [eslint-config](https://github.com/antfu/eslint-config)
+- [UnoCSS](https://unocss.dev/)
+- [unimport](https://github.com/unjs/unimport)
+
+[Svelte](https://svelte.dev/)
+
+[Tone.js](https://tonejs.github.io/)
+
+[Initial MV3 approach to capture media](https://github.com/zhw2590582/chrome-audio-capture)
 
 
 
-[Tone.js](https://tonejs.github.io/), by tambien.
 
-[tapCapture for manifest v3](https://github.com/zhw2590582/chrome-audio-capture), by zhw2590582.

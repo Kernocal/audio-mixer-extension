@@ -1,6 +1,6 @@
 extension:
-  name: Audio Mixer
-  description: Applies presets like Nightcore or (slowed + reverb) to music on most websites such as Spotify, SoundCloud, YouTube.
+  name: Music Mixer
+  description: Applies presets like Nightcore or (slowed + reverb) to music on most websites.
 ui:
   labels:
     pitch: Pitch
@@ -45,7 +45,7 @@ status:
   recordFailed: 'unable to create and record from tab, check devtools.'
 errors:
   content:
-    executed: 'Audio Mixer CONTENT: executed.'
+    executed: 'Music Mixer CONTENT: executed.'
     executeFailed: 'Failed to execute content script, contentTabId at the time: $1 error: $2'
     noMedia: 'no media found.'
     noMediaPlaying: 'no playing media found.'

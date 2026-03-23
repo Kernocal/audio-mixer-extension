@@ -4,7 +4,7 @@ import { Logger } from 'tslog'
 // const extensionName = typeof browser !== 'undefined' ? i18n.t('extension.name') : 'Audio Mixer'
 
 export const extensionLogger: Logger<ILogObj> = new Logger({
-    name: 'Audio Mixer',
+    name: 'Music Mixer',
     minLevel: import.meta.env.PROD ? 4 : 2,
     type: 'pretty',
 })
