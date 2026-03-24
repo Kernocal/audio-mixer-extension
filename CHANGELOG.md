@@ -1,5 +1,7 @@
 # Changelog
 
+## v1.7.0
+
 [compare changes](https://github.com/Kernocal/audio-mixer-extension/compare/v1.5.0...v1.7.0)
 
 ### 🚀 Enhancements
