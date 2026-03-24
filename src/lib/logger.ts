@@ -11,6 +11,7 @@ export const extensionLogger: Logger<ILogObj> = new Logger({
 
 export const backgroundLogger = extensionLogger.getSubLogger({ name: 'Background' })
 export const popupLogger = extensionLogger.getSubLogger({ name: 'Popup' })
+export const optionsLogger = extensionLogger.getSubLogger({ name: 'Options' })
 export const recordLogger = extensionLogger.getSubLogger({ name: 'Record' })
 export const contentLogger = extensionLogger.getSubLogger({ name: 'Content' })
 export const injectLogger = contentLogger.getSubLogger({ name: 'Inject' })
