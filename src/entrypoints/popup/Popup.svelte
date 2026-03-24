@@ -4,7 +4,7 @@
     import PropertyControls from 'lib/components/PropertyControls.svelte'
     import { popupLogger } from 'lib/logger'
     import { sendMessage } from 'lib/messaging'
-    import { playbackRate } from 'lib/storage/items.svelte'
+    import { animation, playbackRate } from 'lib/storage/items.svelte'
     import { onMount } from 'svelte'
     import 'virtual:uno.css'
 
@@ -37,7 +37,7 @@
 
 <svelte:window onwheel={preventOuterScroll} ontouchmove={preventOuterScroll} />
 
-<div class='bg animate flex flex-col h-[34.375rem] min-w-[31.25rem] w-fit whitespace-nowrap overflow-hidden'>
+<div class={['bg flex flex-col h-[34.375rem] min-w-[31.25rem] w-fit whitespace-nowrap overflow-hidden', animation.value ? 'animate' : '']}>
     <div class='grid-parent p-3 flex-1 gap-3 min-h-0 items-stretch'>
         <PropertyControls
             {disabled}

@@ -1,4 +1,5 @@
 <script lang='ts'>
+
     interface Props {
         id: string
         value: number
@@ -31,8 +32,9 @@
 
     const ratio = $derived(max === min ? 0 : (value - min) / (max - min))
     const frameIndex = $derived(Math.round(ratio * frameCount))
-    const spriteOffset = $derived(-frameIndex * size)
     const resetValue = value
+    const backgroundSize = $derived(`${size}px ${size * (frameCount + 1)}px`)
+    const backgroundPositionY = $derived(`${-frameIndex * size}px`)
 
     let startY = 0
     let startX = 0
@@ -167,8 +169,8 @@
         style:width='{size}px'
         style:height='{size}px'
         style:background-image='url({src})'
-        style:background-size='{size}px {size * (frameCount + 1)}px'
-        style:background-position-y='{spriteOffset}px'
+        style:background-size={backgroundSize}
+        style:background-position-y={backgroundPositionY}
         class:disabled
         {onpointerdown}
         {onpointermove}

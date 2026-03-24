@@ -1,7 +1,8 @@
 <script lang='ts'>
     import type { Preset } from 'lib/types'
     import { sendMessage } from 'lib/messaging'
-    import { playbackRate, presets } from 'lib/storage/items.svelte'
+    import { animation, knobSrc, playbackRate, presets } from 'lib/storage/items.svelte'
+    import { allKnobs } from 'lib/util/knobSprite.svelte'
 
     let fileInput: HTMLInputElement
     let downloadLink: HTMLAnchorElement
@@ -48,6 +49,32 @@
 <a bind:this={downloadLink} href='google.com' aria-hidden='true' hidden>export</a>
 
 <div class='container'>
+    <h3>Settings</h3>
+
+    <label class='toggle'>
+        <input type='checkbox' bind:checked={animation.value} />
+        <span>Popup background animation</span>
+    </label>
+
+    {#await allKnobs() then knobs}
+        <div class='knob-picker'>
+            {#each knobs as { url, name, size, position } (url)}
+                <button
+                    class={['knob-option', url === knobSrc.value ? 'selected' : '']}
+                    onclick={() => knobSrc.value = url}
+                >
+                    <div
+                        class='knob-preview'
+                        style:background-image='url({url})'
+                        style:background-size={size}
+                        style:background-position-y={position}
+                    ></div>
+                    <span>{name}</span>
+                </button>
+            {/each}
+        </div>
+    {/await}
+
     <h3>Custom Presets</h3>
 
     {#if customPresets.length === 0}
@@ -137,5 +164,51 @@
 
     button:hover {
         background: #555;
+    }
+
+    .toggle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        margin-bottom: 12px;
+        cursor: pointer;
+    }
+
+    .knob-picker {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .knob-option {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        background: #333;
+        border: 2px solid transparent;
+        border-radius: 6px;
+        padding: 8px;
+        cursor: pointer;
+        color: #999;
+        font-size: 10px;
+    }
+
+    .knob-option:hover {
+        border-color: #555;
+    }
+
+    .selected {
+        border-color: #9333ea;
+        color: #d7d7d7;
+    }
+
+    .knob-preview {
+        width: 48px;
+        height: 48px;
+        background-size: 48px auto;
+        background-position-y: 50%;
+        background-repeat: no-repeat;
     }
 </style>
