@@ -51,4 +51,4 @@ export const togglePlayback = new StorageValue(items.togglePlayback)
 // options
 export const presets = new StorageValue(items.presets)
 export const animation = new StorageValue(items.animation)
-export const knobSrc = new StorageValue(items.knobSrc)
+export const knobStyle = new StorageValue(items.knobStyle)

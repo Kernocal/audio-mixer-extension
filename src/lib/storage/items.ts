@@ -18,7 +18,7 @@ export const reverbWet = storage.defineItem<number>('session:reverbWet', { fallb
 export const presets = storage.defineItem<Preset[]>('local:presets', { fallback: DEFAULT_PRESETS })
 export const togglePlayback = storage.defineItem<boolean>('session:togglePlayback', { fallback: false })
 export const animation = storage.defineItem<boolean>('local:animation', { fallback: true })
-export const knobSrc = storage.defineItem<string>('local:knobSrc', { fallback: '/knobs/SmallLedKnob2.png' })
+export const knobStyle = storage.defineItem<string>('local:knobStyle', { fallback: '/knobs/SmallLedKnob2.png' })
 
 // background
 // default of 0 may break stuff gl

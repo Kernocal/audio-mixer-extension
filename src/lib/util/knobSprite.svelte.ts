@@ -1,4 +1,4 @@
-import { knobSrc } from 'lib/storage/items.svelte'
+import { knobStyle } from 'lib/storage/items.svelte'
 
 const knobs = ['/knobs/SmallLedKnob2.png', '/knobs/CarbonPurple.png']
 
@@ -21,7 +21,7 @@ export async function allKnobs() {
 }
 
 export class KnobSprite {
-    src = $derived(knobSrc.value)
+    src = $derived(knobStyle.value)
     frameCount = $state(0)
 
     constructor() {

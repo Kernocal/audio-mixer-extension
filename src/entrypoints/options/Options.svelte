@@ -1,7 +1,7 @@
 <script lang='ts'>
     import type { Preset } from 'lib/types'
     import { sendMessage } from 'lib/messaging'
-    import { animation, knobSrc, playbackRate, presets } from 'lib/storage/items.svelte'
+    import { animation, knobStyle, playbackRate, presets } from 'lib/storage/items.svelte'
     import { allKnobs } from 'lib/util/knobSprite.svelte'
 
     let fileInput: HTMLInputElement
@@ -60,8 +60,8 @@
         <div class='knob-picker'>
             {#each knobs as { url, name, size, position } (url)}
                 <button
-                    class={['knob-option', url === knobSrc.value ? 'selected' : '']}
-                    onclick={() => knobSrc.value = url}
+                    class={['knob-option', url === knobStyle.value ? 'selected' : '']}
+                    onclick={() => knobStyle.value = url}
                 >
                     <div
                         class='knob-preview'
