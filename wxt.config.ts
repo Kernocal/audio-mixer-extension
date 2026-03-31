@@ -15,6 +15,9 @@ export default defineConfig({
             'webNavigation',
             'offscreen',
         ],
+        optional_host_permissions: [
+            '<all_urls>',
+        ],
         action: {},
     },
     srcDir: 'src',
@@ -25,16 +28,6 @@ export default defineConfig({
     alias: {
         lib: resolve('src/lib/'),
     },
-    hooks: {
-        'build:manifestGenerated': async (wxt, manifest) => {
-            const { validatePublishDetails } = await import('./publish/validate')
-            const issues = await validatePublishDetails(manifest)
-            if (issues.length > 0) {
-                wxt.logger.warn('Publish details issues:')
-                issues.forEach(i => wxt.logger.warn(i))
-            }
-        },
-    },
     webExt: {
         disabled: false,
         binaries: {
@@ -42,5 +35,6 @@ export default defineConfig({
         },
         keepProfileChanges: true,
         chromiumProfile: resolve('.wxt/chrome-data'),
+        chromiumArgs: ['--lang=en'],
     },
 })
