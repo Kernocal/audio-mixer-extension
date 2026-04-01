@@ -32,6 +32,7 @@ export default defineConfig({
         disabled: false,
         binaries: {
             chrome: 'C:/Users/Kern/AppData/Local/Chromium/Application/chrome.exe',
+            edge: 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
         },
         keepProfileChanges: true,
         chromiumProfile: resolve('.wxt/chrome-data'),
