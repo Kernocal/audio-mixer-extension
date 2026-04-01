@@ -27,7 +27,7 @@ export async function openRecordDoc(streamId: string) {
 export async function closeRecordDoc() {
     const isOpen = await isRecordOpen()
     if (!isOpen) {
-        backgroundLogger.error(i18n.t('errors.tabs.removeRecord'))
+        backgroundLogger.warn(i18n.t('errors.tabs.removeRecord'))
         return
     }
     await browser.offscreen.closeDocument()
