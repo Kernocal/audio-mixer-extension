@@ -63,7 +63,7 @@ errors:
     create: 'unable to create record tab.'
     get: 'tab does not exist.'
     removeContent: 'unable to remove content tab.'
-    removeRecord: 'unable to remove record offscreen document.'
+    removeRecord: "offscreen document isn't open but tried to be closed."
   commands:
     setValue: 'unable to set value'
     failed: 'unable to send command'
