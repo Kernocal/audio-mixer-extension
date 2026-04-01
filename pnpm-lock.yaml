@@ -18,6 +18,9 @@ importers:
       '@antfu/eslint-config':
         specifier: ^7.7.3
         version: 7.7.3(@typescript-eslint/rule-tester@8.57.1(eslint@10.1.0(jiti@2.6.1))(typescript@5.9.3))(@typescript-eslint/typescript-estree@8.57.1(typescript@5.9.3))(@typescript-eslint/utils@8.57.1(eslint@10.1.0(jiti@2.6.1))(typescript@5.9.3))(@unocss/eslint-plugin@66.6.7(eslint@10.1.0(jiti@2.6.1))(typescript@5.9.3))(@vue/compiler-sfc@3.5.26)(eslint-plugin-svelte@3.16.0(eslint@10.1.0(jiti@2.6.1))(svelte@5.54.1))(eslint@10.1.0(jiti@2.6.1))(svelte-eslint-parser@1.4.1(svelte@5.54.1))(typescript@5.9.3)
+      '@sveltejs/vite-plugin-svelte':
+        specifier: ^7.0.0
+        version: 7.0.0(svelte@5.54.1)(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(yaml@2.8.2))
       '@tsconfig/svelte':
         specifier: ^5.0.8
         version: 5.0.8
@@ -39,9 +42,6 @@ importers:
       '@wxt-dev/unocss':
         specifier: ^1.0.1
         version: 1.0.1(unocss@66.6.7(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(yaml@2.8.2)))(wxt@0.20.20(@types/node@25.5.0)(eslint@10.1.0(jiti@2.6.1))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.55.1)(yaml@2.8.2))
-      dotenv-cli:
-        specifier: ^11.0.0
-        version: 11.0.0
       eslint:
         specifier: ^10.1.0
         version: 10.1.0(jiti@2.6.1)
@@ -1074,20 +1074,12 @@ packages:
     peerDependencies:
       acorn: ^8.9.0
 
-  '@sveltejs/vite-plugin-svelte-inspector@5.0.2':
-    resolution: {integrity: sha512-TZzRTcEtZffICSAoZGkPSl6Etsj2torOVrx6Uw0KpXxrec9Gg6jFWQ60Q3+LmNGfZSxHRCZL7vXVZIWmuV50Ig==}
+  '@sveltejs/vite-plugin-svelte@7.0.0':
+    resolution: {integrity: sha512-ILXmxC7HAsnkK2eslgPetrqqW1BKSL7LktsFgqzNj83MaivMGZzluWq32m25j2mDOjmSKX7GGWahePhuEs7P/g==}
     engines: {node: ^20.19 || ^22.12 || >=24}
     peerDependencies:
-      '@sveltejs/vite-plugin-svelte': ^6.0.0-next.0
-      svelte: ^5.0.0
-      vite: ^6.3.0 || ^7.0.0
-
-  '@sveltejs/vite-plugin-svelte@6.2.3':
-    resolution: {integrity: sha512-a+uxqQ9j6Lxmq4plbGaNdM9hgDCZyxAv/yvuyF5iWoA2H5icZkqD3rdK155ZQgFLX2lc3NvahHG4OgKpYqYPiQ==}
-    engines: {node: ^20.19 || ^22.12 || >=24}
-    peerDependencies:
-      svelte: ^5.0.0
-      vite: ^6.3.0 || ^7.0.0
+      svelte: ^5.46.4
+      vite: ^8.0.0-beta.7 || ^8.0.0
 
   '@tsconfig/svelte@5.0.8':
     resolution: {integrity: sha512-UkNnw1/oFEfecR8ypyHIQuWYdkPvHiwcQ78sh+ymIiYoF+uc5H1UBetbjyqT+vgGJ3qQN6nhucJviX6HesWtKQ==}
@@ -1737,10 +1729,6 @@ packages:
   dot-prop@9.0.0:
     resolution: {integrity: sha512-1gxPBJpI/pcjQhKgIU91II6Wkay+dLcN3M6rf2uwP8hRur3HtQXjVrdAK3sjC0piaEuxzMwjXChcETiJl47lAQ==}
     engines: {node: '>=18'}
-
-  dotenv-cli@11.0.0:
-    resolution: {integrity: sha512-r5pA8idbk7GFWuHEU7trSTflWcdBpQEK+Aw17UrSHjS6CReuhrrPcyC3zcQBPQvhArRHnBo/h6eLH1fkCvNlww==}
-    hasBin: true
 
   dotenv-expand@12.0.3:
     resolution: {integrity: sha512-uc47g4b+4k/M/SeaW1y4OApx+mtLWl92l5LMPP0GNXctZqELk+YGgOPIIC5elYmUH4OuoK3JLhuRUYegeySiFA==}
@@ -3582,10 +3570,10 @@ packages:
       yaml:
         optional: true
 
-  vitefu@1.1.1:
-    resolution: {integrity: sha512-B/Fegf3i8zh0yFbpzZ21amWzHmuNlLlmJT6n7bu5e+pCHUKQIfXSYokrqOBGEMMe9UG2sostKQF9mml/vYaWJQ==}
+  vitefu@1.1.2:
+    resolution: {integrity: sha512-zpKATdUbzbsycPFBN71nS2uzBUQiVnFoOrr2rvqv34S1lcAgMKKkjWleLGeiJlZ8lwCXvtWaRn7R3ZC16SYRuw==}
     peerDependencies:
-      vite: ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0-beta.0
+      vite: ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0-beta.0
     peerDependenciesMeta:
       vite:
         optional: true
@@ -4403,22 +4391,14 @@ snapshots:
     dependencies:
       acorn: 8.16.0
 
-  '@sveltejs/vite-plugin-svelte-inspector@5.0.2(@sveltejs/vite-plugin-svelte@6.2.3(svelte@5.54.1)(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(yaml@2.8.2)))(svelte@5.54.1)(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(yaml@2.8.2))':
+  '@sveltejs/vite-plugin-svelte@7.0.0(svelte@5.54.1)(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(yaml@2.8.2))':
     dependencies:
-      '@sveltejs/vite-plugin-svelte': 6.2.3(svelte@5.54.1)(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(yaml@2.8.2))
-      obug: 2.1.1
-      svelte: 5.54.1
-      vite: 8.0.1(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(yaml@2.8.2)
-
-  '@sveltejs/vite-plugin-svelte@6.2.3(svelte@5.54.1)(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(yaml@2.8.2))':
-    dependencies:
-      '@sveltejs/vite-plugin-svelte-inspector': 5.0.2(@sveltejs/vite-plugin-svelte@6.2.3(svelte@5.54.1)(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(yaml@2.8.2)))(svelte@5.54.1)(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(yaml@2.8.2))
       deepmerge: 4.3.1
       magic-string: 0.30.21
       obug: 2.1.1
       svelte: 5.54.1
       vite: 8.0.1(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(yaml@2.8.2)
-      vitefu: 1.1.1(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(yaml@2.8.2))
+      vitefu: 1.1.2(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(yaml@2.8.2))
 
   '@tsconfig/svelte@5.0.8': {}
 
@@ -4789,7 +4769,7 @@ snapshots:
 
   '@wxt-dev/module-svelte@2.0.5(svelte@5.54.1)(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(yaml@2.8.2))(wxt@0.20.20(@types/node@25.5.0)(eslint@10.1.0(jiti@2.6.1))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.55.1)(yaml@2.8.2))':
     dependencies:
-      '@sveltejs/vite-plugin-svelte': 6.2.3(svelte@5.54.1)(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(yaml@2.8.2))
+      '@sveltejs/vite-plugin-svelte': 7.0.0(svelte@5.54.1)(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(yaml@2.8.2))
       svelte: 5.54.1
       wxt: 0.20.20(@types/node@25.5.0)(eslint@10.1.0(jiti@2.6.1))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.55.1)(yaml@2.8.2)
     transitivePeerDependencies:
@@ -5156,13 +5136,6 @@ snapshots:
   dot-prop@9.0.0:
     dependencies:
       type-fest: 4.41.0
-
-  dotenv-cli@11.0.0:
-    dependencies:
-      cross-spawn: 7.0.6
-      dotenv: 17.3.1
-      dotenv-expand: 12.0.3
-      minimist: 1.2.8
 
   dotenv-expand@12.0.3:
     dependencies:
@@ -7278,7 +7251,7 @@ snapshots:
       jiti: 2.6.1
       yaml: 2.8.2
 
-  vitefu@1.1.1(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(yaml@2.8.2)):
+  vitefu@1.1.2(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(yaml@2.8.2)):
     optionalDependencies:
       vite: 8.0.1(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(yaml@2.8.2)
 

@@ -21,6 +21,7 @@
     },
     "devDependencies": {
         "@antfu/eslint-config": "^7.7.3",
+        "@sveltejs/vite-plugin-svelte": "^7.0.0",
         "@tsconfig/svelte": "^5.0.8",
         "@unocss/eslint-plugin": "^66.6.7",
         "@webext-core/messaging": "^2.3.0",
