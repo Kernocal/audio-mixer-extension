@@ -34,7 +34,7 @@
         const blob = new Blob([JSON.stringify(customPresets, null, 2)], { type: 'application/json' })
         const url = URL.createObjectURL(blob)
         downloadLink.href = url
-        downloadLink.download = 'audio-mixer-backup.json'
+        downloadLink.download = 'music-mixer-backup.json'
         downloadLink.click()
         URL.revokeObjectURL(url)
     }

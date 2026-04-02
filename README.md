@@ -18,7 +18,7 @@ You can also create custom presets with whatever values you want.
 Features:
 - Pitch shifting with semitone control
 - Reverb with adjustable decay
-- Playback rate control
+- Change playback speed
 - Save and load custom presets
 
 ### Building

@@ -1,4 +1,4 @@
-import { browser, i18n } from '#imports'
+import { browser } from '#imports'
 import { onMessage } from 'lib/messaging'
 import { backgroundLogger } from '../logger'
 
@@ -27,7 +27,7 @@ export async function openRecordDoc(streamId: string) {
 export async function closeRecordDoc() {
     const isOpen = await isRecordOpen()
     if (!isOpen) {
-        backgroundLogger.warn(i18n.t('errors.tabs.removeRecord'))
+        backgroundLogger.warn("offscreen document isn't open but tried to be closed.")
         return
     }
     await browser.offscreen.closeDocument()

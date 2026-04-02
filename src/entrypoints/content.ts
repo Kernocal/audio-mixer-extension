@@ -1,5 +1,4 @@
 import type { MediaProperty } from 'lib/types'
-import { i18n } from '#imports'
 import { MatchPattern } from '@webext-core/match-patterns'
 import { contentLogger, injectLogger } from 'lib/logger'
 import { onMessage } from 'lib/messaging'
@@ -44,7 +43,7 @@ function directAdapter(): MediaAdapter {
                 }
             }
             catch {
-                contentLogger.error(i18n.t('errors.content.noMedia'))
+                contentLogger.error('no media found.')
             }
         },
 
@@ -84,7 +83,7 @@ function injectedAdapter(): MediaAdapter {
 }
 
 async function init() {
-    contentLogger.info(i18n.t('errors.content.executed'))
+    contentLogger.info('Music Mixer CONTENT: executed.')
     websiteMessenger.onMessage('log', ({ data }) => {
         contentLogger.debug('got log from injected script', data)
         injectLogger.debug(data)

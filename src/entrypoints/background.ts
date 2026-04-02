@@ -1,4 +1,4 @@
-import { browser, i18n, storage } from '#imports'
+import { browser, storage } from '#imports'
 import { backgroundLogger } from 'lib/logger'
 import { onMessage, sendMessage } from 'lib/messaging'
 import { contentExecuted, contentTabId, contentTabUrl, installDate, pageChange } from 'lib/storage/items'
@@ -21,7 +21,7 @@ export default defineBackground(() => {
             }
         }
         await storage.clear('session')
-        backgroundLogger.info(i18n.t('messages.exiting'))
+        backgroundLogger.info('Exiting, closed tabs, cleared storage and reset playback rate.')
     }
 
     async function runMixer() {

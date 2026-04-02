@@ -1,4 +1,3 @@
-import { i18n } from '#imports'
 import { MatchPattern } from '@webext-core/match-patterns'
 import { contentLogger } from '../logger'
 
@@ -15,14 +14,14 @@ function setElementAttributes(query: string, data: object) {
             }
         }
         catch (err) {
-            contentLogger.warn(i18n.t('errors.content.unableSetAttribute'), data, err)
+            contentLogger.warn('unable to set attribute', data, err)
         }
     }
     else if (elements.length > 1) {
-        contentLogger.warn(i18n.t('errors.query.multiple'), query, elements)
+        contentLogger.warn('expected one element but got many, check query', query, elements)
     }
     else {
-        contentLogger.warn(i18n.t('errors.query.none'), query)
+        contentLogger.warn('expected one element but got none, check query', query)
     }
 }
 

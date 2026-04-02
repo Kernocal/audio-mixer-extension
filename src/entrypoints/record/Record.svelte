@@ -1,6 +1,5 @@
 <script lang='ts'>
     import type { PitchShift as PitchType, Reverb as ReverbType } from 'tone'
-    import { i18n } from '#imports'
     import { recordLogger } from 'lib/logger'
     import { onMessage, sendMessage } from 'lib/messaging'
     import { onMount } from 'svelte'
@@ -13,7 +12,7 @@
     async function startRecord(stream: MediaStream) {
         recordLogger.debug(`1st stream: ${stream}`)
         if (!stream) {
-            recordLogger.warn(i18n.t('errors.capture.tabError'), stream)
+            recordLogger.warn('Unable to capture tab.', stream)
             window.close()
             return null
         }

@@ -1,4 +1,4 @@
-import { browser, i18n } from '#imports'
+import { browser } from '#imports'
 import { backgroundLogger } from '../logger'
 
 export async function executeContent(tabId: number) {
@@ -13,7 +13,7 @@ export async function executeContent(tabId: number) {
     }
     catch (err) {
         const errMessage = err instanceof Error ? err.message : String(err)
-        backgroundLogger.error(i18n.t('errors.content.executeFailed', [tabId, errMessage]))
+        backgroundLogger.error(`Failed to execute content script, contentTabId at the time: ${tabId} error: ${errMessage}`)
         return false
     }
 }
