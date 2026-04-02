@@ -1,121 +1,148 @@
 import { websiteMessenger } from 'lib/messaging/customEvent'
+import { scoreMediaElement } from 'lib/util/scriptCommon'
 
-type CustomMediaElement = HTMLMediaElement & {
-    playing: boolean
-    myPlaybackRate: number
+type PlayDescriptor = () => Promise<void>
+
+interface MediaAccessor {
+    get: (this: HTMLMediaElement) => number
+    set: (this: HTMLMediaElement, value: number) => void
+}
+
+interface PrototypeDescriptors {
+    playbackRate: MediaAccessor
+    volume: MediaAccessor
+    play: PlayDescriptor
+}
+
+interface State {
+    mediaElement: HTMLMediaElement | null
+    volume: number
+    playbackRate: number
+    pendingPageChange: boolean
+}
+
+function patchMediaProperty(property: 'playbackRate' | 'volume') {
+    const original = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, property)!
+    Object.defineProperty(HTMLMediaElement.prototype, property, {
+        get: original.get,
+        set() {},
+        configurable: true,
+    })
+    return () => Object.defineProperty(HTMLMediaElement.prototype, property, original)
+}
+
+function patchMediaPlay(original: PlayDescriptor, onPlay: (el: HTMLMediaElement) => void) {
+    HTMLMediaElement.prototype.play = function (this: HTMLMediaElement, ...args: unknown[]) {
+        onPlay(this)
+        return original.apply(this, args as [])
+    }
+}
+
+function bindMedia(state: State, media: HTMLMediaElement, originals: PrototypeDescriptors) {
+    if (state.mediaElement || state.pendingPageChange) {
+        state.mediaElement = media
+        originals.volume.set.call(media, state.volume)
+        originals.playbackRate.set.call(media, state.playbackRate)
+        state.pendingPageChange = false
+    }
+    else {
+        state.mediaElement = media
+        state.volume = media.volume
+        state.playbackRate = media.playbackRate
+    }
+}
+
+function considerMedia(state: State, candidate: HTMLMediaElement, originals: PrototypeDescriptors) {
+    if (!state.mediaElement)
+        return bindMedia(state, candidate, originals)
+    if (scoreMediaElement(candidate) >= scoreMediaElement(state.mediaElement) + 2)
+        return bindMedia(state, candidate, originals)
+}
+
+function scanForBetterMedia(state: State, originals: PrototypeDescriptors) {
+    const all = [...document.querySelectorAll<HTMLMediaElement>('audio, video')]
+    if (!all.length)
+        return
+    const best = all.reduce((a, b) => scoreMediaElement(a) >= scoreMediaElement(b) ? a : b)
+    considerMedia(state, best, originals)
+}
+
+function log(...args: string[]) {
+    websiteMessenger.sendMessage('log', args.join(' '))
 }
 
 export default defineContentScript({
     matches: [
         '*://soundcloud.com/*',
         '*://open.spotify.com/*',
+        '*://*.youtube.com/*',
     ],
     world: 'MAIN',
     runAt: 'document_start',
     main() {
-        let mediaElement: CustomMediaElement | null = null
-        let volume: number = 0.06767
-        let myPlaybackRate: number = 1
-
-        function log(...args: any[]) {
-            websiteMessenger.sendMessage('log', args.join(' '))
+        const originals: PrototypeDescriptors = {
+            playbackRate: Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'playbackRate') as MediaAccessor,
+            volume: Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'volume') as MediaAccessor,
+            play: HTMLMediaElement.prototype.play,
+        }
+        const state: State = {
+            mediaElement: null,
+            volume: 0.06767,
+            playbackRate: 1,
+            pendingPageChange: false,
         }
 
-        function setMedia(media: CustomMediaElement, pageChange = false) {
-            // wat was this
-            // if (mediaElement && !mediaElement.isSameNode(media)) {
-            //     log('Different media playing to original one stored.')
-            // }
-            if (mediaElement || pageChange) {
-                mediaElement = media
-                mediaElement.volume = volume
-                mediaElement.myPlaybackRate = myPlaybackRate
-            }
-            else {
-                mediaElement = media
-                volume = mediaElement.volume
-                myPlaybackRate = mediaElement.myPlaybackRate
-            }
+        let restorePlaybackRate = () => {}
+        let restoreVolume = () => {}
+
+        const scan = () => scanForBetterMedia(state, originals)
+        const consider = (el: HTMLMediaElement) => {
+            considerMedia(state, el, originals)
+            queueMicrotask(scan)
         }
 
-        log('running.')
-
-        // Define 'playing' property on HTMLMediaElement
-        Object.defineProperty(HTMLMediaElement.prototype, 'playing', {
-            get() {
-                return !!(this.currentTime > 0 && !this.paused && !this.ended && this.readyState > 2)
-            },
-            configurable: true,
-        })
-
-        const originalPlaybackRate = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'playbackRate')
-        if (originalPlaybackRate) {
-            // don't let the page change the playback rate
-            Object.defineProperty(HTMLMediaElement.prototype, 'playbackRate', {
-                get: originalPlaybackRate.get,
-                set() {},
-                configurable: true,
-            })
-
-            Object.defineProperty(HTMLMediaElement.prototype, 'myPlaybackRate', {
-                get: originalPlaybackRate.get,
-                set: originalPlaybackRate.set,
-                configurable: true,
-            })
-        }
-
-        const originalPlay = HTMLMediaElement.prototype.play
-        HTMLMediaElement.prototype.play = function (this: any, ...args: any[]) {
-            setMedia(this)
-            return originalPlay.apply(this, args as any)
-        }
+        patchMediaPlay(originals.play, consider)
 
         websiteMessenger.onMessage('getValue', ({ data }) => {
-            const { property } = data
-            if (!mediaElement) {
-                log('getValue: myMedia is null')
-                return { property, value: 0 }
-            }
-            switch (property) {
-                case 'playbackRate':
-                    return { property, value: myPlaybackRate }
-                default:
-                    return { property, value: mediaElement[property] }
-            }
+            return { property: data.property, value: state[data.property] }
         })
 
         websiteMessenger.onMessage('setValue', ({ data }) => {
-            const { property, value } = data
-            if (!mediaElement) {
-                log('setValue: myMedia is null')
+            state[data.property] = data.value
+            if (!state.mediaElement) {
+                log('setValue: myMedia is null, value stored for later')
                 return
             }
-            switch (property) {
-                case 'playbackRate':
-                    myPlaybackRate = value
-                    mediaElement.myPlaybackRate = myPlaybackRate
-                    break
-                case 'volume':
-                    volume = value
-                    mediaElement.volume = volume
-                    break
-                default:
-                    log('setValue property is unknown/unexpected')
-            }
+            originals[data.property].set.call(state.mediaElement, data.value)
         })
 
         websiteMessenger.onMessage('pageChange', () => {
-            // rethink this
-            HTMLMediaElement.prototype.play = function (this: any, ...args: any[]) {
-                setMedia(this, true)
-                return originalPlay.apply(this, args as any)
-            }
+            state.mediaElement = null
+            state.pendingPageChange = true
+            // maybe bad
+            for (let i = 0; i < 5; i++)
+                setTimeout(scan, i * 500)
         })
 
         websiteMessenger.onMessage('togglePlayback', () => {
-            if (mediaElement) {
-                mediaElement.paused ? mediaElement.play() : mediaElement.pause()
+            if (state.mediaElement) {
+                state.mediaElement.paused ? state.mediaElement.play() : state.mediaElement.pause()
             }
+        })
+
+        websiteMessenger.onMessage('setup', () => {
+            log('setup: applying prototype patches')
+            patchMediaPlay(originals.play, consider)
+            restorePlaybackRate = patchMediaProperty('playbackRate')
+            restoreVolume = patchMediaProperty('volume')
+            scan()
+        })
+
+        websiteMessenger.onMessage('teardown', () => {
+            log('teardown: restoring original prototypes')
+            restorePlaybackRate()
+            restoreVolume()
+            HTMLMediaElement.prototype.play = originals.play
         })
     },
 })
