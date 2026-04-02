@@ -2,10 +2,10 @@ import type { Preset } from 'lib/types'
 import { storage } from '#imports'
 
 const DEFAULT_PRESETS: Preset[] = [
-    { name: 'Default/Reset', user: false, properties: { playbackRate: 1, pitch: 0, pitchWet: 0, reverbDecay: 0.01, reverbWet: 0 } },
-    { name: 'Classic Nightcore', user: false, properties: { playbackRate: 1.25, pitch: 3, pitchWet: 1, reverbDecay: 0.01, reverbWet: 0 } },
-    { name: '(slowed + reverb)', user: false, properties: { playbackRate: 0.75, pitch: 0, pitchWet: 0, reverbDecay: 1, reverbWet: 0.7 } },
-    { name: 'Roomy Reverb', user: false, properties: { playbackRate: 1, pitch: 0, pitchWet: 0, reverbDecay: 1.5, reverbWet: 0.8 } },
+    { name: 'ui.presets.default', user: false, properties: { playbackRate: 1, pitch: 0, pitchWet: 0, reverbDecay: 0.01, reverbWet: 0 } },
+    { name: 'ui.presets.classicNightcore', user: false, properties: { playbackRate: 1.25, pitch: 3, pitchWet: 1, reverbDecay: 0.01, reverbWet: 0 } },
+    { name: 'ui.presets.slowedReverb', user: false, properties: { playbackRate: 0.75, pitch: 0, pitchWet: 0, reverbDecay: 1, reverbWet: 0.7 } },
+    { name: 'ui.presets.roomyReverb', user: false, properties: { playbackRate: 1, pitch: 0, pitchWet: 0, reverbDecay: 1.5, reverbWet: 0.8 } },
 ]
 
 export const volume = storage.defineItem<number>('session:volume', { fallback: 0.06767 })

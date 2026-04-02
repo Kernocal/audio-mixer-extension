@@ -96,7 +96,7 @@
                     value={i}
                     onclick={() => applyPreset(preset)}
                 >
-                <span class='text-sm text-light-600 m-auto'>{preset.name}</span>
+                <span class='text-sm text-light-600 m-auto'>{preset.user ? preset.name : i18n.t(preset.name as any)}</span>
             </label>
         {/each}
         <label
