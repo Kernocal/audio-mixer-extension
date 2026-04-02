@@ -7,6 +7,7 @@ interface ProtocolMap {
     record: () => boolean
     offscreenReady: () => void
     setOffscreenValue: (data: PropertyPayload<ToneProperty>) => void
+    teardownContent: () => void
 }
 
 export const { sendMessage, onMessage } = defineExtensionMessaging<ProtocolMap>()

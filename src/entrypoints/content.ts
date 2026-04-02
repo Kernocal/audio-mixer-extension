@@ -2,8 +2,10 @@ import type { MediaProperty } from 'lib/types'
 import { i18n } from '#imports'
 import { MatchPattern } from '@webext-core/match-patterns'
 import { contentLogger, injectLogger } from 'lib/logger'
+import { onMessage } from 'lib/messaging'
 import { websiteMessenger } from 'lib/messaging/customEvent'
 import { contentExecuted, pageChange, playbackRate, togglePlayback, volume } from 'lib/storage/items'
+import { waitForMedia } from 'lib/util/scriptCommon'
 import script from '~/entrypoints/inject.content'
 
 type MediaAdapter = {
@@ -13,32 +15,6 @@ type MediaAdapter = {
 }
 
 const INJECTS = Array.isArray(script.matches) ? script.matches : []
-
-function scoreMediaElement(el: HTMLMediaElement): number {
-    return [
-        el.currentTime > 0,
-        !el.paused,
-        !el.ended,
-        el.readyState > 2,
-        !el.muted,
-        el.volume > 0,
-        el.playbackRate !== 0,
-        !!(el.currentSrc || el.src),
-    ].filter(Boolean).length
-}
-
-async function waitForMedia(signal: AbortSignal): Promise<HTMLMediaElement> {
-    for (let i = 0; i < 20 && !signal.aborted; i++) {
-        const mediaElements = [...document.querySelectorAll<HTMLMediaElement>('audio, video')]
-        const scores = mediaElements.map(el => ({ el, score: scoreMediaElement(el) }))
-        const aliveMedia = scores.reduce((best, current) => best.score >= current.score ? best : current).el
-        if (aliveMedia) {
-            return aliveMedia
-        }
-        await new Promise(resolve => setTimeout(resolve, 500))
-    }
-    throw new Error('No media found')
-}
 
 function directAdapter(): MediaAdapter {
     let myMedia: HTMLMediaElement | null = null
@@ -87,10 +63,17 @@ function injectedAdapter(): MediaAdapter {
         },
 
         async bind(reason) {
-            if (reason === 'pageChange') {
+            if (reason === 'initial') {
+                websiteMessenger.sendMessage('setup')
+                const { value: vol } = await websiteMessenger.sendMessage('getValue', { property: 'volume' })
+                const { value: rate } = await websiteMessenger.sendMessage('getValue', { property: 'playbackRate' })
+                await volume.setValue(vol)
+                await playbackRate.setValue(rate)
+            }
+            else {
+                websiteMessenger.sendMessage('pageChange')
                 this.apply('volume', await volume.getValue())
                 this.apply('playbackRate', await playbackRate.getValue())
-                websiteMessenger.sendMessage('pageChange')
             }
         },
 
@@ -103,16 +86,22 @@ function injectedAdapter(): MediaAdapter {
 async function init() {
     contentLogger.info(i18n.t('errors.content.executed'))
     websiteMessenger.onMessage('log', ({ data }) => {
+        contentLogger.debug('got log from injected script', data)
         injectLogger.debug(data)
     })
 
     const isInjected = INJECTS.some(url => new MatchPattern(url).includes(window.location))
     const adapter = isInjected ? injectedAdapter() : directAdapter()
-    await adapter.bind('initial')
-    volume.watch(value => adapter.apply('volume', value))
-    playbackRate.watch(value => adapter.apply('playbackRate', value))
 
-    pageChange.watch((isChanging) => {
+    const isReturning = await pageChange.getValue()
+    await adapter.bind(isReturning ? 'pageChange' : 'initial')
+    if (isReturning)
+        await pageChange.setValue(false)
+
+    const unwatchVolume = volume.watch(value => adapter.apply('volume', value))
+    const unwatchPlaybackRate = playbackRate.watch(value => adapter.apply('playbackRate', value))
+
+    const unwatchPageChange = pageChange.watch((isChanging) => {
         if (isChanging) {
             contentLogger.debug('pageChange detected')
             adapter.bind('pageChange')
@@ -120,17 +109,30 @@ async function init() {
         }
     })
 
-    togglePlayback.watch((toggle) => {
+    const unwatchTogglePlayback = togglePlayback.watch((toggle) => {
         if (toggle) {
             adapter.toggle()
             togglePlayback.setValue(false)
         }
     })
+
+    onMessage('teardownContent', async () => {
+        contentLogger.info('teardownContent received, tearing down')
+        unwatchVolume()
+        unwatchPlaybackRate()
+        unwatchPageChange()
+        unwatchTogglePlayback()
+        if (isInjected) {
+            websiteMessenger.sendMessage('teardown')
+        }
+        websiteMessenger.removeAllListeners()
+        await contentExecuted.setValue(false)
+    })
 }
 
 export default defineContentScript({
     registration: 'runtime',
-    matches: [...INJECTS, '*://*.youtube.com/*'],
+    matches: [...INJECTS],
     async main() {
         if (!await contentExecuted.getValue()) {
             await init()

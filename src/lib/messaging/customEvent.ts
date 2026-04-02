@@ -7,6 +7,8 @@ interface CustomEventProtocol {
     getValue: (data: { property: MediaProperty }) => PropertyPayload<MediaProperty>
     pageChange: () => void
     togglePlayback: () => void
+    setup: () => void
+    teardown: () => void
 }
 
 export const websiteMessenger = defineCustomEventMessaging<CustomEventProtocol>({

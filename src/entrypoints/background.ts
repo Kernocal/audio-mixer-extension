@@ -11,6 +11,15 @@ export default defineBackground(() => {
     async function exitMixer() {
         await closeRecordDoc()
         browser.action.setBadgeText({ text: '' })
+        const tabId = await contentTabId.getValue()
+        if (tabId) {
+            try {
+                await sendMessage('teardownContent', undefined, tabId)
+            }
+            catch {
+                backgroundLogger.debug('teardownContent: content script not reachable')
+            }
+        }
         await storage.clear('session')
         backgroundLogger.info(i18n.t('messages.exiting'))
     }
@@ -71,6 +80,7 @@ export default defineBackground(() => {
             backgroundLogger.info('New domain: ', details)
             await contentTabUrl.setValue(details.url)
             await contentExecuted.setValue(false)
+            await pageChange.setValue(true)
             await executeContent(contentTab)
         }
     })
