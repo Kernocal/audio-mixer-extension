@@ -76,6 +76,8 @@ export default defineContentScript({
         '*://soundcloud.com/*',
         '*://open.spotify.com/*',
         '*://*.youtube.com/*',
+        '*://music.apple.com/*',
+        '*://tidal.com/*',
     ],
     world: 'MAIN',
     runAt: 'document_start',
