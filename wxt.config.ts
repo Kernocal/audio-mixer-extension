@@ -15,9 +15,6 @@ export default defineConfig({
             'webNavigation',
             'offscreen',
         ],
-        optional_host_permissions: [
-            '<all_urls>',
-        ],
         action: {},
     },
     srcDir: 'src',
