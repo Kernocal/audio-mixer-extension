@@ -42,6 +42,9 @@ importers:
       '@wxt-dev/unocss':
         specifier: ^1.0.1
         version: 1.0.1(unocss@66.6.7(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(yaml@2.8.2)))(wxt@0.20.20(@types/node@25.5.0)(eslint@10.1.0(jiti@2.6.1))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.55.1)(yaml@2.8.2))
+      defu:
+        specifier: ^6.1.4
+        version: 6.1.4
       eslint:
         specifier: ^10.1.0
         version: 10.1.0(jiti@2.6.1)
@@ -51,6 +54,9 @@ importers:
       publish-browser-extension:
         specifier: ^4.0.4
         version: 4.0.4
+      sharp:
+        specifier: ^0.34.5
+        version: 0.34.5
       svelte:
         specifier: ^5.54.1
         version: 5.54.1
@@ -3138,11 +3144,6 @@ packages:
   scule@1.3.0:
     resolution: {integrity: sha512-6FtHJEvt+pVMIB9IBY+IcCJ6Z5f1iQnytgyfKMhDKgmzYG+TeH/wx1y3l27rshSbLiSanrR9ffZDrEsmjlQF2g==}
 
-  semver@7.7.3:
-    resolution: {integrity: sha512-SdsKMrI9TdgjdweUSR9MweHA4EJ8YxHn8DFaDisvhVlUOe4BF1tLD7GAj0lIqWVl+dPb/rExr0Btby5loQm20Q==}
-    engines: {node: '>=10'}
-    hasBin: true
-
   semver@7.7.4:
     resolution: {integrity: sha512-vFKC2IEtQnVhpT78h1Yp8wzwrf8CM+MzKMHGJZfBtzhZNycRFnXsHk6E5TxIkkMsgNS7mdX3AGB7x2QM2di4lA==}
     engines: {node: '>=10'}
@@ -4523,7 +4524,7 @@ snapshots:
       '@typescript-eslint/visitor-keys': 8.57.1
       debug: 4.4.3
       minimatch: 10.2.4
-      semver: 7.7.3
+      semver: 7.7.4
       tinyglobby: 0.2.15
       ts-api-utils: 2.4.0(typescript@5.9.3)
       typescript: 5.9.3
@@ -5222,7 +5223,7 @@ snapshots:
   eslint-compat-utils@0.5.1(eslint@10.1.0(jiti@2.6.1)):
     dependencies:
       eslint: 10.1.0(jiti@2.6.1)
-      semver: 7.7.3
+      semver: 7.7.4
 
   eslint-config-flat-gitignore@2.2.1(eslint@10.1.0(jiti@2.6.1)):
     dependencies:
@@ -5261,7 +5262,7 @@ snapshots:
       empathic: 2.0.0
       eslint: 10.1.0(jiti@2.6.1)
       module-replacements: 2.11.0
-      semver: 7.7.3
+      semver: 7.7.4
 
   eslint-plugin-es-x@7.8.0(eslint@10.1.0(jiti@2.6.1)):
     dependencies:
@@ -5319,7 +5320,7 @@ snapshots:
       globals: 15.15.0
       globrex: 0.1.2
       ignore: 5.3.2
-      semver: 7.7.3
+      semver: 7.7.4
       ts-declaration-location: 1.0.7(typescript@5.9.3)
     transitivePeerDependencies:
       - typescript
@@ -5403,7 +5404,7 @@ snapshots:
       pluralize: 8.0.0
       regexp-tree: 0.1.27
       regjsparser: 0.13.0
-      semver: 7.7.3
+      semver: 7.7.4
       strip-indent: 4.1.1
 
   eslint-plugin-unused-imports@4.4.1(@typescript-eslint/eslint-plugin@8.57.1(@typescript-eslint/parser@8.57.1(eslint@10.1.0(jiti@2.6.1))(typescript@5.9.3))(eslint@10.1.0(jiti@2.6.1))(typescript@5.9.3))(eslint@10.1.0(jiti@2.6.1)):
@@ -5419,7 +5420,7 @@ snapshots:
       natural-compare: 1.4.0
       nth-check: 2.1.1
       postcss-selector-parser: 7.1.1
-      semver: 7.7.3
+      semver: 7.7.4
       vue-eslint-parser: 10.4.0(eslint@10.1.0(jiti@2.6.1))
       xml-name-validator: 4.0.0
     optionalDependencies:
@@ -5822,7 +5823,7 @@ snapshots:
     dependencies:
       acorn: 8.15.0
       eslint-visitor-keys: 5.0.0
-      semver: 7.7.3
+      semver: 7.7.4
 
   jsonfile@6.2.0:
     dependencies:
@@ -6799,8 +6800,6 @@ snapshots:
 
   scule@1.3.0: {}
 
-  semver@7.7.3: {}
-
   semver@7.7.4: {}
 
   serialize-error@11.0.3:
@@ -7263,7 +7262,7 @@ snapshots:
       eslint-visitor-keys: 5.0.0
       espree: 11.0.0
       esquery: 1.7.0
-      semver: 7.7.3
+      semver: 7.7.4
     transitivePeerDependencies:
       - supports-color
 

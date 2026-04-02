@@ -1,5 +1,6 @@
 <script lang='ts'>
     import type { Preset } from 'lib/types'
+    import { i18n } from '#imports'
     import { sendMessage } from 'lib/messaging'
     import { animation, knobStyle, playbackRate, presets } from 'lib/storage/items.svelte'
     import { allKnobs } from 'lib/util/knobSprite.svelte'
@@ -49,11 +50,11 @@
 <a bind:this={downloadLink} href='google.com' aria-hidden='true' hidden>export</a>
 
 <div class='container'>
-    <h3>Settings</h3>
+    <h3>{i18n.t('ui.labels.settings')}</h3>
 
     <label class='toggle'>
         <input type='checkbox' bind:checked={animation.value} />
-        <span>Popup background animation</span>
+        <span>{i18n.t('ui.labels.popupAnimation')}</span>
     </label>
 
     {#await allKnobs() then knobs}
@@ -75,27 +76,27 @@
         </div>
     {/await}
 
-    <h3>Custom Presets</h3>
+    <h3>{i18n.t('ui.labels.customPresets')}</h3>
 
     {#if customPresets.length === 0}
-        <p class='empty'>No custom presets</p>
+        <p class='empty'>{i18n.t('ui.labels.noCustomPresets')}</p>
     {:else}
         {#each customPresets as preset (preset.name)}
             <div class='preset'>
                 <span class='name'>{preset.name}</span>
                 <div class='props'>
-                    <span>speed {preset.properties.playbackRate}</span>
-                    <span>pitch {preset.properties.pitch}</span>
-                    <span>reverb {preset.properties.reverbDecay}</span>
+                    <span>{i18n.t('ui.labels.speed').toLowerCase()} {preset.properties.playbackRate}</span>
+                    <span>{i18n.t('ui.labels.pitch').toLowerCase()} {preset.properties.pitch}</span>
+                    <span>{i18n.t('ui.labels.reverb').toLowerCase()} {preset.properties.reverbDecay}</span>
                 </div>
             </div>
         {/each}
     {/if}
 
     <div class='actions'>
-        <button onclick={importCustom}>import</button>
-        <button onclick={exportCustom}>export</button>
-        <button onclick={resetCustom}>reset</button>
+        <button onclick={importCustom}>{i18n.t('ui.buttons.import').toLowerCase()}</button>
+        <button onclick={exportCustom}>{i18n.t('ui.buttons.export').toLowerCase()}</button>
+        <button onclick={resetCustom}>{i18n.t('ui.buttons.reset').toLowerCase()}</button>
     </div>
 </div>
 

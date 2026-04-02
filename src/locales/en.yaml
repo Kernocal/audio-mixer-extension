@@ -14,6 +14,11 @@ ui:
     presets: "Presets"
     custom: "Custom"
     newPresetName: "New Preset Name"
+    settings: "Settings"
+    popupAnimation: "Popup background animation"
+    customPresets: "Custom Presets"
+    noCustomPresets: "No custom presets"
+    speed: "Speed"
   buttons:
     playPause: "Play/Pause"
     quit: "Quit"
@@ -21,6 +26,9 @@ ui:
     cancel: "Cancel"
     savePreset: "Save preset"
     deletePreset: "Delete preset"
+    import: "Import"
+    export: "Export"
+    reset: "Reset"
   presets:
     default: "Default/Reset"
     classicNightcore: "Classic Nightcore"
