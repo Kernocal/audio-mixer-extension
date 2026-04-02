@@ -1,5 +1,43 @@
 # Changelog
 
+## v1.8.0
+
+[compare changes](https://github.com/Kernocal/audio-mixer-extension/compare/v1.7.0...v1.8.0)
+
+### 🚀 Enhancements
+
+- More languages. ([ce75535](https://github.com/Kernocal/audio-mixer-extension/commit/ce75535))
+- More music sites. ([a2dc599](https://github.com/Kernocal/audio-mixer-extension/commit/a2dc599))
+
+### 🩹 Fixes
+
+- Fix internal edge pages not being excluded. ([136f02f](https://github.com/Kernocal/audio-mixer-extension/commit/136f02f))
+- Initial values should be correct, page navigation won't break as much, quitting will give site control, spotify fix. ([e10ab6c](https://github.com/Kernocal/audio-mixer-extension/commit/e10ab6c))
+- Page navigations within the same site, within different sites, for spotify should work better, values shouldn't get lost or reset. ([bd06eee](https://github.com/Kernocal/audio-mixer-extension/commit/bd06eee))
+- Translate default preset names. ([b684af5](https://github.com/Kernocal/audio-mixer-extension/commit/b684af5))
+- Remove testing permission. ([a642092](https://github.com/Kernocal/audio-mixer-extension/commit/a642092))
+
+### 📖 Documentation
+
+- Changelog. ([4577b64](https://github.com/Kernocal/audio-mixer-extension/commit/4577b64))
+- Move everything. ([b198d9f](https://github.com/Kernocal/audio-mixer-extension/commit/b198d9f))
+- Oops. ([16b20da](https://github.com/Kernocal/audio-mixer-extension/commit/16b20da))
+
+### 🏡 Chore
+
+- Add version. ([bb07ede](https://github.com/Kernocal/audio-mixer-extension/commit/bb07ede))
+- Fix dependency. ([b77da21](https://github.com/Kernocal/audio-mixer-extension/commit/b77da21))
+- Add debug edge path. ([5442346](https://github.com/Kernocal/audio-mixer-extension/commit/5442346))
+- No longer a big deal to close offscreen even if it isn't open. ([865066a](https://github.com/Kernocal/audio-mixer-extension/commit/865066a))
+- Yaml being weird. ([c07a739](https://github.com/Kernocal/audio-mixer-extension/commit/c07a739))
+- Move old keys, rename old names. ([bf4b47a](https://github.com/Kernocal/audio-mixer-extension/commit/bf4b47a))
+- Update old keys. ([5e752a1](https://github.com/Kernocal/audio-mixer-extension/commit/5e752a1))
+- Lint. ([48adc49](https://github.com/Kernocal/audio-mixer-extension/commit/48adc49))
+
+### ❤️ Contributors
+
+- Kern ([@KernApps](https://github.com/KernApps))
+
 ## v1.7.0
 
 [compare changes](https://github.com/Kernocal/audio-mixer-extension/compare/v1.5.0...v1.7.0)
