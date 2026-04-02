@@ -27,7 +27,7 @@ export async function openRecordDoc(streamId: string) {
 export async function closeRecordDoc() {
     const isOpen = await isRecordOpen()
     if (!isOpen) {
-        backgroundLogger.warn("offscreen document isn't open but tried to be closed.")
+        backgroundLogger.warn('offscreen document isn\'t open but tried to be closed.')
         return
     }
     await browser.offscreen.closeDocument()
