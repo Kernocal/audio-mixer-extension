@@ -1,0 +1,36 @@
+name: Website Request
+description: Request support for a new website
+title: '[SITE] - '
+labels: ['enhancement', 'site-request']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for using the extension. Please fill out the sections below to help me add support for the website.
+
+  - type: input
+    id: website-name
+    attributes:
+      label: Website Name
+      description: What is the website's name?
+      placeholder: 'e.g. YouTube, Spotify, etc.'
+    validations:
+      required: true
+
+  - type: input
+    id: website-url
+    attributes:
+      label: Website URL
+      description: Can you provide a link to the website?
+      placeholder: 'e.g. https://www.example.com'
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the solution you'd like
+      description: What isn't working on it or what would you like to see?
+      placeholder: 'e.g. The volume slider doesn''t appear, or I want a specific feature for this site...'
+    validations:
+      required: false

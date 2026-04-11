@@ -1,0 +1,94 @@
+name: Bug Report
+description: Report a bug
+title: '[BUG] - '
+labels: ['bug']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for using the extension. Please fill out the sections below to help me investigate.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: What happened?
+      placeholder: 'e.g. "When X happens, I expected Y to happen instead..."'
+    validations:
+      required: false
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: How did you encounter the issue?
+      placeholder: |
+        1. Open the extension popup
+        2. Navigate to '...'
+        3. Click on '...'
+        4. See error
+    validations:
+      required: false
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser
+      description: Which browser are you using?
+      multiple: false
+      options:
+        - Chrome
+        - Edge
+        - Firefox
+        - Opera
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: browser-version
+    attributes:
+      label: Browser Version
+      description: 'Find it in your browser settings → About'
+      placeholder: 'e.g. 136.0.6778.70'
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      multiple: false
+      options:
+        - Windows
+        - Linux
+        - macOS
+        - ChromeOS
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: extension-version
+    attributes:
+      label: Extension Version
+      description: 'Found on extensions page (e.g. chrome://extensions)'
+      placeholder: 'e.g. 0.2.2'
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots / Console Errors
+      description: Drag & drop screenshots or paste any console errors (F12 → Console tab).
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other details you wanna add.
+    validations:
+      required: false
