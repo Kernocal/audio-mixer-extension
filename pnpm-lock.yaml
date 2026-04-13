@@ -19,11 +19,11 @@ importers:
         specifier: ^7.7.3
         version: 7.7.3(@typescript-eslint/rule-tester@8.57.1(eslint@10.1.0(jiti@2.6.1))(typescript@5.9.3))(@typescript-eslint/typescript-estree@8.57.1(typescript@5.9.3))(@typescript-eslint/utils@8.57.1(eslint@10.1.0(jiti@2.6.1))(typescript@5.9.3))(@unocss/eslint-plugin@66.6.7(eslint@10.1.0(jiti@2.6.1))(typescript@5.9.3))(@vue/compiler-sfc@3.5.26)(eslint-plugin-svelte@3.16.0(eslint@10.1.0(jiti@2.6.1))(svelte@5.54.1))(eslint@10.1.0(jiti@2.6.1))(svelte-eslint-parser@1.4.1(svelte@5.54.1))(typescript@5.9.3)
       '@kernocal/validate-store':
-        specifier: 0.1.8
-        version: 0.1.8(wxt@0.20.20(@types/node@25.5.0)(eslint@10.1.0(jiti@2.6.1))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.55.1)(yaml@2.8.2))
+        specifier: 0.1.9
+        version: 0.1.9(wxt@0.20.20(@types/node@25.5.0)(eslint@10.1.0(jiti@2.6.1))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.55.1)(yaml@2.8.2))
       '@kernocal/viteshot':
         specifier: 0.1.4
-        version: 0.1.4(@kernocal/validate-store@0.1.8(wxt@0.20.20(@types/node@25.5.0)(eslint@10.1.0(jiti@2.6.1))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.55.1)(yaml@2.8.2)))(svelte@5.54.1)(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(yaml@2.8.2))
+        version: 0.1.4(@kernocal/validate-store@0.1.9(wxt@0.20.20(@types/node@25.5.0)(eslint@10.1.0(jiti@2.6.1))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.55.1)(yaml@2.8.2)))(svelte@5.54.1)(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(yaml@2.8.2))
       '@sveltejs/vite-plugin-svelte':
         specifier: ^7.0.0
         version: 7.0.0(svelte@5.54.1)(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(yaml@2.8.2))
@@ -654,8 +654,8 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@kernocal/validate-store@0.1.8':
-    resolution: {integrity: sha512-v8UfRdPVdq/V7CPh8jTgjsnEWFK1a+dcwfcc++xAwR4I3jOMtWBpJ6qxulf9OrLrz9MdyiYqncPbBmWvITc4uA==}
+  '@kernocal/validate-store@0.1.9':
+    resolution: {integrity: sha512-ZHmarcbyXc+HhAVcwWme8JxhtbPW8Zo4XD3NW/Vfm+GrzLLR5ltt3h7On58dTTgeTzFkbY/hMfKlUv82wmvU1A==}
     peerDependencies:
       wxt: '>=0.19.0'
 
@@ -4417,14 +4417,14 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@kernocal/validate-store@0.1.8(wxt@0.20.20(@types/node@25.5.0)(eslint@10.1.0(jiti@2.6.1))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.55.1)(yaml@2.8.2))':
+  '@kernocal/validate-store@0.1.9(wxt@0.20.20(@types/node@25.5.0)(eslint@10.1.0(jiti@2.6.1))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.55.1)(yaml@2.8.2))':
     dependencies:
       defu: 6.1.4
       jiti: 2.6.1
       sharp: 0.34.5
       wxt: 0.20.20(@types/node@25.5.0)(eslint@10.1.0(jiti@2.6.1))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.55.1)(yaml@2.8.2)
 
-  '@kernocal/viteshot@0.1.4(@kernocal/validate-store@0.1.8(wxt@0.20.20(@types/node@25.5.0)(eslint@10.1.0(jiti@2.6.1))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.55.1)(yaml@2.8.2)))(svelte@5.54.1)(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(yaml@2.8.2))':
+  '@kernocal/viteshot@0.1.4(@kernocal/validate-store@0.1.9(wxt@0.20.20(@types/node@25.5.0)(eslint@10.1.0(jiti@2.6.1))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.55.1)(yaml@2.8.2)))(svelte@5.54.1)(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(yaml@2.8.2))':
     dependencies:
       async-mutex: 0.5.0
       jiti: 2.6.1
@@ -4434,7 +4434,7 @@ snapshots:
       puppeteer-core: 24.40.0
       vite: 8.0.1(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(yaml@2.8.2)
     optionalDependencies:
-      '@kernocal/validate-store': 0.1.8(wxt@0.20.20(@types/node@25.5.0)(eslint@10.1.0(jiti@2.6.1))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.55.1)(yaml@2.8.2))
+      '@kernocal/validate-store': 0.1.9(wxt@0.20.20(@types/node@25.5.0)(eslint@10.1.0(jiti@2.6.1))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.55.1)(yaml@2.8.2))
       svelte: 5.54.1
     transitivePeerDependencies:
       - bare-abort-controller
