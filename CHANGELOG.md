@@ -1,5 +1,37 @@
 # Changelog
 
+## v1.9.0
+
+[compare changes](https://github.com/Kernocal/audio-mixer-extension/compare/v1.8.0...v1.9.0)
+
+### 🚀 Enhancements
+
+- Two new options, 1) default volume 2) save volume to custom presets, if you want volume to save and load as well. ([b597c4e](https://github.com/Kernocal/audio-mixer-extension/commit/b597c4e))
+
+### 🩹 Fixes
+
+- Oops. ([2d63b69](https://github.com/Kernocal/audio-mixer-extension/commit/2d63b69))
+
+### 📖 Documentation
+
+- Better github templates. ([198dbdf](https://github.com/Kernocal/audio-mixer-extension/commit/198dbdf))
+
+### 📦 Build
+
+- Use newer versions. ([93f2f0d](https://github.com/Kernocal/audio-mixer-extension/commit/93f2f0d))
+
+### 🏡 Chore
+
+- Use published fork. ([f723ae2](https://github.com/Kernocal/audio-mixer-extension/commit/f723ae2))
+
+### 🤖 CI
+
+- Better release flow. ([eedfb9a](https://github.com/Kernocal/audio-mixer-extension/commit/eedfb9a))
+
+### ❤️ Contributors
+
+- Kern ([@KernApps](https://github.com/KernApps))
+
 ## v1.8.0
 
 [compare changes](https://github.com/Kernocal/audio-mixer-extension/compare/v1.7.0...v1.8.0)
