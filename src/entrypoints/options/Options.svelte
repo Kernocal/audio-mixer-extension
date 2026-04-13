@@ -1,8 +1,10 @@
 <script lang='ts'>
+    import type { StorageBinding } from 'lib/storage/items.svelte'
     import type { Preset } from 'lib/types'
     import { i18n } from '#imports'
+    import PresetBadges from 'lib/components/PresetBadges.svelte'
     import { sendMessage } from 'lib/messaging'
-    import { animation, knobStyle, playbackRate, presets } from 'lib/storage/items.svelte'
+    import { animatePopup, defaultVolume, includeVolume, knobStyle, playbackRate, presets } from 'lib/storage/items.svelte'
     import { allKnobs } from 'lib/util/knobSprite.svelte'
 
     let fileInput: HTMLInputElement
@@ -45,6 +47,12 @@
         presets.value = builtinPresets
     }
 </script>
+{#snippet label(checked: StorageBinding<boolean>, label: string)}
+    <label class='toggle'>
+        <input type='checkbox' bind:checked={checked.value} />
+        <span>{label}</span>
+    </label>
+{/snippet}
 
 <input bind:this={fileInput} type='file' accept='.json' onchange={onFileSelected} hidden />
 <a bind:this={downloadLink} href='google.com' aria-hidden='true' hidden>export</a>
@@ -52,9 +60,13 @@
 <div class='container'>
     <h3>{i18n.t('ui.labels.settings')}</h3>
 
+    {@render label(animatePopup, i18n.t('ui.labels.popupAnimation'))}
+    {@render label(includeVolume, i18n.t('ui.labels.includeVolume'))}
+
     <label class='toggle'>
-        <input type='checkbox' bind:checked={animation.value} />
-        <span>{i18n.t('ui.labels.popupAnimation')}</span>
+        <span>{i18n.t('ui.labels.defaultVolume')}</span>
+        <input type='range' min={0} max={1} step={0.01} bind:value={defaultVolume.value} />
+        <span>{Math.round(defaultVolume.value * 100)}%</span>
     </label>
 
     {#await allKnobs() then knobs}
@@ -81,13 +93,11 @@
     {#if customPresets.length === 0}
         <p class='empty'>{i18n.t('ui.labels.noCustomPresets')}</p>
     {:else}
-        {#each customPresets as preset (preset.name)}
+        {#each customPresets as preset, i (i)}
             <div class='preset'>
                 <span class='name'>{preset.name}</span>
                 <div class='props'>
-                    <span>{i18n.t('ui.labels.speed').toLowerCase()} {preset.properties.playbackRate}</span>
-                    <span>{i18n.t('ui.labels.pitch').toLowerCase()} {preset.properties.pitch}</span>
-                    <span>{i18n.t('ui.labels.reverb').toLowerCase()} {preset.properties.reverbDecay}</span>
+                    <PresetBadges properties={preset.properties} />
                 </div>
             </div>
         {/each}

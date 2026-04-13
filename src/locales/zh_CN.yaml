@@ -16,9 +16,16 @@ ui:
     newPresetName: "新预设名称"
     settings: "设置"
     popupAnimation: "弹出窗口背景动画"
+    includeVolume: "在自定义预设中包含音量"
+    defaultVolume: "默认音量:"
     customPresets: "自定义预设"
     noCustomPresets: "无自定义预设"
     speed: "速度"
+  badges:
+    volume: "音量"
+    playbackRate: "速度"
+    pitch: "音调"
+    reverb: "混响"
   buttons:
     playPause: "播放/暂停"
     quit: "退出"

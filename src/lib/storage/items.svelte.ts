@@ -39,6 +39,8 @@ class StorageValue<T> {
     }
 }
 
+export type StorageBinding<T> = StorageValue<T>
+
 // session
 export const volume = new StorageValue(items.volume)
 export const playbackRate = new StorageValue(items.playbackRate)
@@ -50,5 +52,7 @@ export const reverbWet = new StorageValue(items.reverbWet)
 export const togglePlayback = new StorageValue(items.togglePlayback)
 // options
 export const presets = new StorageValue(items.presets)
-export const animation = new StorageValue(items.animation)
 export const knobStyle = new StorageValue(items.knobStyle)
+export const animatePopup = new StorageValue(items.animatePopup)
+export const includeVolume = new StorageValue(items.includeVolume)
+export const defaultVolume = new StorageValue(items.defaultVolume)

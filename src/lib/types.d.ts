@@ -12,6 +12,7 @@ export interface PresetProperties {
     pitchWet: number
     reverbDecay: number
     reverbWet: number
+    volume?: number
 }
 
 export interface Preset {

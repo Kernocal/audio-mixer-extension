@@ -16,9 +16,16 @@ ui:
     newPresetName: "Nombre del nuevo ajuste"
     settings: "Ajustes"
     popupAnimation: "Animación de fondo emergente"
+    includeVolume: "Incluir volumen en ajustes personalizados"
+    defaultVolume: "Volumen predeterminado:"
     customPresets: "Ajustes personalizados"
     noCustomPresets: "No hay ajustes personalizados"
     speed: "Velocidad"
+  badges:
+    volume: "volumen"
+    playbackRate: "velocidad"
+    pitch: "tono"
+    reverb: "reverb"
   buttons:
     playPause: "Reproducir/Pausar"
     quit: "Salir"
