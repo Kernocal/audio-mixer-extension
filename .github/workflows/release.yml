@@ -1,0 +1,159 @@
+name: Release
+on:
+  workflow_dispatch:
+    inputs:
+      firstRelease:
+        type: boolean
+        default: false
+        description: First release (skip store submission, create GitHub release only)
+      dryRun:
+        type: boolean
+        default: false
+        description: Dry run (no commit, no tag, no submission)
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate
+    uses: ./.github/workflows/validate.yml
+    secrets: inherit
+
+  release:
+    name: Release
+    runs-on: ubuntu-24.04
+    needs: [validate]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Configure Git
+        run: |
+          git config user.email "github-actions@users.noreply.github.com"
+          git config user.name "GitHub Actions"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Bump Version
+        if: ${{ !inputs.firstRelease }}
+        id: bump
+        run: |
+          pnpm dlx changelogen@latest --bump
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Get Current Version
+        if: ${{ inputs.firstRelease }}
+        id: current
+        run: |
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          pnpm dlx changelogen@latest --r "$NEW_VERSION" --output CHANGELOG.md --no-bump
+          echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Set Version
+        id: version
+        run: echo "value=${{ steps.bump.outputs.version || steps.current.outputs.version }}" >> "$GITHUB_OUTPUT"
+
+      - name: Check Tag
+        run: |
+          if git rev-parse "v${{ steps.version.outputs.value }}" >/dev/null 2>&1; then
+            echo "::error::Tag v${{ steps.version.outputs.value }} already exists"
+            exit 1
+          fi
+
+      - name: Build and Zip
+        run: |
+          pnpm run zip
+          pnpm run zip-edge
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          path: .output/*.zip
+          if-no-files-found: error
+          include-hidden-files: true
+
+      - name: Commit and Push
+        if: ${{ !inputs.dryRun }}
+        run: |
+          git add package.json CHANGELOG.md
+          git commit -m "chore(release): v${{ steps.version.outputs.value }} [skip ci]"
+          git tag "v${{ steps.version.outputs.value }}"
+          git push
+          git push --tags
+
+      - name: Create GitHub Release
+        if: ${{ !inputs.dryRun }}
+        run: pnpm dlx changelogen@latest gh release ${{ steps.version.outputs.value }} --token ${{ github.token }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Upload Release Assets
+        if: ${{ !inputs.dryRun }}
+        run: gh release upload "v${{ steps.version.outputs.value }}" .output/*.zip
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Submit to Chrome Web Store
+        if: ${{ !inputs.firstRelease && !inputs.dryRun }}
+        id: chrome
+        continue-on-error: true
+        run: |
+          pnpm publish-extension \
+            --chrome-zip .output/*-chrome.zip
+        env:
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+
+      - name: Submit to Edge Add-ons
+        if: ${{ !inputs.firstRelease && !inputs.dryRun }}
+        id: edge
+        continue-on-error: true
+        run: |
+          pnpm publish-extension \
+            --edge-zip .output/*-edge.zip
+        env:
+          EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
+          EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
+          EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
+
+      - name: Submission Summary
+        if: ${{ !inputs.firstRelease && !inputs.dryRun }}
+        run: |
+          echo "### Store Submissions" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Chrome: ${{ steps.chrome.outcome }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Edge: ${{ steps.edge.outcome }}" >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "${{ steps.chrome.outcome }}" == "failure" ]; then
+            echo "::warning::Chrome Web Store submission failed"
+          fi
+          if [ "${{ steps.edge.outcome }}" == "failure" ]; then
+            echo "::warning::Edge Add-ons submission failed"
+          fi
+
+      - name: First Release Summary
+        if: ${{ inputs.firstRelease && !inputs.dryRun }}
+        run: |
+          echo "### First Release Complete" >> "$GITHUB_STEP_SUMMARY"
+          echo "GitHub release **v${{ steps.version.outputs.value }}** created." >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Next steps:** Submit manually to store dashboards:" >> "$GITHUB_STEP_SUMMARY"
+          echo "- [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- [Edge Add-ons Developer Dashboard](https://partner.microsoft.com/dashboard/microsoftedge)" >> "$GITHUB_STEP_SUMMARY"

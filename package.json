@@ -8,6 +8,7 @@
         "build": "wxt build",
         "debug": "wxt build --mode testing",
         "zip": "wxt zip",
+        "zip-edge": "wxt zip -b edge",
         "check": "svelte-check --tsconfig ./tsconfig.json",
         "postinstall": "wxt prepare",
         "lint": "eslint .",
