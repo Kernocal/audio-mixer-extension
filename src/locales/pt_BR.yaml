@@ -16,9 +16,16 @@ ui:
     newPresetName: "Nome da predefinição"
     settings: "Configurações"
     popupAnimation: "Animação de fundo do pop-up"
+    includeVolume: "Incluir volume nas predefinições personalizadas"
+    defaultVolume: "Volume padrão:"
     customPresets: "Predefinições personalizadas"
     noCustomPresets: "Nenhuma predefinição personalizada"
     speed: "Velocidade"
+  badges:
+    volume: "volume"
+    playbackRate: "velocidade"
+    pitch: "tom"
+    reverb: "reverb"
   buttons:
     playPause: "Reproduzir/Pausar"
     quit: "Sair"

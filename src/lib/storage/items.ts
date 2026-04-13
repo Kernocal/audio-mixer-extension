@@ -1,4 +1,4 @@
-import type { Preset } from 'lib/types'
+import type { Preset, PresetProperties } from 'lib/types'
 import { storage } from '#imports'
 
 const DEFAULT_PRESETS: Preset[] = [
@@ -8,17 +8,35 @@ const DEFAULT_PRESETS: Preset[] = [
     { name: 'ui.presets.roomyReverb', user: false, properties: { playbackRate: 1, pitch: 0, pitchWet: 0, reverbDecay: 1.5, reverbWet: 0.8 } },
 ]
 
-export const volume = storage.defineItem<number>('session:volume', { fallback: 0.06767 })
-export const playbackRate = storage.defineItem<number>('session:playbackRate', { fallback: 1 })
-export const pitch = storage.defineItem<number>('session:pitch', { fallback: 0 })
-export const pitchWet = storage.defineItem<number>('session:pitchWet', { fallback: 0 })
-export const reverbDecay = storage.defineItem<number>('session:reverbDecay', { fallback: 0.01 })
-export const reverbWet = storage.defineItem<number>('session:reverbWet', { fallback: 0 })
+export const DEFAULT_PROPERTIES: Required<PresetProperties> = {
+    playbackRate: 1,
+    pitch: 0,
+    pitchWet: 0,
+    reverbDecay: 0.01,
+    reverbWet: 0,
+    volume: 0.06767,
+}
+
+const DEFAULT_SETTINGS = {
+    animatePopup: true,
+    includeVolume: false,
+    knobStyle: '/knobs/SmallLedKnob2.png',
+}
+
+export const volume = storage.defineItem<number>('session:volume', { fallback: DEFAULT_PROPERTIES.volume })
+export const playbackRate = storage.defineItem<number>('session:playbackRate', { fallback: DEFAULT_PROPERTIES.playbackRate })
+export const pitch = storage.defineItem<number>('session:pitch', { fallback: DEFAULT_PROPERTIES.pitch })
+export const pitchWet = storage.defineItem<number>('session:pitchWet', { fallback: DEFAULT_PROPERTIES.pitchWet })
+export const reverbDecay = storage.defineItem<number>('session:reverbDecay', { fallback: DEFAULT_PROPERTIES.reverbDecay })
+export const reverbWet = storage.defineItem<number>('session:reverbWet', { fallback: DEFAULT_PROPERTIES.reverbWet })
 
 export const presets = storage.defineItem<Preset[]>('local:presets', { fallback: DEFAULT_PRESETS })
 export const togglePlayback = storage.defineItem<boolean>('session:togglePlayback', { fallback: false })
-export const animation = storage.defineItem<boolean>('local:animation', { fallback: true })
-export const knobStyle = storage.defineItem<string>('local:knobStyle', { fallback: '/knobs/SmallLedKnob2.png' })
+// settings
+export const animatePopup = storage.defineItem<boolean>('local:animatePopup', { fallback: DEFAULT_SETTINGS.animatePopup })
+export const includeVolume = storage.defineItem<boolean>('local:includeVolume', { fallback: DEFAULT_SETTINGS.includeVolume })
+export const defaultVolume = storage.defineItem<number>('local:defaultVolume', { fallback: DEFAULT_PROPERTIES.volume })
+export const knobStyle = storage.defineItem<string>('local:knobStyle', { fallback: DEFAULT_SETTINGS.knobStyle })
 
 // background
 // default of 0 may break stuff gl

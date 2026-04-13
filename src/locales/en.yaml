@@ -16,9 +16,16 @@ ui:
     newPresetName: "New Preset Name"
     settings: "Settings"
     popupAnimation: "Popup background animation"
+    includeVolume: "Include volume in custom presets"
+    defaultVolume: "Default volume:"
     customPresets: "Custom Presets"
     noCustomPresets: "No custom presets"
     speed: "Speed"
+  badges:
+    volume: "volume"
+    playbackRate: "speed"
+    pitch: "pitch"
+    reverb: "reverb"
   buttons:
     playPause: "Play/Pause"
     quit: "Quit"

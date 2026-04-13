@@ -16,9 +16,16 @@ ui:
     newPresetName: "新しいプリセット名"
     settings: "設定"
     popupAnimation: "ポップアップ背景のアニメーション"
+    includeVolume: "カスタムプリセットに音量を含める"
+    defaultVolume: "デフォルト音量:"
     customPresets: "カスタムプリセット"
     noCustomPresets: "カスタムプリセットなし"
     speed: "速度"
+  badges:
+    volume: "音量"
+    playbackRate: "速度"
+    pitch: "ピッチ"
+    reverb: "リバーブ"
   buttons:
     playPause: "再生/一時停止"
     quit: "終了"

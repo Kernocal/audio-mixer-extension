@@ -16,9 +16,16 @@ ui:
     newPresetName: "Назва нового пресета"
     settings: "Налаштування"
     popupAnimation: "Анімація фону попапа"
+    includeVolume: "Включити гучність у пресети"
+    defaultVolume: "Гучність за замовчуванням:"
     customPresets: "Користувацькі пресети"
     noCustomPresets: "Немає користувацьких пресетів"
     speed: "Швидкість"
+  badges:
+    volume: "гучність"
+    playbackRate: "швидкість"
+    pitch: "тон"
+    reverb: "реверб"
   buttons:
     playPause: "Пуск/Пауза"
     quit: "Закрити"

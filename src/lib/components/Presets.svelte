@@ -2,9 +2,10 @@
     import type { Preset, ToneProperty } from 'lib/types'
     import { i18n } from '#imports'
     import GitHub from 'lib/assets/github.png'
+    import PresetBadges from 'lib/components/PresetBadges.svelte'
     import { popupLogger } from 'lib/logger'
     import { sendMessage } from 'lib/messaging'
-    import { pitch, pitchWet, playbackRate, presets, reverbDecay, reverbWet } from 'lib/storage/items.svelte'
+    import { defaultVolume, includeVolume, pitch, pitchWet, playbackRate, presets, reverbDecay, reverbWet, volume } from 'lib/storage/items.svelte'
 
     interface Props {
         status: string
@@ -16,19 +17,39 @@
         disabled,
     }: Props = $props()
 
+    const volumeFallback = $derived(defaultVolume.value)
+
     let dialog: HTMLDialogElement
     let NEW_PRESET_NAME = $state('')
+
     const activePresetIndex = $derived.by(() => {
-        const current = {
+        const current: Record<string, number> = {
             pitch: pitch.value,
             pitchWet: pitchWet.value,
             reverbDecay: reverbDecay.value,
             reverbWet: reverbWet.value,
             playbackRate: playbackRate.value,
         }
-        const index = presets.value.findIndex(p =>
-            Object.entries(p.properties).every(([k, v]) => current[k as keyof typeof current] === v),
-        )
+
+        if (includeVolume.value)
+            current.volume = volume.value
+
+        const index = presets.value.findIndex((p) => {
+            const propsMatch = Object.entries(p.properties).every(([key, val]) => {
+                if (key === 'volume')
+                    return !includeVolume.value || Math.abs(current.volume - val) < 0.001
+
+                return current[key] !== undefined && Math.abs(current[key] - val) < 0.001
+            })
+            if (!propsMatch)
+                return false
+
+            // Default presets lack a volume key — compare against fallback
+            if (includeVolume.value && p.properties.volume === undefined)
+                return Math.abs(current.volume - volumeFallback) < 0.001
+
+            return true
+        })
         return index === -1 ? null : index
     })
     const activePreset = $derived(activePresetIndex !== null ? presets.value[activePresetIndex] : null)
@@ -48,6 +69,7 @@
                 reverbDecay: reverbDecay.value,
                 reverbWet: reverbWet.value,
                 playbackRate: playbackRate.value,
+                ...(includeVolume.value && { volume: volume.value }),
             },
         }
         presets.update(cur => [...cur, newPreset])
@@ -58,14 +80,24 @@
     }
 
     function applyPreset(preset: Preset) {
-        popupLogger.debug(`Setting Preset ${JSON.stringify(preset)}`)
-        const storageMap = { pitch, pitchWet, reverbDecay, reverbWet, playbackRate } as const
+        popupLogger.debug(`Applying Preset: ${preset.name}`)
+
+        const storageMap = { pitch, pitchWet, reverbDecay, reverbWet, playbackRate, volume } as const
         for (const [key, value] of Object.entries(preset.properties)) {
-            storageMap[key as keyof typeof storageMap].value = value as number
-            if (key !== 'playbackRate') {
+            if (key === 'volume' && !includeVolume.value)
+                continue
+
+            const item = storageMap[key as keyof typeof storageMap]
+            if (item)
+                item.value = value as number
+
+            if (!['playbackRate', 'volume'].includes(key))
                 sendMessage('setOffscreenValue', { property: key as ToneProperty, value: value as number })
-            }
         }
+
+        // When setting is enabled but preset has no volume, apply fallback
+        if (includeVolume.value && preset.properties.volume === undefined)
+            volume.value = volumeFallback
     }
 
 </script>
@@ -86,9 +118,9 @@
     <div class='custom-scrollbar pb-2 pl-2 pt-1 flex flex-1 flex-col w-full overflow-y-scroll children:(rounded-md)'>
         {#each presets.value as preset, i}
             <label
-                class={['font-medium cursor-pointer mb-1 p-2 pr-4 hover:(bg-mixer-secondary/30)', activePresetIndex === i && !disabled ? 'bg-mixer-secondary/30' : 'bg-mixer-secondary/10']}>
+                class={['flex items-center gap-2 font-medium cursor-pointer mb-1 p-2 pr-4 hover:(bg-mixer-secondary/30)', activePresetIndex === i && !disabled ? 'bg-mixer-secondary/30' : 'bg-mixer-secondary/10']}>
                 <input
-                    class='radio mx-2 mt-auto'
+                    class='radio mx-2 shrink-0 self-center'
                     type='radio'
                     name='activePreset'
                     disabled={disabled}
@@ -96,7 +128,14 @@
                     value={i}
                     onclick={() => applyPreset(preset)}
                 >
-                <span class='text-sm text-light-600 m-auto'>{preset.user ? preset.name : i18n.t(preset.name as any)}</span>
+                <div class='my-auto flex flex-col gap-0.5'>
+                    <span class='text-sm text-light-600'>
+                        {preset.user ? preset.name : i18n.t(preset.name as any)}
+                    </span>
+                    <div class='flex gap-1'>
+                        <PresetBadges properties={preset.properties} />
+                    </div>
+                </div>
             </label>
         {/each}
         <label
@@ -213,4 +252,5 @@ dialog {
 .filter-svg {
     filter: invert(14%) sepia(65%) saturate(6557%) hue-rotate(272deg) brightness(89%) contrast(91%);
 }
+
 </style>

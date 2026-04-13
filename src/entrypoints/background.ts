@@ -3,7 +3,7 @@ import { backgroundLogger } from 'lib/logger'
 import { onMessage, sendMessage } from 'lib/messaging'
 import { contentExecuted, contentTabId, contentTabUrl, installDate, pageChange } from 'lib/storage/items'
 import { executeContent } from 'lib/util/handleScript'
-import { fixLegacyPresets } from 'lib/util/legacy'
+import { fixLegacy } from 'lib/util/legacy'
 import { getActiveTab, validTab } from 'lib/util/manageTab'
 import { closeRecordDoc, isRecordOpen, openRecordDoc } from 'lib/util/offscreen'
 
@@ -70,7 +70,7 @@ export default defineBackground(() => {
 
         // real stuff
         await browser.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' })
-        await fixLegacyPresets(details)
+        await fixLegacy(details)
     })
 
     // stay working across page changes
